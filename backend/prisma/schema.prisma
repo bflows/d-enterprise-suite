@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String @id @default(cuid())
+  email        String @unique
+  passwordHash String
+
+  firstName   String
+  lastName    String
+  phoneNumber String
+  profileImg  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  refreshSessions RefreshSession[]
+  employees       Employee[]
+}
+
+model RefreshSession {
+  id               String @id @default(cuid())
+  userId           String
+  refreshTokenHash String
+
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  userAgent String?
+  ip        String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Company {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roles     Role[]
+  employees Employee[]
+}
+
+model Role {
+  id        String @id @default(cuid())
+  name      String
+  slug      String // permission names: unemployed, technician, dispatcher, admin
+  companyId String
+
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employees Employee[]
+
+  @@unique([companyId, slug])
+}
+
+model Employee {
+  userId    String
+  companyId String
+  roleId    String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, companyId, roleId])
+  @@index([userId, companyId])
+  @@index([companyId])
+}
