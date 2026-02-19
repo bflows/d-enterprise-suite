@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 import { prisma } from './lib/prisma';
 import authRoutes from './routes/auth.routes';
 
@@ -10,6 +11,7 @@ const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
