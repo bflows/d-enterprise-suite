@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { prisma } from './lib/prisma';
 import authRoutes from './routes/auth.routes';
+import companyRoutes from './routes/company.routes';
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/company', companyRoutes);
 
 const startServer = async () => {
   try {

@@ -170,6 +170,7 @@ export const loginUser = async (req: Request<{}, {}, LoginUserType>, res: Respon
       }
     });
 
+    // Auto-set company context from first employment so requireRole works without calling /context
     const employee = await prisma.employee.findFirst({
       where: { userId: user.id },
       include: { company: true, role: true },
@@ -281,7 +282,15 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       }
     });
 
-    const companyId = payload.companyId;
+    // Use company from refresh token, or auto-fill from user's first employment (so role routes work without /context)
+    let companyId = payload.companyId;
+    if (companyId === undefined || companyId === null) {
+      const employee = await prisma.employee.findFirst({
+        where: { userId: session.userId },
+        include: { company: true },
+      });
+      companyId = employee?.company?.id;
+    }
     const newRefreshToken = generateRefreshToken(newSession.id, session.userId, companyId);
     const newTokenHash = hashRefreshToken(newRefreshToken);
     await prisma.refreshSession.update({

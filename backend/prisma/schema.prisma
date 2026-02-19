@@ -44,9 +44,9 @@ model RefreshSession {
 }
 
 model Company {
-  id   String @id @default(cuid())
-  name String
-  slug String @unique
+  id       String @id @default(cuid())
+  name     String
+  industry String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,7 +58,7 @@ model Company {
 model Role {
   id        String @id @default(cuid())
   name      String
-  slug      String // permission names: unemployed, technician, dispatcher, admin
+  slug      String // permission names: employee, technician, dispatcher, admin
   companyId String
 
   company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -68,15 +68,15 @@ model Role {
 }
 
 model Employee {
+  id        String @id @default(cuid())
   userId    String
   companyId String
-  roleId    String
+  roleSlug  String
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  role    Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [companyId, roleSlug], references: [companyId, slug], onDelete: Cascade)
 
-  @@id([userId, companyId, roleId])
   @@index([userId, companyId])
   @@index([companyId])
 }

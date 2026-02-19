@@ -3,7 +3,7 @@
  * Used for permission checks and seeding.
  */
 export const ROLE_SLUGS = {
-  UNEMPLOYED: 'unemployed',
+  EMPLOYEE: 'employee',
   TECHNICIAN: 'technician',
   DISPATCHER: 'dispatcher',
   ADMIN: 'admin',
@@ -12,7 +12,7 @@ export const ROLE_SLUGS = {
 export type RoleSlug = (typeof ROLE_SLUGS)[keyof typeof ROLE_SLUGS];
 
 export const ALL_ROLE_SLUGS: readonly RoleSlug[] = [
-  ROLE_SLUGS.UNEMPLOYED,
+  ROLE_SLUGS.EMPLOYEE,
   ROLE_SLUGS.TECHNICIAN,
   ROLE_SLUGS.DISPATCHER,
   ROLE_SLUGS.ADMIN,
