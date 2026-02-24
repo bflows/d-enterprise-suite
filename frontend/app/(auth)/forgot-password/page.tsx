@@ -10,7 +10,7 @@ export default function ForgotPasswordPage() {
       </p>
       <Link
         href="/login"
-        className="mt-4 inline-block text-sm font-medium text-[var(--color-primary)] hover:underline"
+        className="mt-4 inline-block text-sm font-medium text-primary hover:underline"
       >
         Back to log in
       </Link>

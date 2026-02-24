@@ -17,7 +17,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/register"
-              className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
             >
               Get started
             </Link>
@@ -36,7 +36,7 @@ export default function HomePage() {
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/register"
-            className="rounded-md bg-[var(--color-primary)] px-6 py-3 text-base font-medium text-white hover:opacity-90"
+            className="rounded-md bg-primary px-6 py-3 text-base font-medium text-white hover:opacity-90"
           >
             Start free trial
           </Link>

@@ -65,7 +65,7 @@ export default function RegisterPage() {
               minLength={3}
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Jane"
             />
           </div>
@@ -81,7 +81,7 @@ export default function RegisterPage() {
               minLength={3}
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Doe"
             />
           </div>
@@ -97,7 +97,7 @@ export default function RegisterPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="you@company.com"
           />
         </div>
@@ -113,7 +113,7 @@ export default function RegisterPage() {
             minLength={10}
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="5551234567"
           />
           <p className="mt-0.5 text-xs text-neutral-500">10 digits, numbers only</p>
@@ -130,14 +130,14 @@ export default function RegisterPage() {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="At least 8 characters"
           />
         </div>
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full rounded-md bg-[var(--color-primary)] py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+          className="w-full rounded-md bg-primary py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
         >
           {isLoading ? "Creating account..." : "Create account"}
         </button>
@@ -145,7 +145,7 @@ export default function RegisterPage() {
 
       <p className="mt-4 text-center text-sm text-neutral-600">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-[var(--color-primary)] hover:underline">
+        <Link href="/login" className="font-medium text-primary hover:underline">
           Log in
         </Link>
       </p>

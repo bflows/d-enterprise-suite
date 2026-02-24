@@ -33,7 +33,7 @@ export default function AuthLayoutRedirect({
     return (
       <div className="grid min-h-[40vh] place-items-center">
         <div className="text-center">
-          <div className="inline-block size-8 animate-spin rounded-full border-2 border-[var(--color-primary)] border-r-transparent" />
+          <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
           <p className="mt-2 text-sm text-neutral-600">Redirecting...</p>
         </div>
       </div>
