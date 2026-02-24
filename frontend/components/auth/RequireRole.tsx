@@ -52,7 +52,7 @@ export default function RequireRole({
       <div className="grid min-h-[40vh] place-items-center">
         <div className="text-center">
           <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-          <p className="mt-2 text-sm text-neutral-600">Loading...</p>
+          <p className="text-neutral-800 text-p mt-2">Authorizing...</p>
         </div>
       </div>
     );

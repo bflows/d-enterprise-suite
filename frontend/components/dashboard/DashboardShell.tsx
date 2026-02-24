@@ -26,7 +26,7 @@ export default function DashboardShell({
     <RequireAuth>
       <div className="flex bg-neutral-200">
         <DashboardSidebar />
-        <main className="min-h-screen px-24 py-8">
+        <main className="min-h-screen w-full px-24 py-8">
           {children}
         </main>
       </div>
