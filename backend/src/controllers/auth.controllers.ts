@@ -9,6 +9,7 @@ import {
   verifyRefreshToken,
   type RefreshTokenPayload
 } from "../services/token.service";
+import { ROLE_SLUGS } from "../constants/roles";
 
 interface RegisterUserType {
   email: string;
@@ -194,11 +195,16 @@ export const loginUser = async (req: Request<{}, {}, LoginUserType>, res: Respon
 
     const accessToken = generateAccessToken(user.id, companyId, session.id);
 
+    const userPayload = sanitizeUser(user) as Record<string, unknown>;
+    if (employee?.roleSlug) {
+      userPayload.role = employee.roleSlug;
+    }
+
     return res.status(200).json({
       success: true,
       message: "Login successful",
       accessToken,
-      user: sanitizeUser(user)
+      user: userPayload
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -313,11 +319,20 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
 
     const accessToken = generateAccessToken(session.userId, companyId, newSession.id);
 
+    const userRecord = session.user;
+    const userPayload = sanitizeUser(userRecord) as Record<string, unknown>;
+    if (companyId) {
+      const emp = await prisma.employee.findFirst({
+        where: { userId: session.userId, companyId },
+      });
+      userPayload.role = emp?.roleSlug ?? ROLE_SLUGS.EMPLOYEE;
+    }
+
     return res.status(200).json({
       success: true,
       message: "Token refreshed successfully",
       accessToken,
-      user: sanitizeUser(session.user)
+      user: userPayload
     });
   } catch (error) {
     console.error("Refresh token error:", error);
@@ -342,6 +357,48 @@ export const getMe = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Get me error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later."
+    });
+  }
+};
+
+/**
+ * Returns the current user's employments (company + role) for the authenticated user.
+ * Used by the frontend to populate role in memory and optionally support company switcher.
+ */
+export const getEmployment = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    const employees = await prisma.employee.findMany({
+      where: { userId: req.user.id },
+      include: { company: true },
+    });
+
+    const employments = employees.map((e) => ({
+      companyId: e.companyId,
+      companyName: e.company.name,
+      roleSlug: e.roleSlug,
+    }));
+
+    const currentCompany = req.business ?? null;
+    const currentRole = req.businessRole?.roleSlug ?? null;
+
+    return res.status(200).json({
+      success: true,
+      employments,
+      currentCompany,
+      currentRole,
+    });
+  } catch (error) {
+    console.error("Get employment error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error. Please try again later."
