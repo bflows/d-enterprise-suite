@@ -14,13 +14,13 @@ export default function HomePage() {
           <span className="text-xl font-semibold text-neutral-900">
             Daddy Enterprise Suite
           </span>
-          <nav className="flex items-center gap-6">
+          <nav>
             {user ? (
               <Link href='/dashboard'>
                 Dashboard
               </Link>
             ) : (
-              <div>
+              <div className="flex items-center gap-6">
                 <Link
                   href="/login"
                   className="text-sm font-medium text-neutral-600 hover:text-neutral-900"
@@ -93,7 +93,7 @@ export default function HomePage() {
 
       <footer className="border-t border-neutral-200 py-8">
         <div className="mx-auto max-w-6xl px-4 text-center text-sm text-neutral-500">
-          © {new Date().getFullYear()} Daddy Company. All rights reserved.
+          © {new Date().getFullYear()} Built by Daddy. All rights reserved.
         </div>
       </footer>
     </main>
