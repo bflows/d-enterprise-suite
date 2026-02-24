@@ -134,3 +134,56 @@ export const addEmployee = async (req: Request, res: Response) => {
   }
 };
 
+/** Omit passwordHash from user for API responses. */
+function sanitizeUserForResponse<T extends { passwordHash?: string }>(user: T): Omit<T, 'passwordHash'> {
+  const { passwordHash: _p, ...rest } = user;
+  return rest as Omit<T, 'passwordHash'>;
+}
+
+export const getEmployees = async (req: Request, res: Response) => {
+  try {
+    const { companyId } = req.body;
+
+    if (!companyId) {
+      return res.status(400).json({
+        success: false,
+        message: "companyId is required"
+      });
+    }
+
+    const company = await prisma.company.findUnique({
+      where: { id: companyId }
+    });
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: "Company not found"
+      });
+    }
+
+    const employees = await prisma.employee.findMany({
+      where: { companyId },
+      include: {
+        user: true
+      }
+    });
+
+    const employeesWithSanitizedUser = employees.map((e) => ({
+      ...e,
+      user: sanitizeUserForResponse(e.user)
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "Employees fetched successfully",
+      employees: employeesWithSanitizedUser
+    });
+  } catch (error) {
+    console.error("Get employees error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later."
+    });
+  }
+};
