@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import ReduxProvider from "@/lib/reduxProvider";
+import AuthHydration from "@/components/auth/AuthHydration";
 
 const interSans = Inter({
   variable: "--font-inter-sans",
@@ -24,7 +25,9 @@ export default function RootLayout({
         className={`${interSans.variable} antialiased`}
       >
         <ReduxProvider>
-          {children}
+          <AuthHydration>
+            {children}
+          </AuthHydration>
         </ReduxProvider>
       </body>
     </html>
