@@ -4,9 +4,9 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch } from "@/app/store";
 import RequireAuth from "@/components/auth/RequireAuth";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { fetchEmployment } from "@/features/auth/authSlice";
 import { selectIsAuthenticated } from "@/features/auth/authSlice";
+import DashboardSidebar from "./DashboardSidebar";
 
 export default function DashboardShell({
   children,
@@ -24,9 +24,11 @@ export default function DashboardShell({
 
   return (
     <RequireAuth>
-      <div className="min-h-screen bg-neutral-50">
-        <DashboardHeader />
-        <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
+      <div className="flex bg-neutral-200">
+        <DashboardSidebar />
+        <main className="min-h-screen px-24 py-8">
+          {children}
+        </main>
       </div>
     </RequireAuth>
   );

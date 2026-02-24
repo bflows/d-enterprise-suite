@@ -1,15 +1,16 @@
 "use client";
 
-import { selectUser } from "@/features/auth/authSlice";
-import Link from "next/link";
-import { useSelector } from "react-redux";
+// import { selectUser } from "@/features/auth/authSlice";
+// import Link from "next/link";
+// import { useSelector } from "react-redux";
 
 export default function HomePage() {
-  const user = useSelector(selectUser);
+  // const user = useSelector(selectUser);
 
   return (
-    <main className="min-h-screen bg-neutral-50">
-      <header className="border-b border-neutral-200 bg-white">
+    <main className="min-h-screen">
+      <h1>Dashboard</h1>
+      {/* <header className="">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <span className="text-xl font-semibold text-neutral-900">
             Daddy Enterprise Suite
@@ -95,7 +96,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-4 text-center text-sm text-neutral-500">
           © {new Date().getFullYear()} Built by Daddy. All rights reserved.
         </div>
-      </footer>
+      </footer> */}
     </main>
   );
 }

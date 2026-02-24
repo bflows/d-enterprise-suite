@@ -20,7 +20,7 @@ export default function DashboardHeader() {
 
   return (
     <header className="border-b border-neutral-200 bg-white">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <nav className="flex items-center gap-6">
           <Link
             href="/dashboard"
