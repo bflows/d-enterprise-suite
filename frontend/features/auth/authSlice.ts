@@ -18,6 +18,8 @@ export interface AuthState {
   error: string | null;
   /** Fetched from POST /api/auth/employment; used for role and company switcher. */
   employments: EmploymentItem[];
+  /** Current company context from employment (used for employees list, etc.). */
+  currentCompany: { id: string; name: string } | null;
 }
 
 const initialState: AuthState = {
@@ -28,6 +30,7 @@ const initialState: AuthState = {
   hydrationDone: false,
   error: null,
   employments: [],
+  currentCompany: null,
 };
 
 // Thunks (must be defined before slice so extraReducers can reference them)
@@ -90,6 +93,7 @@ const slice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.employments = [];
+      state.currentCompany = null;
     },
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
@@ -136,6 +140,7 @@ const slice = createSlice({
         state.isAuthenticated = false;
         state.error = null;
         state.employments = [];
+        state.currentCompany = null;
       })
       .addCase(refreshSession.pending, (state) => {
         if (!state.user) state.isLoading = true;
@@ -160,6 +165,7 @@ const slice = createSlice({
       })
       .addCase(fetchEmployment.fulfilled, (state, action) => {
         state.employments = action.payload.employments;
+        state.currentCompany = action.payload.currentCompany ?? null;
         if (state.user != null && action.payload.currentRole != null) {
           state.user = { ...state.user, role: action.payload.currentRole };
         }
@@ -180,6 +186,10 @@ export const selectHydrationDone = (state: RootState) =>
   state.auth.hydrationDone;
 export const selectAuthError = (state: RootState) => state.auth.error;
 export const selectEmployments = (state: RootState) => state.auth.employments;
+export const selectCurrentCompany = (state: RootState) =>
+  state.auth.currentCompany;
+export const selectCurrentCompanyId = (state: RootState) =>
+  state.auth.currentCompany?.id ?? null;
 
 export function selectHasRole(state: RootState, roleSlug: RoleSlug): boolean {
   const user = state.auth.user;
