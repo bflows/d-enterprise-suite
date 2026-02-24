@@ -30,7 +30,7 @@ export default function DashboardHeader() {
           </Link>
           {isAdmin && (
             <Link
-              href="/dashboard/admin"
+              href="/admin"
               className="text-sm font-medium text-neutral-700 hover:text-neutral-900"
             >
               Admin
