@@ -1,6 +1,34 @@
 # D Enterprise Suite
 
-Enterprise management application for companies, employees, and role-based access. Full-stack monorepo with a Next.js frontend and Express API backed by PostgreSQL.
+Full-stack monorepo (Next.js frontend, Express API, PostgreSQL) for the **Enterprise Suite MVP**: a faster, simpler replacement for Housecall Pro that office staff can use while on calls and technicians can use in the field, with a data model ready for multiple companies and trades later.
+
+---
+
+## Overview
+
+**Core goal:** Replace Housecall Pro with a single system where office can dispatch and invoice quickly, and techs can manage jobs, update status, capture signatures, and sync in near real time — while the foundation supports multiple companies under one parent org (e.g. Duct Daddy now, HVAC Daddy / Plumb Daddy later).
+
+**Organization model:**
+
+- **Parent (Built By Daddy):** owns multiple companies.
+- **Company:** business unit with its own services/pricebook, technicians & schedule, customers, jobs, invoices, payments, and reporting.
+
+**MVP rule:** The UI can default to one company (e.g. Duct Daddy) with no company switcher in v1, but the database and permissions are **company-scoped** so we don’t rewrite when adding more companies.
+
+**MVP scope (1.0):**
+
+- **Companies & users** — Company profile (name, industry); users with roles (Admin, Office/Dispatcher, Technician); secure login; password reset; technician availability windows.
+- **Customers** — Profiles (name, phones, email, notes); multiple service addresses; phone search; quick create; job and invoice history.
+- **Jobs / work orders** — Full lifecycle (Draft → New → Scheduled → En Route → On Site → Completed → Invoiced → Paid / Cancelled); assigned tech; scheduled vs actual times; internal/tech notes; photos; timeline/audit; services completion tracker, quantities, and customer signature.
+- **Services & pricing** — Company pricebook (name, flat price, quantity, active); job line items with unit price captured at job time (historical accuracy); discounts; admin overrides; minimum job pricing.
+- **Scheduling & dispatch** — Week view by technician; drag-and-drop; availability and overlap rules; assign/reassign tech and time window.
+- **Technician experience** — Mobile-first; today’s jobs; job details (customer, address, line items, notes, photos); status updates (Scheduled → En Route → On Site → Completed) synced to office.
+- **Invoicing** — Invoice from completed job; line items from job; draft/sent/paid/void; preview; send by email/text; admin edits before send.
+- **Payments** — Card, cash, check; partial payments; receipts; stored transaction/reference and recorded-by for stability.
+- **Reporting** — Revenue by service/tech; jobs completed by service/tech; paid/unpaid invoices; payroll-ready hours (time clock + job actuals, CSV export).
+- **Stability** — Company-scoped data; audit/activity logging; soft deletes; validation guardrails; timezone handling; backups; error handling and health checks.
+
+**Go-live gate:** Office can create customer + job + schedule in under a minute, see live job status, and invoice/record payment; techs can view jobs, update status, edit quantities, upload photos, capture signature, and complete jobs reliably; owners get revenue and jobs-completed reporting plus payroll hour export; system preserves history, logs key actions, and recovers without data loss.
 
 ---
 
