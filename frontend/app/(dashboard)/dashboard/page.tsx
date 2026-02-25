@@ -8,7 +8,7 @@ export default function DashboardPage() {
   // const user = useSelector(selectUser);
 
   return (
-    <div className="max-w-5xl min-h-screen mx-auto px-6 py-8">
+    <div>
       <h1 className="text-neutral-900 text-h4 font-bold">Dashboard</h1>
       {/* <p className="mt-1 text-neutral-600">
         Welcome back, {user?.firstName ?? "User"}.
