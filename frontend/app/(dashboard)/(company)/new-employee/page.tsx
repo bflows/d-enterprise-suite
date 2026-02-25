@@ -1,3 +1,5 @@
+import RequireRole from "@/components/auth/RequireRole";
+import { ROLE_SLUGS } from "@/types/auth";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,10 +9,12 @@ export const metadata: Metadata = {
 
 export default function NewEmployeePage() {
   return (
-    <div>
-      <h1 className="text-neutral-900 text-h4 font-bold">
-        New Employee
-      </h1>
-    </div>
+    <RequireRole allowedRoles={[ROLE_SLUGS.ADMIN]}>
+      <div>
+        <h1 className="text-neutral-900 text-h4 font-bold">
+          New Employee
+        </h1>
+      </div>
+    </RequireRole >
   );
 }
