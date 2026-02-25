@@ -24,13 +24,13 @@ export default function DashboardShell({
 
   return (
     <RequireAuth>
-      <div className="flex flex-col sm:flex-row min-h-screen">
+      <div className="bg-neutral-200 flex flex-col sm:flex-row min-h-screen">
         {/* Navbar (mobile) */}
         <div className="top-0 sticky sm:hidden">
           Navbar
         </div>
         {/* Sidebar (desktop) */}
-        <div className="hidden sm:block sm:w-48 md:w-64">
+        <div className="hidden bg-neutral-50 sm:block sm:w-32 md:w-64">
           Sidebar
         </div>
         {/* Display (both) */}
