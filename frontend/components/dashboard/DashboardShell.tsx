@@ -6,6 +6,7 @@ import type { AppDispatch } from "@/app/store";
 import RequireAuth from "@/components/auth/RequireAuth";
 import { fetchEmployment } from "@/features/auth/authSlice";
 import { selectIsAuthenticated } from "@/features/auth/authSlice";
+import DashboardSidebar from "./DashboardSidebar";
 // import DashboardSidebar from "./DashboardSidebar";
 
 export default function DashboardShell({
@@ -30,12 +31,12 @@ export default function DashboardShell({
           Navbar
         </div>
         {/* Sidebar (desktop) */}
-        <div className="hidden bg-neutral-50 sm:block sm:w-32 md:w-64">
-          Sidebar
-        </div>
+        <DashboardSidebar />
         {/* Display (both) */}
         <main className="flex-1">
+          <div className="max-w-7xl min-h-screen mx-auto px-8 py-6">
           {children}
+          </div>
         </main>
         {/* BottomNav (mobile) */}
         <div className="bottom-0 sticky sm:hidden">
