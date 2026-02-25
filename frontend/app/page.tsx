@@ -9,7 +9,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen">
-      <h1>Dashboard</h1>
+      <h1>Landing page</h1>
       {/* <header className="">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <span className="text-xl font-semibold text-neutral-900">

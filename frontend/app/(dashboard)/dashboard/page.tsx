@@ -1,16 +1,16 @@
 "use client";
 
-import { useSelector } from "react-redux";
-import Link from "next/link";
-import { selectUser } from "@/features/auth/authSlice";
+// import { useSelector } from "react-redux";
+// import Link from "next/link";
+// import { selectUser } from "@/features/auth/authSlice";
 
 export default function DashboardPage() {
-  const user = useSelector(selectUser);
+  // const user = useSelector(selectUser);
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-neutral-900">Dashboard</h1>
-      <p className="mt-1 text-neutral-600">
+    <div className="max-w-7xl mx-auto px-6 py-8">
+      <h1 className="text-neutral-900 text-h4 font-bold">Dashboard</h1>
+      {/* <p className="mt-1 text-neutral-600">
         Welcome back, {user?.firstName ?? "User"}.
       </p>
       <div className="mt-6 rounded-lg border border-neutral-200 bg-white p-4">
@@ -42,7 +42,7 @@ export default function DashboardPage() {
         <Link href="/" className="text-primary hover:underline">
           Back to home
         </Link>
-      </p>
+      </p> */}
     </div>
   );
 }
