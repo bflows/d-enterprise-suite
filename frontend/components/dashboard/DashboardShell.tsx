@@ -7,7 +7,6 @@ import RequireAuth from "@/components/auth/RequireAuth";
 import { fetchEmployment } from "@/features/auth/authSlice";
 import { selectIsAuthenticated } from "@/features/auth/authSlice";
 import DashboardSidebar from "./DashboardSidebar";
-// import DashboardSidebar from "./DashboardSidebar";
 
 export default function DashboardShell({
   children,
