@@ -3,47 +3,57 @@ import { LuHouse, LuUsers } from "react-icons/lu";
 
 export default function DashboardSidebar() {
   return (
-    <nav className="w-96 py-8 px-6 bg-neutral-50 border-r border-neutral-400">
-      <div>
-        <div className="w-12 h-12 bg-neutral-200"></div>
-        <h1 className="text-neutral-900 text-h5 font-bold mt-4">
-          Duct Daddy
-        </h1>
-      </div>
+    <aside className="hidden bg-neutral-50 sm:block sm:w-48 md:w-72">
+      {/* Container */}
+      <div className="py-6 px-8">
+        {/* Header */}
+        <div>
+          <h1 className="text-neutral-900 text-h6 font-bold">
+            Duct Daddy
+          </h1>
+        </div>
 
-      {/* Company */}
-      <div className="mt-12">
-        <h2 className="text-neutral-400 text-small uppercase font-bold">
-          Home
-        </h2>
-        <ul className="mt-1">
-          <li>
-            <Link href='/dashboard' className="flex items-center gap-x-2 px-4 py-2 rounded-lg group transition-colors duration-300 ease-in-out hover:bg-primary/10">
-              <LuHouse className="text-neutral-600 size-6 transition-colors duration-300 ease-in-out group-hover:text-primary" />
-              <span className="text-neutral-600 text-p font-bold transition-colors duration-300 ease-in-out group-hover:text-primary">
-                Dashboard
-              </span>
-            </Link>
-          </li>
-        </ul>
-      </div>
+        {/* Links */}
+        <div className="mt-8 flex flex-col gap-y-2 md:gap-y-4">
+          {/* Home */}
+          <div>
+            <h2 className="text-neutral-400 text-small uppercase font-bold hidden md:block">
+              Home
+            </h2>
+            <ul className="mt-1">
+              <li>
+                <Link href='/dashboard' className="flex items-center gap-x-2 px-4 py-2 rounded-lg group transition-colors duration-300 ease-in-out hover:bg-primary/10">
+                  <div>
+                    <LuHouse className="text-neutral-600 size-6 transition-colors duration-300 ease-in-out group-hover:text-primary" />
+                  </div>
+                  <span className="text-neutral-600 hidden md:block text-p font-bold transition-colors duration-300 ease-in-out group-hover:text-primary">
+                    Dashboard
+                  </span>
+                </Link>
+              </li>
+            </ul>
+          </div>
 
-      {/* Company */}
-      <div className="mt-8">
-        <h2 className="text-neutral-400 text-small uppercase font-bold">
-          Company
-        </h2>
-        <ul className="mt-1">
-          <li>
-            <Link href='/employees' className="flex items-center gap-x-2 px-4 py-2 rounded-lg group transition-colors duration-300 ease-in-out hover:bg-primary/10">
-              <LuUsers className="text-neutral-600 size-6 transition-colors duration-300 ease-in-out group-hover:text-primary" />
-              <span className="text-neutral-600 text-p font-bold transition-colors duration-300 ease-in-out group-hover:text-primary">
-                Employees
-              </span>
-            </Link>
-          </li>
-        </ul>
+          {/* Company */}
+          <div>
+            <h2 className="text-neutral-400 text-small uppercase font-bold hidden md:block">
+              Company
+            </h2>
+            <ul className="mt-1">
+              <li>
+                <Link href='/employees' className="flex items-center gap-x-2 px-4 py-2 rounded-lg group transition-colors duration-300 ease-in-out hover:bg-primary/10">
+                  <div>
+                    <LuUsers className="text-neutral-600 size-6 transition-colors duration-300 ease-in-out group-hover:text-primary" />
+                  </div>
+                  <span className="text-neutral-600 hidden md:block text-p font-bold transition-colors duration-300 ease-in-out group-hover:text-primary">
+                    Employees
+                  </span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
-    </nav>
+    </aside>
   );
 }

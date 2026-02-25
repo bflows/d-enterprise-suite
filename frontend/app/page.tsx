@@ -1,16 +1,15 @@
 "use client";
 
-// import { selectUser } from "@/features/auth/authSlice";
-// import Link from "next/link";
-// import { useSelector } from "react-redux";
+import { selectUser } from "@/features/auth/authSlice";
+import Link from "next/link";
+import { useSelector } from "react-redux";
 
 export default function HomePage() {
-  // const user = useSelector(selectUser);
+  const user = useSelector(selectUser);
 
   return (
     <main className="min-h-screen">
-      <h1>Dashboard</h1>
-      {/* <header className="">
+      <header>
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <span className="text-xl font-semibold text-neutral-900">
             Daddy Enterprise Suite
@@ -30,7 +29,7 @@ export default function HomePage() {
                 </Link>
                 <Link
                   href="/register"
-                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                  className="hidden sm:block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
                 >
                   Get started
                 </Link>
@@ -96,7 +95,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-4 text-center text-sm text-neutral-500">
           © {new Date().getFullYear()} Built by Daddy. All rights reserved.
         </div>
-      </footer> */}
+      </footer>
     </main>
   );
 }
