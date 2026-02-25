@@ -12,10 +12,12 @@ export default function EmployeesPage() {
   return (
     <RequireRole allowedRoles={[ROLE_SLUGS.ADMIN]}>
       <div>
-        <div className="flex justify-between items-center">
-          <h1 className="text-neutral-900 text-h4 font-bold">Employees</h1>
+        <h1 className="text-neutral-900 text-h4 font-bold">Employees</h1>
+        {/* Mobile */}
+        {/* Desktop, laptop, tablet */}
+        <div className="hidden sm:block">
+          <EmployeesTable />
         </div>
-        <EmployeesTable />
       </div>
     </RequireRole>
   );
