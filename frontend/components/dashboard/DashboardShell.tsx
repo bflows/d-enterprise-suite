@@ -7,6 +7,8 @@ import RequireAuth from "@/components/auth/RequireAuth";
 import { fetchEmployment } from "@/features/auth/authSlice";
 import { selectIsAuthenticated } from "@/features/auth/authSlice";
 import DashboardSidebar from "./DashboardSidebar";
+import DashboardNavbar from "./DashboardNavbar";
+import DashboardMobileNav from "./DashboardMobileNav";
 
 export default function DashboardShell({
   children,
@@ -25,22 +27,14 @@ export default function DashboardShell({
   return (
     <RequireAuth>
       <div className="bg-neutral-200 flex flex-col sm:flex-row min-h-screen">
-        {/* Navbar (mobile) */}
-        <div className="top-0 sticky sm:hidden">
-          Navbar
-        </div>
-        {/* Sidebar (desktop) */}
+        <DashboardNavbar />
         <DashboardSidebar />
-        {/* Display (both) */}
         <main className="flex-1">
-          <div className="max-w-7xl min-h-screen mx-auto px-8 py-6">
-          {children}
+          <div className="max-w-7xl min-h-screen mx-auto px-6 py-6">
+            {children}
           </div>
         </main>
-        {/* BottomNav (mobile) */}
-        <div className="bottom-0 sticky sm:hidden">
-          Bottom Nav
-        </div>
+        <DashboardMobileNav />
       </div>
     </RequireAuth>
   );
