@@ -3,12 +3,12 @@ import { LuHouse, LuUsers } from "react-icons/lu";
 
 export default function DashboardSidebar() {
   return (
-    <aside className="hidden bg-neutral-50 sm:block sm:w-48 md:w-72">
+    <aside className="hidden bg-neutral-50 sm:block sm:w-32 md:w-72">
       {/* Container */}
-      <div className="py-6 px-8">
+      <div className="py-6 px-8 flex flex-col items-center md:items-start">
         {/* Header */}
         <div>
-          <h1 className="text-neutral-900 text-h6 font-bold">
+          <h1 className="text-neutral-900 text-h6 font-bold hidden md:block">
             Duct Daddy
           </h1>
         </div>
