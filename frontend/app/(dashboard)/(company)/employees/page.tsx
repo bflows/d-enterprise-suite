@@ -80,7 +80,7 @@ export default function EmployeesPage() {
                   <input
                     type="text"
                     placeholder="Name or phone"
-                    className="bg-neutral-200 text-neutral-600 text-p border border-neutral-400 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:border focus:ring focus:ring-primary focus:border-primary placeholder:text-neutral-400"
+                    className="bg-neutral-100 text-neutral-600 text-p border border-neutral-400 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:border focus:ring focus:ring-primary focus:border-primary placeholder:text-neutral-400"
                   />
                 </div>
                 <Link
@@ -124,18 +124,18 @@ export default function EmployeesPage() {
                   ) : (
                     employees.map((emp) => (
                       <tr key={emp.id}>
-                        <td className="text-neutral-800 text-p text-left pt-6">
+                        <td className="text-neutral-800 text-p text-left pt-4">
                           {[emp.user.firstName, emp.user.lastName]
                             .filter(Boolean)
                             .join(" ") || "—"}
                         </td>
-                        <td className="text-neutral-800 text-p text-left pt-6">
+                        <td className="text-neutral-800 text-p text-left pt-4">
                           {emp.user.phoneNumber || "—"}
                         </td>
-                        <td className="text-neutral-800 text-p text-left pt-6">
+                        <td className="text-neutral-800 text-p text-left pt-4">
                           {emp.user.email || "—"}
                         </td>
-                        <td className="text-neutral-800 text-p text-left pt-6 capitalize">
+                        <td className="text-neutral-800 text-p text-left pt-4 capitalize">
                           {emp.roleSlug || "—"}
                         </td>
                         <td className=" text-left pt-6 flex items-center gap-x-2">
