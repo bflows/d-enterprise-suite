@@ -1,6 +1,6 @@
 # D Enterprise Suite
 
-Full-stack monorepo (Next.js frontend, Express API, PostgreSQL) for the **Enterprise Suite MVP**: a faster, simpler replacement for Housecall Pro that office staff can use while on calls and technicians can use in the field, with a data model ready for multiple companies and trades later.
+Full-stack monorepo for the **Enterprise Suite MVP**: a faster, simpler replacement for Housecall Pro that office staff can use while on calls and technicians can use in the field, with a data model ready for multiple companies and trades later.
 
 ---
 
