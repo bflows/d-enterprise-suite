@@ -284,85 +284,6 @@ export const checkUserByEmail = async (req: Request, res: Response) => {
   }
 };
 
-// const VALID_ROLE_SLUGS_LEGACY = ["employee", "technician", "dispatcher", "admin"] as const;
-
-// export const addEmployee = async (req: Request, res: Response) => {
-//   try {
-//     const { userId, companyId, roleSlug = "employee" } = req.body;
-
-//     if (!userId || !companyId) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "userId and companyId are required"
-//       });
-//     }
-
-//     if (!VALID_ROLE_SLUGS_LEGACY.includes(roleSlug)) {
-//       return res.status(400).json({
-//         success: false,
-//         message: `roleSlug must be one of: ${VALID_ROLE_SLUGS_LEGACY.join(", ")}`
-//       });
-//     }
-
-//     const [user, company, roleExists] = await Promise.all([
-//       prisma.user.findUnique({ where: { id: userId } }),
-//       prisma.company.findUnique({ where: { id: companyId } }),
-//       prisma.role.findFirst({ where: { companyId, slug: roleSlug } })
-//     ]);
-
-//     if (!user) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "User not found"
-//       });
-//     }
-//     if (!company) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Company not found"
-//       });
-//     }
-//     if (!roleExists) {
-//       return res.status(404).json({
-//         success: false,
-//         message: `Role '${roleSlug}' not found for this company`
-//       });
-//     }
-
-//     const existing = await prisma.employee.findFirst({
-//       where: {
-//         userId,
-//         companyId,
-//         role: { slug: roleSlug }
-//       }
-//     });
-
-//     if (existing) {
-//       return res.status(409).json({
-//         success: false,
-//         message: "User is already assigned this role in this company"
-//       });
-//     }
-
-//     const employee = await prisma.employee.create({
-//       data: { userId, companyId, roleSlug },
-//       include: { user: true, company: true, role: true }
-//     });
-
-//     return res.status(201).json({
-//       success: true,
-//       message: "Employee added successfully",
-//       employee
-//     });
-//   } catch (error) {
-//     console.error("Add employee error:", error);
-//     return res.status(500).json({
-//       success: false,
-//       message: "Internal server error. Please try again later."
-//     });
-//   }
-// };
-
 export const getEmployees = async (req: Request, res: Response) => {
   try {
     const { companyId } = req.body;
@@ -407,6 +328,70 @@ export const getEmployees = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: "Internal server error. Please try again later."
+    });
+  }
+};
+
+/**
+ * Terminate an employee from the current company by userId.
+ * Removes the employee record; if the user has no other employments, deletes the user.
+ * Requires auth + admin role (companyId from req.business).
+ */
+export const terminateEmployee = async (req: Request, res: Response) => {
+  try {
+    if (!req.user || !req.business) {
+      return res.status(403).json({
+        success: false,
+        message: "Business context required. Only admins can terminate employees.",
+      });
+    }
+
+    const companyId = req.business.id;
+    const { userId } = req.body;
+
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "userId is required",
+      });
+    }
+
+    const employee = await prisma.employee.findFirst({
+      where: { userId, companyId },
+    });
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found for this company",
+      });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.employee.delete({
+        where: { id: employee.id },
+      });
+
+      const otherEmployments = await tx.employee.count({
+        where: { userId },
+      });
+
+      if (otherEmployments === 0) {
+        await tx.user.delete({
+          where: { id: userId },
+        });
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Employee terminated successfully",
+    });
+  } catch (error) {
+    console.error("Terminate employee error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
     });
   }
 };
