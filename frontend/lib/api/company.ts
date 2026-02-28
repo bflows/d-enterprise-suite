@@ -34,3 +34,46 @@ export async function getEmployees(
   );
   return data;
 }
+
+/** Body for adding an employee. For existing users only email + slug; for new users also password, firstName, lastName, phoneNumber. */
+export interface CreateEmployeeBody {
+  email: string;
+  slug?: "employee" | "technician" | "dispatcher" | "admin";
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+}
+
+export interface CheckEmailResponse {
+  success: true;
+  exists: boolean;
+  alreadyInCompany?: boolean;
+  user?: { firstName: string; lastName: string; phoneNumber: string };
+}
+
+export async function checkUserByEmail(
+  email: string
+): Promise<CheckEmailResponse> {
+  const { data } = await apiClient.get<CheckEmailResponse>(
+    "/api/company/check-email",
+    { params: { email: email.trim().toLowerCase() } }
+  );
+  return data;
+}
+
+export interface CreateEmployeeResponse {
+  success: true;
+  message: string;
+  employee: EmployeeListItem & { company: { id: string; name: string }; role: { id: string; name: string; slug: string } };
+}
+
+export async function createEmployee(
+  body: CreateEmployeeBody
+): Promise<CreateEmployeeResponse> {
+  const { data } = await apiClient.post<CreateEmployeeResponse>(
+    "/api/company/create-employee",
+    body
+  );
+  return data;
+}

@@ -1,13 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { LuUserRoundMinus, LuUserRoundPen, LuUserRoundPlus, LuUserRoundSearch } from "react-icons/lu";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import { getEmployees } from "@/lib/api/company";
 import type { EmployeeListItem } from "@/lib/api/company";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
+import NewEmployeeForm from "@/components/employees/NewEmployeeForm";
+import Link from "next/link";
 
 export default function EmployeesTable() {
   const companyId = useSelector((state: RootState) =>
@@ -16,41 +18,30 @@ export default function EmployeesTable() {
   const [employees, setEmployees] = useState<EmployeeListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => {
+  const loadEmployees = useCallback(() => {
     if (!companyId) {
-      queueMicrotask(() => {
-        setLoading(false);
-        setEmployees([]);
-      });
+      setLoading(false);
+      setEmployees([]);
       return;
     }
-    let cancelled = false;
-    queueMicrotask(() => {
-      setLoading(true);
-      setError(null);
-    });
+    setLoading(true);
+    setError(null);
     getEmployees(companyId)
-      .then((res) => {
-        if (!cancelled) {
-          setEmployees(res.employees);
-        }
-      })
+      .then((res) => setEmployees(res.employees))
       .catch((err) => {
-        if (!cancelled) {
-          setError(
-            err.response?.data?.message ?? err.message ?? "Failed to load employees"
-          );
-          setEmployees([]);
-        }
+        setError(
+          err.response?.data?.message ?? err.message ?? "Failed to load employees"
+        );
+        setEmployees([]);
       })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .finally(() => setLoading(false));
   }, [companyId]);
+
+  useEffect(() => {
+    queueMicrotask(() => loadEmployees());
+  }, [loadEmployees]);
 
   return (
     <div className="bg-neutral-50 border border-neutral-400 overflow-hidden rounded-lg py-8 px-10 mt-8">
@@ -76,14 +67,27 @@ export default function EmployeesTable() {
                 className="bg-neutral-100 text-neutral-600 text-p w-48 border border-neutral-400 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:border focus:ring focus:ring-primary focus:border-primary placeholder:text-neutral-400"
               />
             </div>
-            <Link
-              href="/new-employee"
-              className="bg-primary text-neutral-100 py-2 px-4 rounded-lg w-fit flex items-center gap-x-2 transition-colors duraiton-300 ease-in-out hover:bg-primary/90"
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="bg-primary text-neutral-100 py-2 px-4 rounded-lg w-fit flex items-center gap-x-2 cursor-pointer transition-colors duraiton-300 ease-in-out hover:bg-primary/90"
             >
               <LuUserRoundPlus className="size-6" />
               <p className="text-p font-bold">New Employee</p>
-            </Link>
+            </button>
           </div>
+          <NewEmployeeModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            title="New Employee"
+          >
+            <NewEmployeeForm
+              onClose={() => setModalOpen(false)}
+              onSuccess={() => {
+                loadEmployees();
+              }}
+            />
+          </NewEmployeeModal>
           <table className="w-full table-auto mt-6">
             <thead>
               <tr>

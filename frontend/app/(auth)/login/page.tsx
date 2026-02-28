@@ -1,13 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/app/store";
 import { login, selectAuthLoading, selectAuthError } from "@/features/auth/authSlice";
 
-export default function LoginPage() {
+function LoginFormFallback() {
+  return (
+    <div className="w-full max-w-sm rounded-lg border border-neutral-200 bg-white p-6 shadow-sm animate-pulse">
+      <div className="h-7 w-24 rounded bg-neutral-200" />
+      <div className="mt-2 h-4 w-64 rounded bg-neutral-100" />
+      <div className="mt-6 space-y-4">
+        <div className="h-10 rounded-md bg-neutral-100" />
+        <div className="h-10 rounded-md bg-neutral-100" />
+        <div className="h-10 rounded-md bg-neutral-200" />
+      </div>
+    </div>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
@@ -93,5 +107,13 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFormFallback />}>
+      <LoginForm />
+    </Suspense>
   );
 }
