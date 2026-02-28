@@ -77,3 +77,18 @@ export async function createEmployee(
   );
   return data;
 }
+
+export interface TerminateEmployeeResponse {
+  success: true;
+  message: string;
+}
+
+export async function terminateEmployee(
+  userId: string
+): Promise<TerminateEmployeeResponse> {
+  const { data } = await apiClient.post<TerminateEmployeeResponse>(
+    "/api/company/terminate-employee",
+    { userId }
+  );
+  return data;
+}

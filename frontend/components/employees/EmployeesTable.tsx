@@ -4,7 +4,7 @@ import { LuUserRoundMinus, LuUserRoundPen, LuUserRoundPlus, LuUserRoundSearch } 
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
-import { getEmployees } from "@/lib/api/company";
+import { getEmployees, terminateEmployee } from "@/lib/api/company";
 import type { EmployeeListItem } from "@/lib/api/company";
 import { useEffect, useState, useCallback } from "react";
 import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
@@ -19,6 +19,9 @@ export default function EmployeesTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<EmployeeListItem | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   const loadEmployees = useCallback(() => {
     if (!companyId) {
@@ -42,6 +45,41 @@ export default function EmployeesTable() {
   useEffect(() => {
     queueMicrotask(() => loadEmployees());
   }, [loadEmployees]);
+
+  const openRemoveConfirm = (emp: EmployeeListItem) => {
+    setRemoveError(null);
+    setRemoveTarget(emp);
+  };
+
+  const closeRemoveConfirm = () => {
+    if (!removing) {
+      setRemoveTarget(null);
+      setRemoveError(null);
+    }
+  };
+
+  const confirmRemove = async () => {
+    if (!removeTarget || !companyId) return;
+    setRemoving(true);
+    setRemoveError(null);
+    try {
+      await terminateEmployee(removeTarget.userId);
+      setRemoveTarget(null);
+      setRemoveError(null);
+      loadEmployees();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string }; message?: string } })?.response?.data?.message ??
+        (err as Error)?.message ??
+        "Failed to remove employee";
+      setRemoveError(msg);
+    } finally {
+      setRemoving(false);
+    }
+  };
+
+  const displayName = (emp: EmployeeListItem) =>
+    [emp.user.firstName, emp.user.lastName].filter(Boolean).join(" ") || "—";
 
   return (
     <div className="bg-neutral-50 border border-neutral-400 overflow-hidden rounded-lg py-8 px-10 mt-8">
@@ -87,6 +125,52 @@ export default function EmployeesTable() {
                 loadEmployees();
               }}
             />
+          </NewEmployeeModal>
+          <NewEmployeeModal
+            open={!!removeTarget}
+            onClose={closeRemoveConfirm}
+            title="Remove employee"
+          >
+            <div className="space-y-4">
+              {removeTarget && (
+                <p className="text-p text-neutral-800">
+                  Remove <strong>{displayName(removeTarget)}</strong> from this company?
+                  {removeTarget.user.email && (
+                    <> ({removeTarget.user.email})</>
+                  )}
+                  {" "}
+                  They will be removed from the company. If they are not employed elsewhere, their account will be deleted.
+                </p>
+              )}
+              {removeError && (
+                <p className="text-p text-red-600">{removeError}</p>
+              )}
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeRemoveConfirm}
+                  disabled={removing}
+                  className="px-4 py-2 rounded-lg border border-neutral-400 text-neutral-800 text-p cursor-pointer hover:bg-neutral-100 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmRemove}
+                  disabled={removing}
+                  className="px-4 py-2 rounded-lg bg-secondary text-neutral-100 text-p font-bold cursor-pointer hover:bg-secondary/90 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {removing ? (
+                    <>
+                      <span className="inline-block size-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+                      Removing...
+                    </>
+                  ) : (
+                    "Remove"
+                  )}
+                </button>
+              </div>
+            </div>
           </NewEmployeeModal>
           <table className="w-full table-auto mt-6">
             <thead>
@@ -139,9 +223,14 @@ export default function EmployeesTable() {
                       <Link href='/edit-employee'>
                         <LuUserRoundPen className="text-neutral-600 size-6 transition-colors duration-300 ease-in-out hover:text-primary" />
                       </Link>
-                      <Link href='/delete-employee'>
+                      <button
+                        type="button"
+                        onClick={() => openRemoveConfirm(emp)}
+                        className="p-0 border-0 bg-transparent cursor-pointer"
+                        aria-label={`Remove ${displayName(emp)}`}
+                      >
                         <LuUserRoundMinus className="text-neutral-600 size-6 transition-colors duration-300 ease-in-out hover:text-secondary" />
-                      </Link>
+                      </button>
                     </td>
                   </tr>
                 ))
