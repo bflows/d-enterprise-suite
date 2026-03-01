@@ -9,7 +9,7 @@ import type { EmployeeListItem } from "@/lib/api/company";
 import { useEffect, useState, useCallback } from "react";
 import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
 import NewEmployeeForm from "@/components/employees/NewEmployeeForm";
-import Link from "next/link";
+import EditEmployeeForm from "@/components/employees/EditEmployeeForm";
 
 export default function EmployeesTable() {
   const companyId = useSelector((state: RootState) =>
@@ -19,6 +19,7 @@ export default function EmployeesTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<EmployeeListItem | null>(null);
   const [removeTarget, setRemoveTarget] = useState<EmployeeListItem | null>(null);
   const [removing, setRemoving] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -172,6 +173,21 @@ export default function EmployeesTable() {
               </div>
             </div>
           </NewEmployeeModal>
+          <NewEmployeeModal
+            open={!!editTarget}
+            onClose={() => setEditTarget(null)}
+            title="Edit Employee"
+          >
+            {editTarget && (
+              <EditEmployeeForm
+                employee={editTarget}
+                onClose={() => setEditTarget(null)}
+                onSuccess={() => {
+                  loadEmployees();
+                }}
+              />
+            )}
+          </NewEmployeeModal>
           <table className="w-full table-auto mt-6">
             <thead>
               <tr>
@@ -220,9 +236,14 @@ export default function EmployeesTable() {
                       {emp.roleSlug || "—"}
                     </td>
                     <td className=" text-left pt-6 flex items-center gap-x-2">
-                      <Link href='/edit-employee'>
+                      <button
+                        type="button"
+                        onClick={() => setEditTarget(emp)}
+                        className="p-0 border-0 bg-transparent cursor-pointer"
+                        aria-label={`Edit ${displayName(emp)}`}
+                      >
                         <LuUserRoundPen className="text-neutral-600 size-6 transition-colors duration-300 ease-in-out hover:text-primary" />
-                      </Link>
+                      </button>
                       <button
                         type="button"
                         onClick={() => openRemoveConfirm(emp)}

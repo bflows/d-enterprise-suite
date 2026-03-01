@@ -78,6 +78,33 @@ export async function createEmployee(
   return data;
 }
 
+/** Body for updating an employee. userId required; all other fields optional. */
+export interface UpdateEmployeeBody {
+  userId: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  email?: string;
+  role?: "employee" | "technician" | "dispatcher" | "admin";
+  password?: string;
+}
+
+export interface UpdateEmployeeResponse {
+  success: true;
+  message: string;
+  employee: EmployeeListItem & { company: { id: string; name: string }; role: { id: string; name: string; slug: string } };
+}
+
+export async function updateEmployee(
+  body: UpdateEmployeeBody
+): Promise<UpdateEmployeeResponse> {
+  const { data } = await apiClient.put<UpdateEmployeeResponse>(
+    "/api/company/update-employee",
+    body
+  );
+  return data;
+}
+
 export interface TerminateEmployeeResponse {
   success: true;
   message: string;
