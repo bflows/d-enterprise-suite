@@ -175,19 +175,19 @@ export default function EmployeesTable() {
           <table className="w-full table-auto mt-6">
             <thead>
               <tr>
-                <th className="w-60 text-left text-neutral-600 text-p font-normal">
+                <th className="text-left text-neutral-600 text-p font-normal">
                   Name
                 </th>
-                <th className="w-72 text-left text-neutral-600 text-p font-normal">
+                <th className="text-left text-neutral-600 text-p font-normal">
                   Phone
                 </th>
-                <th className="w-60 text-left text-neutral-600 text-p font-normal hidden lg:table-cell">
+                <th className="text-left text-neutral-600 text-p font-normal hidden lg:table-cell">
                   Email
                 </th>
-                <th className="w-48 lg:w-60 text-left text-neutral-600 text-p font-normal">
+                <th className="text-left text-neutral-600 text-p font-normal">
                   Position
                 </th>
-                <th className="w-24 lg:w-60 text-left text-neutral-600 text-p font-normal">
+                <th className="text-left text-neutral-600 text-p font-normal">
                   Actions
                 </th>
               </tr>
