@@ -5,6 +5,7 @@ import cors from 'cors';
 import { prisma } from './lib/prisma';
 import authRoutes from './routes/auth.routes';
 import companyRoutes from './routes/company.routes';
+import customerRoutes from './routes/customer.routes';
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/company', companyRoutes);
+app.use('/api/customer', customerRoutes);
 
 const startServer = async () => {
   try {

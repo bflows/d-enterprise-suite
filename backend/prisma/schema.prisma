@@ -53,6 +53,7 @@ model Company {
 
   roles     Role[]
   employees Employee[]
+  customers Customer[]
 }
 
 model Role {
@@ -78,5 +79,23 @@ model Employee {
   role    Role    @relation(fields: [companyId, roleSlug], references: [companyId, slug], onDelete: Cascade)
 
   @@index([userId, companyId])
+  @@index([companyId])
+}
+
+model Customer {
+  id          String  @id @default(cuid())
+  companyId   String
+  firstName   String
+  lastName    String
+  email       String?
+  phone       String
+  leadSource  String?
+  address     String
+  address2    String?
+  companyName String?
+  notes       String?
+
+  company Company @relation(fields: [companyId], references: [id])
+
   @@index([companyId])
 }
