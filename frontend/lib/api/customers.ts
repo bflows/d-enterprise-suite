@@ -57,3 +57,34 @@ export async function createCustomer(
   );
   return data;
 }
+
+/** Body for updating a customer. companyId and id required; only provided fields are updated. */
+export interface UpdateCustomerBody {
+  companyId: string;
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: string;
+  email?: string | null;
+  leadSource?: string | null;
+  address2?: string | null;
+  companyName?: string | null;
+  notes?: string | null;
+}
+
+export interface UpdateCustomerResponse {
+  success: true;
+  message: string;
+  customer: CustomerListItem;
+}
+
+export async function updateCustomer(
+  body: UpdateCustomerBody
+): Promise<UpdateCustomerResponse> {
+  const { data } = await apiClient.put<UpdateCustomerResponse>(
+    "/api/customer/update",
+    body
+  );
+  return data;
+}

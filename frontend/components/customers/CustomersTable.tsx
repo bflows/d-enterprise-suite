@@ -1,6 +1,6 @@
 "use client";
 
-import { LuUserRoundPlus } from "react-icons/lu";
+import { LuUserRoundPlus, LuPencil } from "react-icons/lu";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
@@ -9,12 +9,19 @@ import type { CustomerListItem } from "@/lib/api/customers";
 import { useEffect, useState, useCallback } from "react";
 import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
 import NewCustomerForm from "@/components/customers/NewCustomerForm";
+import EditCustomerForm from "@/components/customers/EditCustomerForm";
 
 function displayName(c: CustomerListItem) {
   return [c.firstName, c.lastName].filter(Boolean).join(" ") || "—";
 }
 
-function CustomerCard({ customer }: { customer: CustomerListItem }) {
+function CustomerCard({
+  customer,
+  onEdit,
+}: {
+  customer: CustomerListItem;
+  onEdit: (customer: CustomerListItem) => void;
+}) {
   const name = displayName(customer);
   const optional: { label: string; value: string | null }[] = [];
   if (customer.email) optional.push({ label: "Email", value: customer.email });
@@ -24,7 +31,17 @@ function CustomerCard({ customer }: { customer: CustomerListItem }) {
 
   return (
     <article className="bg-neutral-50 border border-neutral-400 rounded-lg p-4 shadow-sm">
-      <h3 className="text-neutral-900 font-semibold text-p">{name}</h3>
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="text-neutral-900 font-semibold text-p">{name}</h3>
+        <button
+          type="button"
+          onClick={() => onEdit(customer)}
+          className="p-1.5 rounded-lg text-neutral-600 hover:bg-primary/10 hover:text-primary transition-colors"
+          aria-label={`Edit ${name}`}
+        >
+          <LuPencil className="size-5" />
+        </button>
+      </div>
       <p className="text-neutral-700 text-p mt-1">
         <a href={`tel:${customer.phone}`} className="hover:text-primary underline">
           {customer.phone}
@@ -55,6 +72,7 @@ export default function CustomersTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<CustomerListItem | null>(null);
 
   const loadCustomers = useCallback(() => {
     if (!companyId) {
@@ -121,6 +139,23 @@ export default function CustomersTable() {
             )}
           </NewEmployeeModal>
 
+          <NewEmployeeModal
+            open={!!editingCustomer}
+            onClose={() => setEditingCustomer(null)}
+            title="Edit Customer"
+          >
+            {editingCustomer && companyId ? (
+              <EditCustomerForm
+                companyId={companyId}
+                customer={editingCustomer}
+                onClose={() => setEditingCustomer(null)}
+                onSuccess={() => {
+                  loadCustomers();
+                }}
+              />
+            ) : null}
+          </NewEmployeeModal>
+
           {/* Mobile: card list */}
           <div className="mt-6 md:hidden space-y-4">
             {customers.length === 0 ? (
@@ -129,7 +164,11 @@ export default function CustomersTable() {
               </p>
             ) : (
               customers.map((customer) => (
-                <CustomerCard key={customer.id} customer={customer} />
+                <CustomerCard
+                  key={customer.id}
+                  customer={customer}
+                  onEdit={(c) => setEditingCustomer(c)}
+                />
               ))
             )}
           </div>
@@ -160,13 +199,16 @@ export default function CustomersTable() {
                   <th className="text-left text-neutral-600 text-p font-normal py-2 hidden xl:table-cell">
                     Notes
                   </th>
+                  <th className="text-left text-neutral-600 text-p font-normal py-2 w-12">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {customers.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="text-neutral-800 text-p text-center py-8"
                     >
                       No customers yet. Add a customer to get started.
@@ -200,6 +242,16 @@ export default function CustomersTable() {
                       </td>
                       <td className="text-neutral-800 text-p py-3 hidden xl:table-cell max-w-48 truncate" title={customer.notes ?? undefined}>
                         {customer.notes ?? "—"}
+                      </td>
+                      <td className="text-neutral-800 text-p py-3 w-12">
+                        <button
+                          type="button"
+                          onClick={() => setEditingCustomer(customer)}
+                          className="p-1.5 rounded-lg cursor-pointer text-neutral-600 hover:bg-primary/10 hover:text-primary transition-colors"
+                          aria-label={`Edit ${displayName(customer)}`}
+                        >
+                          <LuPencil className="size-5" />
+                        </button>
                       </td>
                     </tr>
                   ))
