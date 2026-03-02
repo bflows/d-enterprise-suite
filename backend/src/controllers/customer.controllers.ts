@@ -19,6 +19,21 @@ interface CreateCustomerBody {
   notes?: string;
 }
 
+/** Request body for updating a customer. companyId and id required; only other provided fields are updated. */
+interface UpdateCustomerBody {
+  companyId: string;
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: string;
+  email?: string | null;
+  leadSource?: string | null;
+  address2?: string | null;
+  companyName?: string | null;
+  notes?: string | null;
+}
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
@@ -163,6 +178,169 @@ export const createCustomer = async (req: Request<{}, {}, CreateCustomerBody>, r
     });
   } catch (error) {
     console.error("Create customer error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+
+/**
+ * Update a customer.
+ * Body must include companyId and customer id; only other provided fields are updated.
+ */
+export const updateCustomer = async (
+  req: Request<{}, {}, UpdateCustomerBody>,
+  res: Response
+) => {
+  try {
+    const {
+      companyId,
+      id,
+      firstName,
+      lastName,
+      phone,
+      address,
+      email,
+      leadSource,
+      address2,
+      companyName,
+      notes,
+    } = req.body;
+
+    if (!companyId || typeof companyId !== "string" || !companyId.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "companyId is required",
+      });
+    }
+
+    if (!id || typeof id !== "string" || !id.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Customer id is required",
+      });
+    }
+
+    const existingCustomer = await prisma.customer.findUnique({
+      where: { id },
+    });
+
+    if (!existingCustomer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    if (existingCustomer.companyId !== companyId) {
+      return res.status(403).json({
+        success: false,
+        message: "Customer does not belong to this company",
+      });
+    }
+
+    if (firstName !== undefined) {
+      if (typeof firstName !== "string" || !firstName.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "firstName must be a non-empty string",
+        });
+      }
+    }
+
+    if (lastName !== undefined) {
+      if (typeof lastName !== "string" || !lastName.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "lastName must be a non-empty string",
+        });
+      }
+    }
+
+    if (phone !== undefined) {
+      if (typeof phone !== "string" || !phone.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "phone must be a non-empty string",
+        });
+      }
+      const trimmedPhone = phone.trim();
+      const duplicatePhone = await prisma.customer.findFirst({
+        where: {
+          companyId,
+          phone: trimmedPhone,
+          id: { not: id },
+        },
+      });
+      if (duplicatePhone) {
+        return res.status(409).json({
+          success: false,
+          message: "A customer with this phone number already exists for this company",
+        });
+      }
+    }
+
+    if (address !== undefined) {
+      if (typeof address !== "string" || !address.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "address must be a non-empty string",
+        });
+      }
+    }
+
+    if (email !== undefined && email !== null && email !== "") {
+      const trimmedEmail = typeof email === "string" ? email.trim() : "";
+      if (!EMAIL_REGEX.test(trimmedEmail)) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide a valid email address",
+        });
+      }
+    }
+
+    const data: {
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+      address?: string;
+      email?: string | null;
+      leadSource?: string | null;
+      address2?: string | null;
+      companyName?: string | null;
+      notes?: string | null;
+    } = {};
+    if (firstName !== undefined) data.firstName = firstName.trim();
+    if (lastName !== undefined) data.lastName = lastName.trim();
+    if (phone !== undefined) data.phone = phone.trim();
+    if (address !== undefined) data.address = address.trim();
+    if (email !== undefined) data.email = email === null || email === "" ? null : String(email).trim();
+    if (leadSource !== undefined) data.leadSource = leadSource === null || leadSource === "" ? null : String(leadSource).trim();
+    if (address2 !== undefined) data.address2 = address2 === null || address2 === "" ? null : String(address2).trim();
+    if (companyName !== undefined) data.companyName = companyName === null || companyName === "" ? null : String(companyName).trim();
+    if (notes !== undefined) data.notes = notes === null || notes === "" ? null : String(notes).trim();
+
+    if (Object.keys(data).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No valid fields to update",
+      });
+    }
+
+    const customer = await prisma.customer.update({
+      where: { id },
+      data,
+      include: { company: true },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Customer updated successfully",
+      customer,
+    });
+  } catch (error) {
+    console.error("Update customer error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error. Please try again later.",
