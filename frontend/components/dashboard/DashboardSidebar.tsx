@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LuHouse, LuUsers } from "react-icons/lu";
+import { LuBookUser, LuHouse, LuUsers } from "react-icons/lu";
 
 export default function DashboardSidebar() {
   return (
@@ -39,7 +39,17 @@ export default function DashboardSidebar() {
             <h2 className="text-neutral-400 text-small uppercase font-bold hidden md:block">
               Company
             </h2>
-            <ul className="mt-1">
+            <ul className="mt-1 flex flex-col gap-y-1">
+              <li>
+                <Link href='/customers' className="flex items-center gap-x-2 px-4 py-2 rounded-lg group transition-colors duration-300 ease-in-out hover:bg-primary/10">
+                  <div>
+                    <LuBookUser className="text-neutral-600 size-6 transition-colors duration-300 ease-in-out group-hover:text-primary" />
+                  </div>
+                  <span className="text-neutral-600 hidden md:block text-p font-bold transition-colors duration-300 ease-in-out group-hover:text-primary">
+                    Customers
+                  </span>
+                </Link>
+              </li>
               <li>
                 <Link href='/employees' className="flex items-center gap-x-2 px-4 py-2 rounded-lg group transition-colors duration-300 ease-in-out hover:bg-primary/10">
                   <div>
