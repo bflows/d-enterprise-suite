@@ -1,10 +1,10 @@
 "use client";
 
-import { LuUserRoundPlus, LuPencil } from "react-icons/lu";
+import { LuUserRoundPlus, LuPencil, LuTrash2 } from "react-icons/lu";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
-import { getCustomers } from "@/lib/api/customers";
+import { getCustomers, deleteCustomer } from "@/lib/api/customers";
 import type { CustomerListItem } from "@/lib/api/customers";
 import { useEffect, useState, useCallback } from "react";
 import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
@@ -18,9 +18,11 @@ function displayName(c: CustomerListItem) {
 function CustomerCard({
   customer,
   onEdit,
+  onDelete,
 }: {
   customer: CustomerListItem;
   onEdit: (customer: CustomerListItem) => void;
+  onDelete: (customer: CustomerListItem) => void;
 }) {
   const name = displayName(customer);
   const optional: { label: string; value: string | null }[] = [];
@@ -33,14 +35,24 @@ function CustomerCard({
     <article className="bg-neutral-50 border border-neutral-400 rounded-lg p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-neutral-900 font-semibold text-p">{name}</h3>
-        <button
-          type="button"
-          onClick={() => onEdit(customer)}
-          className="p-1.5 rounded-lg text-neutral-600 hover:bg-primary/10 hover:text-primary transition-colors"
-          aria-label={`Edit ${name}`}
-        >
-          <LuPencil className="size-5" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onEdit(customer)}
+            className="p-1.5 rounded-lg text-neutral-600 hover:bg-primary/10 hover:text-primary transition-colors"
+            aria-label={`Edit ${name}`}
+          >
+            <LuPencil className="size-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(customer)}
+            className="p-1.5 rounded-lg text-neutral-600 hover:bg-red-100 hover:text-red-600 transition-colors"
+            aria-label={`Delete ${name}`}
+          >
+            <LuTrash2 className="size-5" />
+          </button>
+        </div>
       </div>
       <p className="text-neutral-700 text-p mt-1">
         <a href={`tel:${customer.phone}`} className="hover:text-primary underline">
@@ -73,6 +85,8 @@ export default function CustomersTable() {
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<CustomerListItem | null>(null);
+  const [customerToDelete, setCustomerToDelete] = useState<CustomerListItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadCustomers = useCallback(() => {
     if (!companyId) {
@@ -92,6 +106,20 @@ export default function CustomersTable() {
       })
       .finally(() => setLoading(false));
   }, [companyId]);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!customerToDelete || !companyId) return;
+    setDeleting(true);
+    deleteCustomer(customerToDelete.id, companyId)
+      .then(() => {
+        setCustomerToDelete(null);
+        loadCustomers();
+      })
+      .catch(() => {
+        setDeleting(false);
+      })
+      .finally(() => setDeleting(false));
+  }, [customerToDelete, companyId, loadCustomers]);
 
   useEffect(() => {
     queueMicrotask(() => loadCustomers());
@@ -156,6 +184,46 @@ export default function CustomersTable() {
             ) : null}
           </NewEmployeeModal>
 
+          <NewEmployeeModal
+            open={!!customerToDelete}
+            onClose={() => !deleting && setCustomerToDelete(null)}
+            title="Delete customer?"
+          >
+            {customerToDelete ? (
+              <div className="space-y-4">
+                <p className="text-neutral-700 text-p">
+                  Are you sure you want to delete{" "}
+                  <strong>{displayName(customerToDelete)}</strong>? This cannot be undone.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCustomerToDelete(null)}
+                    disabled={deleting}
+                    className="px-4 py-2 rounded-lg cursor-pointer border border-neutral-400 text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmDelete}
+                    disabled={deleting}
+                    className="px-4 py-2 rounded-lg cursor-pointer bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {deleting ? (
+                      <>
+                        <span className="inline-block size-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
+                        Deleting...
+                      </>
+                    ) : (
+                      "Delete"
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </NewEmployeeModal>
+
           {/* Mobile: card list */}
           <div className="mt-6 md:hidden space-y-4">
             {customers.length === 0 ? (
@@ -168,6 +236,7 @@ export default function CustomersTable() {
                   key={customer.id}
                   customer={customer}
                   onEdit={(c) => setEditingCustomer(c)}
+                  onDelete={(c) => setCustomerToDelete(c)}
                 />
               ))
             )}
@@ -244,14 +313,24 @@ export default function CustomersTable() {
                         {customer.notes ?? "—"}
                       </td>
                       <td className="text-neutral-800 text-p py-3 w-12">
-                        <button
-                          type="button"
-                          onClick={() => setEditingCustomer(customer)}
-                          className="p-1.5 rounded-lg cursor-pointer text-neutral-600 hover:bg-primary/10 hover:text-primary transition-colors"
-                          aria-label={`Edit ${displayName(customer)}`}
-                        >
-                          <LuPencil className="size-5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setEditingCustomer(customer)}
+                            className="p-1.5 rounded-lg cursor-pointer text-neutral-600 hover:bg-primary/10 hover:text-primary transition-colors"
+                            aria-label={`Edit ${displayName(customer)}`}
+                          >
+                            <LuPencil className="size-5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCustomerToDelete(customer)}
+                            className="p-1.5 rounded-lg cursor-pointer text-neutral-600 hover:bg-red-100 hover:text-red-600 transition-colors"
+                            aria-label={`Delete ${displayName(customer)}`}
+                          >
+                            <LuTrash2 className="size-5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

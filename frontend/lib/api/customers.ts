@@ -88,3 +88,19 @@ export async function updateCustomer(
   );
   return data;
 }
+
+export interface DeleteCustomerResponse {
+  success: true;
+  message: string;
+}
+
+export async function deleteCustomer(
+  id: string,
+  companyId: string
+): Promise<DeleteCustomerResponse> {
+  const { data } = await apiClient.delete<DeleteCustomerResponse>(
+    "/api/customer/delete",
+    { data: { id, companyId } }
+  );
+  return data;
+}

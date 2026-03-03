@@ -195,7 +195,7 @@ export default function NewCustomerForm({
         <button
           type="button"
           onClick={onClose}
-          className="w-full rounded-lg border border-neutral-400 bg-neutral-50 py-2 px-4 text-p font-medium text-neutral-800 hover:bg-neutral-100 sm:w-auto"
+          className="w-full rounded-lg border cursor-pointer border-neutral-400 bg-neutral-50 py-2 px-4 text-p font-medium text-neutral-800 hover:bg-neutral-100 sm:w-auto"
         >
           Cancel
         </button>
