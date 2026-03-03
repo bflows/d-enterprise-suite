@@ -19,6 +19,12 @@ interface CreateCustomerBody {
   notes?: string;
 }
 
+/** Request body for deleting a customer. companyId is used to verify the customer belongs to the company. */
+interface DeleteCustomerBody {
+  id: string;
+  companyId: string;
+}
+
 /** Request body for updating a customer. companyId and id required; only other provided fields are updated. */
 interface UpdateCustomerBody {
   companyId: string;
@@ -341,6 +347,66 @@ export const updateCustomer = async (
     });
   } catch (error) {
     console.error("Update customer error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+
+/**
+ * Delete a customer.
+ * Body must include id (customer id) and companyId; customer is only deleted if it belongs to the company.
+ */
+export const deleteCustomer = async (
+  req: Request<{}, {}, DeleteCustomerBody>,
+  res: Response
+) => {
+  try {
+    const { id, companyId } = req.body;
+
+    if (!companyId || typeof companyId !== "string" || !companyId.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "companyId is required",
+      });
+    }
+
+    if (!id || typeof id !== "string" || !id.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Customer id is required",
+      });
+    }
+
+    const existingCustomer = await prisma.customer.findUnique({
+      where: { id },
+    });
+
+    if (!existingCustomer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    if (existingCustomer.companyId !== companyId) {
+      return res.status(403).json({
+        success: false,
+        message: "Customer does not belong to this company",
+      });
+    }
+
+    await prisma.customer.delete({
+      where: { id },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Customer deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete customer error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error. Please try again later.",
