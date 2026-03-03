@@ -35,6 +35,23 @@ export async function getEmployees(
   return data;
 }
 
+export interface SearchEmployeesResponse {
+  success: true;
+  message: string;
+  employees: EmployeeListItem[];
+}
+
+export async function searchEmployees(
+  companyId: string,
+  q: string
+): Promise<SearchEmployeesResponse> {
+  const { data } = await apiClient.get<SearchEmployeesResponse>(
+    "/api/company/employees/search",
+    { params: { companyId, q: q.trim() } }
+  );
+  return data;
+}
+
 /** Body for adding an employee. For existing users only email + slug; for new users also password, firstName, lastName, phoneNumber. */
 export interface CreateEmployeeBody {
   email: string;
