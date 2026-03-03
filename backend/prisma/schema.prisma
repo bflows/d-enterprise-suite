@@ -51,9 +51,10 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  roles     Role[]
-  employees Employee[]
-  customers Customer[]
+  roles       Role[]
+  employees   Employee[]
+  customers   Customer[]
+  serviceBook ServiceBook[]
 }
 
 model Role {
@@ -98,4 +99,58 @@ model Customer {
   company Company @relation(fields: [companyId], references: [id])
 
   @@index([companyId])
+}
+
+model ServiceBook {
+  id        String  @id @default(uuid())
+  companyId String
+  name      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company  Company               @relation(fields: [companyId], references: [id])
+  catories ServiceBookCategory[]
+
+  @@index([companyId])
+}
+
+model ServiceBookCategory {
+  id            String @id @default(uuid())
+  serviceBookId String
+  name          String
+
+  sortOrder Int?     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  serviceBook ServiceBook   @relation(fields: [serviceBookId], references: [id], onDelete: Cascade)
+  items       ServiceItem[]
+
+  @@index([serviceBookId])
+}
+
+enum ServiceItemType {
+  SERVICE
+  ADDON
+}
+
+model ServiceItem {
+  id         String          @id @default(uuid())
+  categoryId String
+  type       ServiceItemType
+
+  title       String
+  description String
+  price       String
+  duration    String
+  unit        Int
+
+  sortOrder Int? @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category ServiceBookCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
 }
