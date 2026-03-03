@@ -343,6 +343,80 @@ export const getEmployees = async (req: Request, res: Response) => {
   }
 };
 
+/** Query params for searching company employees by name or phone. */
+interface SearchEmployeesQuery {
+  companyId?: string;
+  q?: string;
+}
+
+/**
+ * Search employees in a company by name (first or last) or phone number.
+ * GET /api/company/employees/search?companyId=xxx&q=...
+ * q is matched case-insensitively against firstName, lastName, and phoneNumber (contains).
+ */
+export const searchEmployees = async (
+  req: Request<{}, {}, {}, SearchEmployeesQuery>,
+  res: Response
+) => {
+  try {
+    const { companyId, q } = req.query;
+
+    if (!companyId || typeof companyId !== "string" || !companyId.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "companyId is required",
+      });
+    }
+
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+    });
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: "Company not found",
+      });
+    }
+
+    const searchTerm = typeof q === "string" ? q.trim() : "";
+    const hasSearch = searchTerm.length > 0;
+
+    const employees = await prisma.employee.findMany({
+      where: {
+        companyId,
+        ...(hasSearch && {
+          user: {
+            OR: [
+              { firstName: { contains: searchTerm, mode: "insensitive" } },
+              { lastName: { contains: searchTerm, mode: "insensitive" } },
+              { phoneNumber: { contains: searchTerm, mode: "insensitive" } },
+            ],
+          },
+        }),
+      },
+      include: { user: true },
+    });
+
+    const employeesWithSanitizedUser = employees.map((e) => ({
+      ...e,
+      user: sanitizeUserForResponse(e.user),
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "Employees search completed",
+      employees: employeesWithSanitizedUser,
+    });
+  } catch (error) {
+    console.error("Search employees error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+
 /**
  * Terminate an employee from the current company by userId.
  * Removes the employee record; if the user has no other employments, deletes the user.

@@ -4,6 +4,7 @@ import {
   createEmployee,
   createCompany,
   getEmployees,
+  searchEmployees,
   terminateEmployee,
   updateEmployee
 } from "../controllers/company.controllers";
@@ -15,6 +16,7 @@ router.post('/create', requireAuth, createCompany);
 router.get('/check-email', requireAuth, requireRole('admin'), checkUserByEmail);
 router.post('/create-employee', requireAuth, requireRole('admin'), createEmployee);
 router.post('/employees', requireAuth, requireRole('admin'), getEmployees);
+router.get('/employees/search', requireAuth, requireRole('admin', 'dispatcher', 'technician'), searchEmployees);
 router.post('/terminate-employee', requireAuth, requireRole('admin'), terminateEmployee);
 router.put('/update-employee', requireAuth, requireRole('admin'), updateEmployee);
 
