@@ -1,15 +1,17 @@
 "use client";
 
-import { LuUserRoundPlus, LuUserRoundPen, LuUserRoundMinus } from "react-icons/lu";
+import { LuUserRoundPlus, LuUserRoundPen, LuUserRoundMinus, LuUserRoundSearch } from "react-icons/lu";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
-import { getCustomers, deleteCustomer } from "@/lib/api/customers";
+import { getCustomers, searchCustomers, deleteCustomer } from "@/lib/api/customers";
 import type { CustomerListItem } from "@/lib/api/customers";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
 import NewCustomerForm from "@/components/customers/NewCustomerForm";
 import EditCustomerForm from "@/components/customers/EditCustomerForm";
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 function displayName(c: CustomerListItem) {
   return [c.firstName, c.lastName].filter(Boolean).join(" ") || "—";
@@ -83,29 +85,65 @@ export default function CustomersTable() {
   const [customers, setCustomers] = useState<CustomerListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<CustomerListItem | null>(null);
   const [customerToDelete, setCustomerToDelete] = useState<CustomerListItem | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const loadCustomers = useCallback(() => {
+  const loadWithSearch = useCallback(
+    (q: string) => {
+      if (!companyId) {
+        setLoading(false);
+        setCustomers([]);
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      const term = q.trim();
+      const request = term
+        ? searchCustomers(companyId, term)
+        : getCustomers(companyId);
+      request
+        .then((res) => setCustomers(res.customers))
+        .catch((err) => {
+          setError(
+            err.response?.data?.message ?? err.message ?? "Failed to load customers"
+          );
+          setCustomers([]);
+        })
+        .finally(() => setLoading(false));
+    },
+    [companyId]
+  );
+
+  useEffect(() => {
     if (!companyId) {
       setLoading(false);
       setCustomers([]);
       return;
     }
-    setLoading(true);
-    setError(null);
-    getCustomers(companyId)
-      .then((res) => setCustomers(res.customers))
-      .catch((err) => {
-        setError(
-          err.response?.data?.message ?? err.message ?? "Failed to load customers"
-        );
-        setCustomers([]);
-      })
-      .finally(() => setLoading(false));
-  }, [companyId]);
+    const term = searchQuery.trim();
+    if (term === "") {
+      loadWithSearch("");
+      return;
+    }
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = null;
+    }
+    searchDebounceRef.current = setTimeout(() => {
+      searchDebounceRef.current = null;
+      loadWithSearch(searchQuery);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+        searchDebounceRef.current = null;
+      }
+    };
+  }, [companyId, searchQuery, loadWithSearch]);
 
   const handleConfirmDelete = useCallback(() => {
     if (!customerToDelete || !companyId) return;
@@ -113,43 +151,39 @@ export default function CustomersTable() {
     deleteCustomer(customerToDelete.id, companyId)
       .then(() => {
         setCustomerToDelete(null);
-        loadCustomers();
+        loadWithSearch(searchQuery.trim());
       })
       .catch(() => {
         setDeleting(false);
       })
       .finally(() => setDeleting(false));
-  }, [customerToDelete, companyId, loadCustomers]);
-
-  useEffect(() => {
-    queueMicrotask(() => loadCustomers());
-  }, [loadCustomers]);
+  }, [customerToDelete, companyId, loadWithSearch, searchQuery]);
 
   return (
     <div className="bg-neutral-50 border border-neutral-400 overflow-hidden rounded-lg py-8 px-4 sm:px-6 md:px-10 mt-8">
-      {loading ? (
-        <div className="flex justify-center">
-          <div className="text-center">
-            <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-            <p className="text-neutral-800 text-p mt-2">Loading customers...</p>
+      <div>
+        <div className="flex justify-between">
+          <div className="relative flex items-center">
+            <LuUserRoundSearch className="absolute text-neutral-600 size-6 left-4" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Name or phone"
+              className="bg-neutral-100 text-neutral-600 text-p w-48 border border-neutral-400 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:border focus:ring focus:ring-primary focus:border-primary placeholder:text-neutral-400"
+            />
           </div>
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="bg-primary text-neutral-100 py-2 px-4 rounded-lg w-full sm:w-fit flex items-center justify-center gap-x-2 cursor-pointer transition-colors duration-300 ease-in-out hover:bg-primary/90"
+          >
+            <LuUserRoundPlus className="size-6" />
+            <p className="text-p font-bold">New Customer</p>
+          </button>
         </div>
-      ) : error ? (
-        <p className="text-neutral-600 text-p py-6">{error}</p>
-      ) : (
-        <div>
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => setModalOpen(true)}
-              className="bg-primary text-neutral-100 py-2 px-4 rounded-lg w-full sm:w-fit flex items-center justify-center gap-x-2 cursor-pointer transition-colors duration-300 ease-in-out hover:bg-primary/90"
-            >
-              <LuUserRoundPlus className="size-6" />
-              <p className="text-p font-bold">New Customer</p>
-            </button>
-          </div>
 
-          <NewEmployeeModal
+        <NewEmployeeModal
             open={modalOpen}
             onClose={() => setModalOpen(false)}
             title="New Customer"
@@ -159,7 +193,7 @@ export default function CustomersTable() {
                 companyId={companyId}
                 onClose={() => setModalOpen(false)}
                 onSuccess={() => {
-                  loadCustomers();
+                  loadWithSearch(searchQuery.trim());
                 }}
               />
             ) : (
@@ -178,7 +212,7 @@ export default function CustomersTable() {
                 customer={editingCustomer}
                 onClose={() => setEditingCustomer(null)}
                 onSuccess={() => {
-                  loadCustomers();
+                  loadWithSearch(searchQuery.trim());
                 }}
               />
             ) : null}
@@ -224,11 +258,25 @@ export default function CustomersTable() {
             ) : null}
           </NewEmployeeModal>
 
-          {/* Mobile: card list */}
-          <div className="mt-6 md:hidden space-y-4">
+          {/* Data area: loading, error, or table/cards */}
+          {loading ? (
+            <div className="mt-6 flex justify-center min-h-[120px] items-center">
+              <div className="text-center">
+                <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+                <p className="text-neutral-800 text-p mt-2">Loading customers...</p>
+              </div>
+            </div>
+          ) : error ? (
+            <p className="text-neutral-600 text-p py-6 mt-6">{error}</p>
+          ) : (
+            <>
+              {/* Mobile: card list */}
+              <div className="mt-6 md:hidden space-y-4">
             {customers.length === 0 ? (
               <p className="text-neutral-800 text-p text-center py-8">
-                No customers yet. Add a customer to get started.
+                {searchQuery.trim()
+                  ? "No customers match your search."
+                  : "No customers yet. Add a customer to get started."}
               </p>
             ) : (
               customers.map((customer) => (
@@ -242,8 +290,8 @@ export default function CustomersTable() {
             )}
           </div>
 
-          {/* Desktop/tablet: table */}
-          <div className="mt-6 hidden md:block overflow-x-auto">
+              {/* Desktop/tablet: table */}
+              <div className="mt-6 hidden md:block overflow-x-auto">
             <table className="w-full table-auto">
               <thead>
                 <tr>
@@ -280,7 +328,9 @@ export default function CustomersTable() {
                       colSpan={8}
                       className="text-neutral-800 text-p text-center py-8"
                     >
-                      No customers yet. Add a customer to get started.
+                      {searchQuery.trim()
+                        ? "No customers match your search."
+                        : "No customers yet. Add a customer to get started."}
                     </td>
                   </tr>
                 ) : (
@@ -338,8 +388,9 @@ export default function CustomersTable() {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+            </>
+          )}
+      </div>
     </div>
   );
 }

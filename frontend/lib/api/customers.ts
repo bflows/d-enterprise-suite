@@ -19,12 +19,29 @@ export interface GetCustomersResponse {
   customers: CustomerListItem[];
 }
 
+export interface SearchCustomersResponse {
+  success: true;
+  message: string;
+  customers: CustomerListItem[];
+}
+
 export async function getCustomers(
   companyId: string
 ): Promise<GetCustomersResponse> {
   const { data } = await apiClient.get<GetCustomersResponse>(
     "/api/customer",
     { params: { companyId } }
+  );
+  return data;
+}
+
+export async function searchCustomers(
+  companyId: string,
+  q: string
+): Promise<SearchCustomersResponse> {
+  const { data } = await apiClient.get<SearchCustomersResponse>(
+    "/api/customer/search",
+    { params: { companyId, q: q.trim() } }
   );
   return data;
 }
