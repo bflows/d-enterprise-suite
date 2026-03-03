@@ -1,6 +1,6 @@
 "use client";
 
-import { LuUserRoundPlus, LuPencil, LuTrash2 } from "react-icons/lu";
+import { LuUserRoundPlus, LuUserRoundPen, LuUserRoundMinus } from "react-icons/lu";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
@@ -42,7 +42,7 @@ function CustomerCard({
             className="p-1.5 rounded-lg text-neutral-600 hover:bg-primary/10 hover:text-primary transition-colors"
             aria-label={`Edit ${name}`}
           >
-            <LuPencil className="size-5" />
+            <LuUserRoundPen className="size-6" />
           </button>
           <button
             type="button"
@@ -50,7 +50,7 @@ function CustomerCard({
             className="p-1.5 rounded-lg text-neutral-600 hover:bg-red-100 hover:text-red-600 transition-colors"
             aria-label={`Delete ${name}`}
           >
-            <LuTrash2 className="size-5" />
+            <LuUserRoundMinus className="size-6" />
           </button>
         </div>
       </div>
@@ -285,11 +285,11 @@ export default function CustomersTable() {
                   </tr>
                 ) : (
                   customers.map((customer) => (
-                    <tr key={customer.id} className="border-t border-neutral-300">
-                      <td className="text-neutral-800 text-p py-3">
+                    <tr key={customer.id} className="border-t border-neutral-200">
+                      <td className="text-neutral-800 text-p py-2">
                         {displayName(customer)}
                       </td>
-                      <td className="text-neutral-800 text-p py-3">
+                      <td className="text-neutral-800 text-p py-2">
                         <a
                           href={`tel:${customer.phone}`}
                           className="hover:text-primary underline"
@@ -297,22 +297,22 @@ export default function CustomersTable() {
                           {customer.phone}
                         </a>
                       </td>
-                      <td className="text-neutral-800 text-p py-3">
+                      <td className="text-neutral-800 text-p py-2">
                         {customer.address}
                       </td>
-                      <td className="text-neutral-800 text-p py-3 hidden lg:table-cell">
+                      <td className="text-neutral-800 text-p py-2 hidden lg:table-cell">
                         {customer.email ?? "—"}
                       </td>
-                      <td className="text-neutral-800 text-p py-3 hidden xl:table-cell">
+                      <td className="text-neutral-800 text-p py-2 hidden xl:table-cell">
                         {customer.leadSource ?? "—"}
                       </td>
-                      <td className="text-neutral-800 text-p py-3 hidden xl:table-cell">
+                      <td className="text-neutral-800 text-p py-2 hidden xl:table-cell">
                         {customer.address2 ?? "—"}
                       </td>
-                      <td className="text-neutral-800 text-p py-3 hidden xl:table-cell max-w-48 truncate" title={customer.notes ?? undefined}>
+                      <td className="text-neutral-800 text-p py-2 hidden xl:table-cell max-w-48 truncate" title={customer.notes ?? undefined}>
                         {customer.notes ?? "—"}
                       </td>
-                      <td className="text-neutral-800 text-p py-3 w-12">
+                      <td className="text-neutral-800 text-p py-2 w-12">
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
@@ -320,7 +320,7 @@ export default function CustomersTable() {
                             className="p-1.5 rounded-lg cursor-pointer text-neutral-600 hover:bg-primary/10 hover:text-primary transition-colors"
                             aria-label={`Edit ${displayName(customer)}`}
                           >
-                            <LuPencil className="size-5" />
+                            <LuUserRoundPen className="size-6" />
                           </button>
                           <button
                             type="button"
@@ -328,7 +328,7 @@ export default function CustomersTable() {
                             className="p-1.5 rounded-lg cursor-pointer text-neutral-600 hover:bg-red-100 hover:text-red-600 transition-colors"
                             aria-label={`Delete ${displayName(customer)}`}
                           >
-                            <LuTrash2 className="size-5" />
+                            <LuUserRoundMinus className="size-6" />
                           </button>
                         </div>
                       </td>
