@@ -6,6 +6,12 @@ interface ListCustomersQuery {
   companyId?: string;
 }
 
+/** Query params for searching customers in a company (by name or phone). */
+interface SearchCustomersQuery {
+  companyId?: string;
+  q?: string;
+}
+
 /** Request body for creating a customer. companyId scopes the customer to a company. */
 interface CreateCustomerBody {
   companyId: string;
@@ -41,6 +47,57 @@ interface UpdateCustomerBody {
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Search customers for a company by name (first or last) or phone number.
+ * Requires companyId query param. Optional q param filters by substring match on firstName, lastName, or phone.
+ */
+export const searchCustomers = async (
+  req: Request<{}, {}, {}, SearchCustomersQuery>,
+  res: Response
+) => {
+  try {
+    const { companyId, q } = req.query;
+
+    if (!companyId || typeof companyId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "companyId is required",
+      });
+    }
+
+    const term = typeof q === "string" ? q.trim() : "";
+
+    const where: { companyId: string; OR?: Array<{ [k: string]: unknown }> } = {
+      companyId,
+    };
+
+    if (term.length > 0) {
+      where.OR = [
+        { firstName: { contains: term, mode: "insensitive" } },
+        { lastName: { contains: term, mode: "insensitive" } },
+        { phone: { contains: term } },
+      ];
+    }
+
+    const customers = await prisma.customer.findMany({
+      where,
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Customers retrieved successfully",
+      customers,
+    });
+  } catch (error) {
+    console.error("Search customers error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
 
 /**
  * List customers for a company.
