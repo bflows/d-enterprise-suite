@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LuBookUser, LuHouse, LuUsers } from "react-icons/lu";
+import { LuBookCheck, LuBookUser, LuHouse, LuUsers } from "react-icons/lu";
 
 // Add new links here — structure is scalable for more sections and items
 const SIDEBAR_LINKS = [
@@ -16,6 +16,7 @@ const SIDEBAR_LINKS = [
     section: "Company",
     items: [
       { href: "/customers", label: "Customers", icon: LuBookUser },
+      { href: "/services", label: "Services", icon: LuBookCheck },
       { href: "/employees", label: "Employees", icon: LuUsers },
     ],
   },
