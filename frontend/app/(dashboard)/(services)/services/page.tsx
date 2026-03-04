@@ -45,7 +45,7 @@ export default function ServicesPage() {
         </div>
       </Modal>
 
-      <div className="mt-8">
+      <div className="mt-4">
         <div className="bg-neutral-50 w-fit px-6 py-4 rounded-2xl cursor-pointer flex items-center gap-x-4 border border-neutral-400">
           <p className="text-neutral-900 text-p">Air Duct Cleaning</p>
 
