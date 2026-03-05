@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
-import { getServiceBooks, createServiceItem, type ServiceBookItem, type ServiceItemType } from "@/lib/api/service";
+import { getServiceBooks, createServiceItem, getServiceItemsByCategory, type ServiceBookItem, type ServiceItemType, type ServiceItemListItem } from "@/lib/api/service";
 import { slugify } from "@/lib/utils/slug";
 import { LuPlus } from "react-icons/lu";
 import Modal from "@/components/ui/Modal";
@@ -41,6 +41,8 @@ export default function ServiceCategoryPage() {
   const [formUnit, setFormUnit] = useState<string>("0");
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [serviceItems, setServiceItems] = useState<ServiceItemListItem[]>([]);
+  const [itemsLoading, setItemsLoading] = useState(false);
 
   useEffect(() => {
     if (!companyId || !slug || !categorySlug) {
@@ -73,6 +75,32 @@ export default function ServiceCategoryPage() {
     };
   }, [companyId, slug, categorySlug]);
 
+  const category = (serviceBook?.catories ?? []).find(
+    (c) => getSlugForCategory(c.name) === categorySlug
+  );
+
+  useEffect(() => {
+    if (!category?.id) {
+      setServiceItems([]);
+      return;
+    }
+    let cancelled = false;
+    setItemsLoading(true);
+    getServiceItemsByCategory(category.id)
+      .then((res) => {
+        if (!cancelled) setServiceItems(res.serviceItems ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setServiceItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setItemsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [category?.id]);
+
   if (loading) {
     return (
       <div className="py-8">
@@ -99,10 +127,6 @@ export default function ServiceCategoryPage() {
       </div>
     );
   }
-
-  const category = (serviceBook.catories ?? []).find(
-    (c) => getSlugForCategory(c.name) === categorySlug
-  );
 
   if (!category) {
     return (
@@ -153,9 +177,84 @@ export default function ServiceCategoryPage() {
           Create Service
         </button>
       </div>
-      <p className="text-neutral-600 text-p mt-1">
-        Category under {serviceName}. Service items can be listed here.
-      </p>
+
+      {itemsLoading ? (
+        <div className="mt-6 flex items-center gap-x-2">
+          <div className="size-5 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+          <span className="text-p text-neutral-600">Loading items...</span>
+        </div>
+      ) : (
+        <>
+          {/* Desktop: table */}
+          <div className="mt-6 hidden overflow-x-auto rounded-lg border border-neutral-300 md:block">
+            <table className="w-full min-w-[640px] text-left text-p">
+              <thead>
+                <tr className="border-b border-neutral-300 bg-neutral-100">
+                  <th className="px-4 py-3 font-semibold text-neutral-800">Title</th>
+                  <th className="px-4 py-3 font-semibold text-neutral-800">Type</th>
+                  <th className="px-4 py-3 font-semibold text-neutral-800">Description</th>
+                  <th className="px-4 py-3 font-semibold text-neutral-800">Price</th>
+                  <th className="px-4 py-3 font-semibold text-neutral-800">Duration</th>
+                  <th className="px-4 py-3 font-semibold text-neutral-800">Unit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {serviceItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-6 text-center text-neutral-500">
+                      No service items yet. Create one above.
+                    </td>
+                  </tr>
+                ) : (
+                  serviceItems.map((item) => (
+                    <tr key={item.id} className="border-b border-neutral-200 last:border-b-0">
+                      <td className="px-4 py-3 text-neutral-800">{item.title}</td>
+                      <td className="px-4 py-3 text-neutral-700">{item.type}</td>
+                      <td className="max-w-[200px] truncate px-4 py-3 text-neutral-600" title={item.description}>
+                        {item.description || "—"}
+                      </td>
+                      <td className="px-4 py-3 text-neutral-700">${item.price}</td>
+                      <td className="px-4 py-3 text-neutral-700">{item.duration}</td>
+                      <td className="px-4 py-3 text-neutral-700">{item.unit}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile: cards */}
+          <div className="mt-6 flex flex-col gap-3 md:hidden">
+            {serviceItems.length === 0 ? (
+              <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-6 text-center text-p text-neutral-500">
+                No service items yet. Create one above.
+              </p>
+            ) : (
+              serviceItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-neutral-900">{item.title}</h3>
+                    <span className="shrink-0 rounded bg-neutral-200 px-2 py-0.5 text-xs font-medium text-neutral-700">
+                      {item.type}
+                    </span>
+                  </div>
+                  {item.description ? (
+                    <p className="mt-1 line-clamp-2 text-sm text-neutral-600">{item.description}</p>
+                  ) : null}
+                  <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                    <span><strong className="text-neutral-700">Price:</strong> {item.price}</span>
+                    <span><strong className="text-neutral-700">Duration:</strong> {item.duration}</span>
+                    <span><strong className="text-neutral-700">Unit:</strong> {item.unit}</span>
+                  </dl>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
 
       <Modal
         isOpen={createServiceOpen}
@@ -196,6 +295,8 @@ export default function ServiceCategoryPage() {
                 duration: durationInt,
                 unit: unitNum,
               });
+              const res = await getServiceItemsByCategory(category.id);
+              setServiceItems(res.serviceItems ?? []);
               setCreateServiceOpen(false);
               setFormType("SERVICE");
               setFormTitle("");
@@ -240,6 +341,8 @@ export default function ServiceCategoryPage() {
                 duration: durationInt,
                 unit: unitNum,
               });
+              const res = await getServiceItemsByCategory(category.id);
+              setServiceItems(res.serviceItems ?? []);
               setCreateServiceOpen(false);
               setFormType("SERVICE");
               setFormTitle("");
