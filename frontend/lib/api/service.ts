@@ -65,3 +65,41 @@ export async function createCategory(
   );
   return data;
 }
+
+export type ServiceItemType = "SERVICE" | "ADDON";
+
+export interface CreateServiceItemPayload {
+  companyId: string;
+  categoryId: string;
+  type: ServiceItemType;
+  title: string;
+  description: string;
+  price: string;
+  duration: string;
+  unit: number;
+}
+
+export interface CreateServiceItemResponse {
+  success: true;
+  message: string;
+  serviceItem: {
+    id: string;
+    categoryId: string;
+    type: ServiceItemType;
+    title: string;
+    description: string;
+    price: string;
+    duration: string;
+    unit: number;
+  };
+}
+
+export async function createServiceItem(
+  payload: CreateServiceItemPayload
+): Promise<CreateServiceItemResponse> {
+  const { data } = await apiClient.post<CreateServiceItemResponse>(
+    "/api/service/create-service-item",
+    payload
+  );
+  return data;
+}
