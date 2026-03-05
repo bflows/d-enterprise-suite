@@ -142,8 +142,8 @@ model ServiceItem {
 
   title       String
   description String
-  price       String
-  duration    String
+  price       Int
+  duration    Int
   unit        Int
 
   sortOrder Int? @default(0)
