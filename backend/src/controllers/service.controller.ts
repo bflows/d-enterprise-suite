@@ -146,3 +146,76 @@ export const createCategory = async (req: Request, res: Response) => {
     });
   }
 };
+
+const SERVICE_ITEM_TYPES = ["SERVICE", "ADDON"] as const;
+
+export const createServiceItem = async (req: Request, res: Response) => {
+  try {
+    const { categoryId, type, title, description, price, duration, unit } = req.body;
+
+    if (!categoryId || !type || !title || description == null || price == null || duration == null || unit == null) {
+      return res.status(400).json({
+        success: false,
+        message: "categoryId, type, title, description, price, duration, and unit are required"
+      });
+    }
+
+    if (!SERVICE_ITEM_TYPES.includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: "type must be SERVICE or ADDON"
+      });
+    }
+
+    const trimmedTitle = typeof title === "string" ? title.trim() : "";
+    if (!trimmedTitle) {
+      return res.status(400).json({
+        success: false,
+        message: "Title cannot be empty"
+      });
+    }
+
+    const category = await prisma.serviceBookCategory.findUnique({
+      where: { id: categoryId }
+    });
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found"
+      });
+    }
+
+    const unitNum = typeof unit === "string" ? parseInt(unit, 10) : Number(unit);
+    if (Number.isNaN(unitNum) || unitNum < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "unit must be a non-negative number"
+      });
+    }
+
+    const serviceItem = await prisma.serviceItem.create({
+      data: {
+        categoryId,
+        type,
+        title: trimmedTitle,
+        description: String(description),
+        price: String(price),
+        duration: String(duration),
+        unit: unitNum
+      }
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Service item created successfully",
+      serviceItem
+    });
+  } catch (error) {
+    console.error("Create service item error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later."
+    });
+  }
+};
