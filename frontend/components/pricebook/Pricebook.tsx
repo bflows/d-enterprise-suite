@@ -299,7 +299,7 @@ export default function Pricebook() {
             </div>
           </div>
         ) : serviceBooks.length === 0 ? (
-          <p className="text-neutral-600 text-p">No service books yet. Create one above.</p>
+          <p className="text-neutral-600 text-p">No service books yet. Create one to get started.</p>
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {serviceBooks.map((book) => {
