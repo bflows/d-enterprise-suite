@@ -274,7 +274,7 @@ export default function ServiceCategoryPage() {
                 {serviceItems.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-4 py-6 text-center text-neutral-500">
-                      No service items yet. Create one above.
+                      No service items yet. Create one to get started.
                     </td>
                   </tr>
                 ) : (
@@ -308,7 +308,7 @@ export default function ServiceCategoryPage() {
             {serviceItems.length === 0 ? (
               <li>
                 <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-6 text-center text-p text-neutral-500">
-                  No service items yet. Create one above.
+                  No service items yet. Create one to get started.
                 </p>
               </li>
             ) : (
