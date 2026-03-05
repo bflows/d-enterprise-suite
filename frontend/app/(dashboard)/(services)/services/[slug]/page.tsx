@@ -9,6 +9,9 @@ import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import { getServiceBooks, type ServiceBookItem } from "@/lib/api/service";
 import { slugify } from "@/lib/utils/slug";
 import { LuFolderPlus } from "react-icons/lu";
+import Modal from "@/components/ui/Modal";
+
+export type CategoryItem = { id: string; name: string };
 
 function getSlugForBook(book: ServiceBookItem): string {
   const name = book.name ?? "";
@@ -21,6 +24,9 @@ export default function ServiceBookPage() {
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
   const [serviceBook, setServiceBook] = useState<ServiceBookItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
+  const [categoryName, setCategoryName] = useState("");
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
 
   useEffect(() => {
     if (!companyId || !slug) {
@@ -90,6 +96,7 @@ export default function ServiceBookPage() {
         </h1>
 
         <button
+          onClick={() => setCreateCategoryOpen(true)}
           className="bg-primary text-neutral-200 text-p font-bold py-3 px-4 rounded-lg flex items-center gap-x-2 cursor-pointer transition-colors hover:bg-primary/90 hover:text-neutral-50"
         >
           <div>
@@ -98,9 +105,77 @@ export default function ServiceBookPage() {
           Create Category
         </button>
       </div>
-      <p className="mt-2 text-neutral-600 text-p">
-        Categories and services for this book will appear here.
-      </p>
+
+      <Modal
+        isOpen={createCategoryOpen}
+        onClose={() => {
+          setCreateCategoryOpen(false);
+          setCategoryName("");
+        }}
+        title="Create Category"
+        primaryAction={{
+          label: "Create",
+          disabled: !categoryName.trim(),
+          onClick: () => {
+            const name = categoryName.trim();
+            if (!name) return;
+            setCategories((prev) => [
+              ...prev,
+              { id: crypto.randomUUID(), name },
+            ]);
+            setCreateCategoryOpen(false);
+            setCategoryName("");
+          },
+        }}
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const name = categoryName.trim();
+            if (!name) return;
+            setCategories((prev) => [
+              ...prev,
+              { id: crypto.randomUUID(), name },
+            ]);
+            setCreateCategoryOpen(false);
+            setCategoryName("");
+          }}
+          className="space-y-4"
+        >
+          <div>
+            <label
+              htmlFor="category-name"
+              className="block text-sm font-medium text-neutral-800 mb-1"
+            >
+              Name
+            </label>
+            <input
+              id="category-name"
+              type="text"
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+              placeholder="Category name"
+              className="w-full rounded-lg border border-neutral-400 bg-neutral-50 mt-1 px-3 py-2 text-neutral-800 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary"
+              autoFocus
+            />
+          </div>
+        </form>
+      </Modal>
+
+      {categories.length > 0 && (
+        <div className="mt-4">
+          <ul className="space-y-2">
+            {categories.map((cat) => (
+              <li
+                key={cat.id}
+                className="text-neutral-700 w-fit min-w-24 text-p py-2 px-3 rounded-lg bg-neutral-100 border border-neutral-300"
+              >
+                {cat.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
