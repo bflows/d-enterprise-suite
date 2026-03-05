@@ -82,10 +82,15 @@ export default function Pricebook() {
     setError(null);
     setLoading(true);
     try {
-      await createServiceBook(companyId, trimmedTitle);
+      const createRes = await createServiceBook(companyId, trimmedTitle);
       const res = await getServiceBooks(companyId);
       setServiceBooks(res.serviceBooks ?? []);
       handleClose();
+      const created = createRes.serviceBook;
+      if (created) {
+        const bookSlug = created.name ? slugify(created.name) : created.id;
+        router.push(`/services/${bookSlug}`);
+      }
     } catch (err: unknown) {
       const message =
         err && typeof err === "object" && "response" in err
