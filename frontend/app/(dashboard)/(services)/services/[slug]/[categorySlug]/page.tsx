@@ -186,10 +186,10 @@ export default function ServiceCategoryPage() {
       ) : (
         <>
           {/* Desktop: table */}
-          <div className="mt-6 hidden overflow-x-auto rounded-lg border border-neutral-300 md:block">
-            <table className="w-full min-w-[640px] text-left text-p">
+          <div className="mt-6 hidden overflow-x-auto rounded-lg border border-neutral-400 md:block">
+            <table className="w-full min-w-160 text-left text-p bg-neutral-50">
               <thead>
-                <tr className="border-b border-neutral-300 bg-neutral-100">
+                <tr className="border-b border-neutral-200">
                   <th className="px-4 py-3 font-semibold text-neutral-800">Title</th>
                   <th className="px-4 py-3 font-semibold text-neutral-800">Type</th>
                   <th className="px-4 py-3 font-semibold text-neutral-800">Description</th>
@@ -210,7 +210,7 @@ export default function ServiceCategoryPage() {
                     <tr key={item.id} className="border-b border-neutral-200 last:border-b-0">
                       <td className="px-4 py-3 text-neutral-800">{item.title}</td>
                       <td className="px-4 py-3 text-neutral-700">{item.type}</td>
-                      <td className="max-w-[200px] truncate px-4 py-3 text-neutral-600" title={item.description}>
+                      <td className="max-w-50 truncate px-4 py-3 text-neutral-600" title={item.description}>
                         {item.description || "—"}
                       </td>
                       <td className="px-4 py-3 text-neutral-700">${item.price}</td>
