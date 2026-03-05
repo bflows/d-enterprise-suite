@@ -24,7 +24,7 @@ export default function Pricebook() {
           <div>
             <LuBookPlus className="size-6" />
           </div>
-          New Industry
+          New Service Book
         </button>
       </div>
 
