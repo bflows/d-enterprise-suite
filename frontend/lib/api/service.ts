@@ -1,5 +1,28 @@
 import { apiClient } from "@/lib/api/client";
 
+export interface ServiceBookItem {
+  id: string;
+  companyId: string;
+  name: string | null;
+  createdAt: string;
+}
+
+export interface GetServiceBooksResponse {
+  success: true;
+  message: string;
+  serviceBooks: ServiceBookItem[];
+}
+
+export async function getServiceBooks(
+  companyId: string
+): Promise<GetServiceBooksResponse> {
+  const { data } = await apiClient.post<GetServiceBooksResponse>(
+    "/api/service/service-books",
+    { companyId }
+  );
+  return data;
+}
+
 export interface CreateServiceBookResponse {
   success: true;
   message: string;
