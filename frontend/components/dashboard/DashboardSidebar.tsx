@@ -40,7 +40,7 @@ export default function DashboardSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden bg-neutral-50 border-r border-neutral-400 sm:block sm:w-28 md:w-64">
+    <aside className="hidden bg-neutral-50 border-r border-neutral-400 sm:block sm:w-28 md:w-64 shrink-0">
       {/* Container */}
       <div className="py-6 px-8 flex flex-col items-center md:items-start">
         {/* Header */}

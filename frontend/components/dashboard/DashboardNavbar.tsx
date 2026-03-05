@@ -2,7 +2,7 @@ import { LuEllipsisVertical, LuPanelLeftOpen } from "react-icons/lu";
 
 export default function DashboardNavbar() {
   return (
-    <nav className="bg-primary h-16 px-6 top-0 sticky border-b border-neutral-400 sm:hidden">
+    <nav className="bg-primary h-16 shrink-0 px-6 top-0 sticky border-b border-neutral-400 sm:hidden">
       <div className="flex items-center justify-between h-full">
         {/* Menu */}
         <div>
