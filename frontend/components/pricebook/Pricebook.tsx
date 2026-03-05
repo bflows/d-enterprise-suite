@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
-import { createServiceBook, getServiceBooks, type ServiceBookItem } from "@/lib/api/service";
+import { createServiceBook, getServiceBooks, updateServiceBook, type ServiceBookItem } from "@/lib/api/service";
 import { slugify } from "@/lib/utils/slug";
 
 export default function Pricebook() {
@@ -21,6 +21,12 @@ export default function Pricebook() {
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingBook, setEditingBook] = useState<ServiceBookItem | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!companyId) {
@@ -134,6 +140,100 @@ export default function Pricebook() {
         </div>
       </Modal>
 
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => {
+          if (!editLoading) {
+            setEditModalOpen(false);
+            setEditingBook(null);
+            setEditName("");
+            setEditError(null);
+          }
+        }}
+        title="Edit Service Book"
+        primaryAction={{
+          label: editLoading ? "Saving…" : "Save",
+          disabled: !editName.trim() || editLoading,
+          onClick: async () => {
+            const trimmed = editName.trim();
+            if (!trimmed || !companyId || !editingBook) return;
+            setEditError(null);
+            setEditLoading(true);
+            try {
+              await updateServiceBook(companyId, trimmed, editingBook.id);
+              const res = await getServiceBooks(companyId);
+              setServiceBooks(res.serviceBooks ?? []);
+              setEditModalOpen(false);
+              setEditingBook(null);
+              setEditName("");
+            } catch (err: unknown) {
+              const message =
+                err && typeof err === "object" && "response" in err
+                  ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                  : err instanceof Error
+                    ? err.message
+                    : "Failed to update service book.";
+              setEditError(message ?? "Failed to update service book.");
+            } finally {
+              setEditLoading(false);
+            }
+          },
+        }}
+      >
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const trimmed = editName.trim();
+            if (!trimmed || !companyId || !editingBook) return;
+            setEditError(null);
+            setEditLoading(true);
+            try {
+              await updateServiceBook(companyId, trimmed, editingBook.id);
+              const res = await getServiceBooks(companyId);
+              setServiceBooks(res.serviceBooks ?? []);
+              setEditModalOpen(false);
+              setEditingBook(null);
+              setEditName("");
+            } catch (err: unknown) {
+              const message =
+                err && typeof err === "object" && "response" in err
+                  ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                  : err instanceof Error
+                    ? err.message
+                    : "Failed to update service book.";
+              setEditError(message ?? "Failed to update service book.");
+            } finally {
+              setEditLoading(false);
+            }
+          }}
+          className="space-y-4"
+        >
+          {editError && (
+            <p className="text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg" role="alert">
+              {editError}
+            </p>
+          )}
+          <div>
+            <label
+              htmlFor="edit-service-book-name"
+              className="block text-sm font-medium text-neutral-800 mb-1"
+            >
+              Name
+            </label>
+            <input
+              id="edit-service-book-name"
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="Service book name"
+              className="w-full rounded-lg border border-neutral-400 bg-neutral-50 mt-1 px-3 py-2 text-neutral-800 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary"
+              disabled={editLoading}
+              autoFocus
+            />
+          </div>
+        </form>
+      </Modal>
+
       <div className="mt-4">
         {loadingBooks ? (
           <div className="">
@@ -161,7 +261,12 @@ export default function Pricebook() {
                 {
                   label: "Edit",
                   icon: <LuPencil className="size-4" />,
-                  onClick: () => { /* TODO: edit service book */ },
+                  onClick: () => {
+                    setEditingBook(book);
+                    setEditName(book.name ?? "Untitled");
+                    setEditError(null);
+                    setEditModalOpen(true);
+                  },
                 },
                 {
                   label: "Delete",

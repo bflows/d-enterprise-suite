@@ -48,6 +48,25 @@ export async function createServiceBook(
   return data;
 }
 
+export interface UpdateServiceBookResponse {
+  success: true;
+  message: string;
+  serviceBook?: { id: string; companyId: string; name: string; createdAt: string };
+}
+
+/** PUT to update a service book (pricebook). */
+export async function updateServiceBook(
+  companyId: string,
+  name: string,
+  serviceBookId: string
+): Promise<UpdateServiceBookResponse> {
+  const { data } = await apiClient.put<UpdateServiceBookResponse>(
+    "/api/service/update-pricebook",
+    { id: serviceBookId, companyId, name: name.trim() }
+  );
+  return data;
+}
+
 export interface CreateCategoryResponse {
   success: true;
   message: string;
