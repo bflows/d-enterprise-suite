@@ -1,19 +1,45 @@
 "use client";
 
 import { LuBookPlus/* , LuEllipsisVertical */ } from "react-icons/lu";
+import Link from "next/link";
 import Modal from "../ui/Modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
-import { createServiceBook } from "@/lib/api/service";
+import { createServiceBook, getServiceBooks, type ServiceBookItem } from "@/lib/api/service";
+import { slugify } from "@/lib/utils/slug";
 
 export default function Pricebook() {
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
+  const [serviceBooks, setServiceBooks] = useState<ServiceBookItem[]>([]);
+  const [loadingBooks, setLoadingBooks] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!companyId) {
+      setServiceBooks([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingBooks(true);
+    getServiceBooks(companyId)
+      .then((res) => {
+        if (!cancelled) setServiceBooks(res.serviceBooks ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setServiceBooks([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingBooks(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [companyId]);
 
   const handleOpen = () => {
     setTitle("");
@@ -43,6 +69,8 @@ export default function Pricebook() {
     setLoading(true);
     try {
       await createServiceBook(companyId, trimmedTitle);
+      const res = await getServiceBooks(companyId);
+      setServiceBooks(res.serviceBooks ?? []);
       handleClose();
     } catch (err: unknown) {
       const message =
@@ -104,7 +132,35 @@ export default function Pricebook() {
       </Modal>
 
       <div className="mt-4">
-        
+        {loadingBooks ? (
+          <div className="">
+            <div className="flex items-center gap-x-4">
+              <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+              <p className="text-neutral-800 text-p mt-2">
+                Loading service books...
+              </p>
+            </div>
+          </div>
+        ) : serviceBooks.length === 0 ? (
+          <p className="text-neutral-600 text-p">No service books yet. Create one above.</p>
+        ) : (
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {serviceBooks.map((book) => {
+              const name = book.name ?? "Untitled";
+              const slug = name ? slugify(name) : book.id;
+              return (
+                <li key={book.id}>
+                  <Link
+                    href={`/services/${slug}`}
+                    className="block rounded-lg border border-neutral-300 bg-neutral-50 p-4 text-neutral-900 font-medium transition-colors hover:border-primary hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    {name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
   );
