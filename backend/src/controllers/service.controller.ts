@@ -76,7 +76,10 @@ export const getServiceBooks = async (req: Request, res: Response) => {
 
     const serviceBooks = await prisma.serviceBook.findMany({
       where: { companyId },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
+      include: {
+        catories: { orderBy: { sortOrder: "asc" } }
+      }
     });
 
     return res.status(200).json({
