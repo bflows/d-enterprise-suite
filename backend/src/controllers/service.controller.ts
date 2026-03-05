@@ -553,3 +553,42 @@ export const deleteServiceItem = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const deleteServiceBook = async (req: Request, res: Response) => {
+  try {
+    const serviceBookId = typeof req.query.serviceBookId === "string" ? req.query.serviceBookId : "";
+
+    if (!serviceBookId) {
+      return res.status(400).json({
+        success: false,
+        message: "serviceBookId is required"
+      });
+    }
+
+    const existing = await prisma.serviceBook.findUnique({
+      where: { id: serviceBookId }
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Service book not found"
+      });
+    }
+
+    await prisma.serviceBook.delete({
+      where: { id: serviceBookId }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Service book deleted successfully"
+    });
+  } catch (error) {
+    console.error("Delete service book error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later."
+    });
+  }
+};
