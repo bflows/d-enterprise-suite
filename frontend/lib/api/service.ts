@@ -74,8 +74,8 @@ export interface CreateServiceItemPayload {
   type: ServiceItemType;
   title: string;
   description: string;
-  price: string;
-  duration: string;
+  price: number;
+  duration: number;
   unit: number;
 }
 
@@ -88,8 +88,8 @@ export interface CreateServiceItemResponse {
     type: ServiceItemType;
     title: string;
     description: string;
-    price: string;
-    duration: string;
+    price: number;
+    duration: number;
     unit: number;
   };
 }
