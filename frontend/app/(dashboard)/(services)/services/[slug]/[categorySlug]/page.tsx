@@ -8,7 +8,7 @@ import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import { getServiceBooks, createServiceItem, getServiceItemsByCategory, updateServiceItem, deleteServiceItem, type ServiceBookItem, type ServiceItemType, type ServiceItemListItem } from "@/lib/api/service";
 import { slugify } from "@/lib/utils/slug";
-import { LuPlus, LuEllipsisVertical, LuExternalLink, LuPencil, LuTrash2 } from "react-icons/lu";
+import { LuPlus, LuEllipsisVertical, LuExternalLink, LuPencil, LuTrash2, LuMoveLeft } from "react-icons/lu";
 import Modal from "@/components/ui/Modal";
 import ActionMenu from "@/components/ui/ActionMenu";
 
@@ -228,9 +228,12 @@ export default function ServiceCategoryPage() {
       <nav className="mb-4">
         <Link
           href={`/services/${slug}`}
-          className="text-primary font-medium hover:underline text-p"
+          className="text-primary text-p flex items-center gap-x-3 w-fit py-3 px-4 rounded-lg transition-colors hover:text-neutral-50 hover:bg-primary"
         >
-          ← {serviceName}
+          <div>
+            <LuMoveLeft className="size-6" />
+          </div>
+          {serviceName}
         </Link>
       </nav>
       <div className="flex items-center justify-between">
