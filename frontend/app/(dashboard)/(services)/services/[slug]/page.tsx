@@ -217,6 +217,10 @@ export default function ServiceBookPage() {
         </form>
       </Modal>
 
+      {serviceBook.catories?.length === 0 && (
+        <p className="text-neutral-600 text-p">No categories yet. Create one to get started.</p>
+      )}
+
       {(serviceBook.catories?.length ?? 0) > 0 && (
         <div className="mt-4">
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
