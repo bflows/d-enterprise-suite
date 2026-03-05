@@ -210,6 +210,94 @@ export const createCategory = async (req: Request, res: Response) => {
   }
 };
 
+export const updateCategory = async (req: Request, res: Response) => {
+  try {
+    const { categoryId, name } = req.body;
+
+    if (!categoryId || !name) {
+      return res.status(400).json({
+        success: false,
+        message: "categoryId and name are required"
+      });
+    }
+
+    const trimmedName = typeof name === "string" ? name.trim() : "";
+    if (!trimmedName) {
+      return res.status(400).json({
+        success: false,
+        message: "Category name cannot be empty"
+      });
+    }
+
+    const existing = await prisma.serviceBookCategory.findUnique({
+      where: { id: categoryId }
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found"
+      });
+    }
+
+    const category = await prisma.serviceBookCategory.update({
+      where: { id: categoryId },
+      data: { name: trimmedName }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Category updated successfully",
+      category
+    });
+  } catch (error) {
+    console.error("Update category error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later."
+    });
+  }
+};
+
+export const deleteCategory = async (req: Request, res: Response) => {
+  try {
+    const categoryId = typeof req.query.categoryId === "string" ? req.query.categoryId : "";
+
+    if (!categoryId) {
+      return res.status(400).json({
+        success: false,
+        message: "categoryId is required"
+      });
+    }
+
+    const existing = await prisma.serviceBookCategory.findUnique({
+      where: { id: categoryId }
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found"
+      });
+    }
+
+    await prisma.serviceBookCategory.delete({
+      where: { id: categoryId }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Category deleted successfully"
+    });
+  } catch (error) {
+    console.error("Delete category error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later."
+    });
+  }
+};
+
 const SERVICE_ITEM_TYPES = ["SERVICE", "ADDON"] as const;
 
 export const createServiceItem = async (req: Request, res: Response) => {
