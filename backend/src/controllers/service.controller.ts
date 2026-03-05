@@ -96,6 +96,69 @@ export const getServiceBooks = async (req: Request, res: Response) => {
   }
 };
 
+export const updatePricebook = async (req: Request, res: Response) => {
+  try {
+    const { id, companyId, name } = req.body;
+
+    if (!id || !companyId || !name) {
+      return res.status(400).json({
+        success: false,
+        message: "id, companyId and name are required"
+      });
+    }
+
+    const trimmedName = typeof name === "string" ? name.trim() : "";
+    if (!trimmedName) {
+      return res.status(400).json({
+        success: false,
+        message: "Pricebook name cannot be empty"
+      });
+    }
+
+    const company = await prisma.company.findUnique({
+      where: { id: companyId }
+    });
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: "Company not found"
+      });
+    }
+
+    const existing = await prisma.serviceBook.findUnique({
+      where: { id }
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Pricebook not found"
+      });
+    }
+
+    const serviceBook = await prisma.serviceBook.update({
+      where: { id },
+      data: {
+        companyId,
+        name: trimmedName
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Pricebook updated successfully",
+      serviceBook
+    });
+  } catch (error) {
+    console.error("Update pricebook error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later."
+    });
+  }
+};
+
 export const createCategory = async (req: Request, res: Response) => {
   try {
     const { serviceBookId, name } = req.body;
