@@ -1,10 +1,18 @@
 import { apiClient } from "@/lib/api/client";
 
+export interface ServiceBookCategoryItem {
+  id: string;
+  serviceBookId: string;
+  name: string;
+  sortOrder: number | null;
+}
+
 export interface ServiceBookItem {
   id: string;
   companyId: string;
   name: string | null;
   createdAt: string;
+  catories?: ServiceBookCategoryItem[];
 }
 
 export interface GetServiceBooksResponse {
