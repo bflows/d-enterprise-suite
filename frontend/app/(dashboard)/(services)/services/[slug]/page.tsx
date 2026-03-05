@@ -144,7 +144,7 @@ export default function ServiceBookPage() {
         }}
         title="Create Category"
         primaryAction={{
-          label: "Create",
+          label: createCategoryLoading ? "Creating..." : "Create",
           disabled: !categoryName.trim() || createCategoryLoading,
           onClick: async () => {
             const name = categoryName.trim();
