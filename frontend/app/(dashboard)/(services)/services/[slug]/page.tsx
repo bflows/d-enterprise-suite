@@ -11,11 +11,13 @@ import { slugify } from "@/lib/utils/slug";
 import { LuFolderPlus } from "react-icons/lu";
 import Modal from "@/components/ui/Modal";
 
-export type CategoryItem = { id: string; name: string };
-
 function getSlugForBook(book: ServiceBookItem): string {
   const name = book.name ?? "";
   return name ? slugify(name) : book.id;
+}
+
+function getSlugForCategory(name: string): string {
+  return slugify(name);
 }
 
 export default function ServiceBookPage() {
@@ -26,9 +28,21 @@ export default function ServiceBookPage() {
   const [loading, setLoading] = useState(true);
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
   const [categoryName, setCategoryName] = useState("");
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [createCategoryLoading, setCreateCategoryLoading] = useState(false);
   const [createCategoryError, setCreateCategoryError] = useState<string | null>(null);
+
+  const fetchServiceBook = () => {
+    if (!companyId || !slug) return;
+    getServiceBooks(companyId)
+      .then((res) => {
+        const match = (res.serviceBooks ?? []).find(
+          (book) => getSlugForBook(book) === slug
+        );
+        setServiceBook(match ?? null);
+      })
+      .catch(() => setServiceBook(null))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
     if (!companyId || !slug) {
@@ -125,13 +139,10 @@ export default function ServiceBookPage() {
             setCreateCategoryError(null);
             setCreateCategoryLoading(true);
             try {
-              const res = await createCategory(companyId, serviceBook.id, name);
-              setCategories((prev) => [
-                ...prev,
-                { id: res.category.id, name: res.category.name },
-              ]);
+              await createCategory(companyId, serviceBook.id, name);
               setCreateCategoryOpen(false);
               setCategoryName("");
+              fetchServiceBook();
             } catch (err: unknown) {
               const message =
                 err && typeof err === "object" && "response" in err
@@ -152,13 +163,10 @@ export default function ServiceBookPage() {
             setCreateCategoryError(null);
             setCreateCategoryLoading(true);
             try {
-              const res = await createCategory(companyId, serviceBook.id, name);
-              setCategories((prev) => [
-                ...prev,
-                { id: res.category.id, name: res.category.name },
-              ]);
+              await createCategory(companyId, serviceBook.id, name);
               setCreateCategoryOpen(false);
               setCategoryName("");
+              fetchServiceBook();
             } catch (err: unknown) {
               const message =
                 err && typeof err === "object" && "response" in err
@@ -196,18 +204,19 @@ export default function ServiceBookPage() {
         </form>
       </Modal>
 
-      {categories.length > 0 && (
+      {(serviceBook.catories?.length ?? 0) > 0 && (
         <div className="mt-4">
-          <ul className="space-y-2">
-            {categories.map((cat) => (
-              <li
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {serviceBook.catories?.map((cat) => (
+              <Link
                 key={cat.id}
-                className="text-neutral-700 w-fit min-w-24 text-p py-2 px-3 rounded-lg bg-neutral-100 border border-neutral-300"
+                href={`/services/${slug}/${getSlugForCategory(cat.name)}`}
+                className="block p-4 rounded-xl border border-neutral-300 bg-neutral-50 hover:bg-neutral-100 hover:border-primary/40 transition-colors text-neutral-800 font-medium shadow-sm"
               >
                 {cat.name}
-              </li>
+              </Link>
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </div>
