@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
-import { getServiceBooks, type ServiceBookItem } from "@/lib/api/service";
+import { getServiceBooks, createCategory, type ServiceBookItem } from "@/lib/api/service";
 import { slugify } from "@/lib/utils/slug";
 import { LuFolderPlus } from "react-icons/lu";
 import Modal from "@/components/ui/Modal";
@@ -27,6 +27,8 @@ export default function ServiceBookPage() {
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
   const [categoryName, setCategoryName] = useState("");
   const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [createCategoryLoading, setCreateCategoryLoading] = useState(false);
+  const [createCategoryError, setCreateCategoryError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!companyId || !slug) {
@@ -111,37 +113,69 @@ export default function ServiceBookPage() {
         onClose={() => {
           setCreateCategoryOpen(false);
           setCategoryName("");
+          setCreateCategoryError(null);
         }}
         title="Create Category"
         primaryAction={{
           label: "Create",
-          disabled: !categoryName.trim(),
-          onClick: () => {
+          disabled: !categoryName.trim() || createCategoryLoading,
+          onClick: async () => {
             const name = categoryName.trim();
-            if (!name) return;
-            setCategories((prev) => [
-              ...prev,
-              { id: crypto.randomUUID(), name },
-            ]);
-            setCreateCategoryOpen(false);
-            setCategoryName("");
+            if (!name || !companyId || !serviceBook.id) return;
+            setCreateCategoryError(null);
+            setCreateCategoryLoading(true);
+            try {
+              const res = await createCategory(companyId, serviceBook.id, name);
+              setCategories((prev) => [
+                ...prev,
+                { id: res.category.id, name: res.category.name },
+              ]);
+              setCreateCategoryOpen(false);
+              setCategoryName("");
+            } catch (err: unknown) {
+              const message =
+                err && typeof err === "object" && "response" in err
+                  ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                  : "Failed to create category.";
+              setCreateCategoryError(message ?? "Failed to create category.");
+            } finally {
+              setCreateCategoryLoading(false);
+            }
           },
         }}
       >
         <form
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             const name = categoryName.trim();
-            if (!name) return;
-            setCategories((prev) => [
-              ...prev,
-              { id: crypto.randomUUID(), name },
-            ]);
-            setCreateCategoryOpen(false);
-            setCategoryName("");
+            if (!name || !companyId || !serviceBook.id) return;
+            setCreateCategoryError(null);
+            setCreateCategoryLoading(true);
+            try {
+              const res = await createCategory(companyId, serviceBook.id, name);
+              setCategories((prev) => [
+                ...prev,
+                { id: res.category.id, name: res.category.name },
+              ]);
+              setCreateCategoryOpen(false);
+              setCategoryName("");
+            } catch (err: unknown) {
+              const message =
+                err && typeof err === "object" && "response" in err
+                  ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                  : "Failed to create category.";
+              setCreateCategoryError(message ?? "Failed to create category.");
+            } finally {
+              setCreateCategoryLoading(false);
+            }
           }}
           className="space-y-4"
         >
+          {createCategoryError && (
+            <p className="text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg">
+              {createCategoryError}
+            </p>
+          )}
           <div>
             <label
               htmlFor="category-name"
