@@ -8,6 +8,7 @@ import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import { getServiceBooks, type ServiceBookItem } from "@/lib/api/service";
 import { slugify } from "@/lib/utils/slug";
+import { LuPlus } from "react-icons/lu";
 
 function getSlugForBook(book: ServiceBookItem): string {
   const name = book.name ?? "";
@@ -114,9 +115,19 @@ export default function ServiceCategoryPage() {
           ← {serviceName}
         </Link>
       </nav>
-      <h1 className="text-neutral-900 text-h4 font-bold">
-        {category.name}
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-neutral-900 text-h4 font-bold">
+          {category.name}
+        </h1>
+        <button
+          className="bg-primary text-neutral-200 text-p font-bold py-3 px-4 rounded-lg flex items-center gap-x-2 cursor-pointer transition-colors hover:bg-primary/90 hover:text-neutral-50"
+        >
+          <div>
+            <LuPlus className="size-6" />
+          </div>
+          Create Service
+        </button>
+      </div>
       <p className="text-neutral-600 text-p mt-1">
         Category under {serviceName}. Service items can be listed here.
       </p>
