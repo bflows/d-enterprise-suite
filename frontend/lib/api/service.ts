@@ -103,3 +103,33 @@ export async function createServiceItem(
   );
   return data;
 }
+
+export interface ServiceItemListItem {
+  id: string;
+  categoryId: string;
+  type: ServiceItemType;
+  title: string;
+  description: string;
+  price: number;
+  duration: number;
+  unit: number;
+  sortOrder: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GetServiceItemsByCategoryResponse {
+  success: true;
+  message: string;
+  serviceItems: ServiceItemListItem[];
+}
+
+export async function getServiceItemsByCategory(
+  categoryId: string
+): Promise<GetServiceItemsByCategoryResponse> {
+  const { data } = await apiClient.get<GetServiceItemsByCategoryResponse>(
+    "/api/service/service-items",
+    { params: { categoryId } }
+  );
+  return data;
+}
