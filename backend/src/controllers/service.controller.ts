@@ -235,3 +235,44 @@ export const createServiceItem = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getServiceItemsByCategoryId = async (req: Request, res: Response) => {
+  try {
+    const categoryId = typeof req.query.categoryId === "string" ? req.query.categoryId : "";
+
+    if (!categoryId) {
+      return res.status(400).json({
+        success: false,
+        message: "categoryId is required"
+      });
+    }
+
+    const category = await prisma.serviceBookCategory.findUnique({
+      where: { id: categoryId }
+    });
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found"
+      });
+    }
+
+    const serviceItems = await prisma.serviceItem.findMany({
+      where: { categoryId },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Service items fetched successfully",
+      serviceItems
+    });
+  } catch (error) {
+    console.error("Get service items by category error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later."
+    });
+  }
+};
