@@ -119,9 +119,14 @@ export default function ServiceCategoryPage() {
   }
 
   const serviceName = serviceBook.name ?? "Untitled";
-  const unitNum = Number(formUnit);
+  const priceInt = parseInt(formPrice, 10);
+  const durationInt = parseInt(formDuration, 10);
+  const unitNum = parseInt(formUnit, 10);
+  const priceValid = !Number.isNaN(priceInt) && priceInt >= 0;
+  const durationValid = !Number.isNaN(durationInt) && durationInt >= 0;
   const unitValid = !Number.isNaN(unitNum) && unitNum >= 0;
-  const canSubmit = formTitle.trim() && unitValid && !createLoading;
+  const canSubmit =
+    formTitle.trim() && priceValid && durationValid && unitValid && !createLoading;
 
   return (
     <div>
@@ -170,8 +175,14 @@ export default function ServiceCategoryPage() {
           disabled: !canSubmit,
           onClick: async () => {
             if (!companyId || !category.id) return;
-            const unitNum = Number(formUnit);
-            if (Number.isNaN(unitNum) || unitNum < 0) return;
+            const priceInt = parseInt(formPrice, 10);
+            const durationInt = parseInt(formDuration, 10);
+            const unitNum = parseInt(formUnit, 10);
+            if (
+              Number.isNaN(priceInt) || priceInt < 0 ||
+              Number.isNaN(durationInt) || durationInt < 0 ||
+              Number.isNaN(unitNum) || unitNum < 0
+            ) return;
             setCreateError(null);
             setCreateLoading(true);
             try {
@@ -181,8 +192,8 @@ export default function ServiceCategoryPage() {
                 type: formType,
                 title: formTitle.trim(),
                 description: formDescription.trim(),
-                price: formPrice.trim(),
-                duration: formDuration.trim(),
+                price: priceInt,
+                duration: durationInt,
                 unit: unitNum,
               });
               setCreateServiceOpen(false);
@@ -208,8 +219,14 @@ export default function ServiceCategoryPage() {
           onSubmit={async (e) => {
             e.preventDefault();
             if (!companyId || !category.id) return;
-            const unitNum = Number(formUnit);
-            if (Number.isNaN(unitNum) || unitNum < 0) return;
+            const priceInt = parseInt(formPrice, 10);
+            const durationInt = parseInt(formDuration, 10);
+            const unitNum = parseInt(formUnit, 10);
+            if (
+              Number.isNaN(priceInt) || priceInt < 0 ||
+              Number.isNaN(durationInt) || durationInt < 0 ||
+              Number.isNaN(unitNum) || unitNum < 0
+            ) return;
             setCreateError(null);
             setCreateLoading(true);
             try {
@@ -219,8 +236,8 @@ export default function ServiceCategoryPage() {
                 type: formType,
                 title: formTitle.trim(),
                 description: formDescription.trim(),
-                price: formPrice.trim(),
-                duration: formDuration.trim(),
+                price: priceInt,
+                duration: durationInt,
                 unit: unitNum,
               });
               setCreateServiceOpen(false);
@@ -295,10 +312,12 @@ export default function ServiceCategoryPage() {
             </label>
             <input
               id="service-price"
-              type="text"
+              type="number"
+              min={0}
+              step={1}
               value={formPrice}
               onChange={(e) => setFormPrice(e.target.value)}
-              placeholder="Price"
+              placeholder="0"
               className="w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
@@ -308,10 +327,12 @@ export default function ServiceCategoryPage() {
             </label>
             <input
               id="service-duration"
-              type="text"
+              type="number"
+              min={0}
+              step={1}
               value={formDuration}
               onChange={(e) => setFormDuration(e.target.value)}
-              placeholder="Duration"
+              placeholder="0"
               className="w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
