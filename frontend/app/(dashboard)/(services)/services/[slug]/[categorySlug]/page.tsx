@@ -161,7 +161,7 @@ export default function ServiceCategoryPage() {
           setFormDescription("");
           setFormPrice("");
           setFormDuration("");
-          setFormUnit("0");
+          setFormUnit("1");
           setCreateError(null);
         }}
         title="Create Service"
@@ -191,7 +191,7 @@ export default function ServiceCategoryPage() {
               setFormDescription("");
               setFormPrice("");
               setFormDuration("");
-              setFormUnit("0");
+              setFormUnit("1");
             } catch (err: unknown) {
               const message =
                 err && typeof err === "object" && "response" in err
@@ -229,7 +229,7 @@ export default function ServiceCategoryPage() {
               setFormDescription("");
               setFormPrice("");
               setFormDuration("");
-              setFormUnit("0");
+              setFormUnit("1");
             } catch (err: unknown) {
               const message =
                 err && typeof err === "object" && "response" in err
