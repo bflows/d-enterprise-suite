@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
-import { createServiceBook, getServiceBooks, updateServiceBook, type ServiceBookItem } from "@/lib/api/service";
+import { createServiceBook, getServiceBooks, updateServiceBook, deleteServiceBook, type ServiceBookItem } from "@/lib/api/service";
 import { slugify } from "@/lib/utils/slug";
 
 export default function Pricebook() {
@@ -27,6 +27,11 @@ export default function Pricebook() {
   const [editName, setEditName] = useState("");
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [bookToDelete, setBookToDelete] = useState<ServiceBookItem | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!companyId) {
@@ -234,6 +239,55 @@ export default function Pricebook() {
         </form>
       </Modal>
 
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          if (!deleteLoading) {
+            setDeleteModalOpen(false);
+            setBookToDelete(null);
+            setDeleteError(null);
+          }
+        }}
+        title="Delete Service Book"
+        primaryAction={{
+          label: deleteLoading ? "Deleting…" : "Delete",
+          disabled: deleteLoading,
+          onClick: async () => {
+            if (!bookToDelete?.id || !companyId) return;
+            setDeleteError(null);
+            setDeleteLoading(true);
+            try {
+              await deleteServiceBook(bookToDelete.id);
+              const res = await getServiceBooks(companyId);
+              setServiceBooks(res.serviceBooks ?? []);
+              setDeleteModalOpen(false);
+              setBookToDelete(null);
+            } catch (err: unknown) {
+              const message =
+                err && typeof err === "object" && "response" in err
+                  ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                  : err instanceof Error
+                    ? err.message
+                    : "Failed to delete service book.";
+              setDeleteError(message ?? "Failed to delete service book.");
+            } finally {
+              setDeleteLoading(false);
+            }
+          },
+        }}
+      >
+        <div className="flex flex-col gap-2">
+          <p className="text-neutral-800 text-p">
+            Are you sure you want to delete &quot;{bookToDelete?.name ?? "Untitled"}&quot;? This action cannot be undone.
+          </p>
+          {deleteError && (
+            <p className="text-sm text-red-600" role="alert">
+              {deleteError}
+            </p>
+          )}
+        </div>
+      </Modal>
+
       <div className="mt-4">
         {loadingBooks ? (
           <div className="">
@@ -271,7 +325,11 @@ export default function Pricebook() {
                 {
                   label: "Delete",
                   icon: <LuTrash2 className="size-4" />,
-                  onClick: () => { /* TODO: delete service book */ },
+                  onClick: () => {
+                    setBookToDelete(book);
+                    setDeleteError(null);
+                    setDeleteModalOpen(true);
+                  },
                 },
               ];
               return (
