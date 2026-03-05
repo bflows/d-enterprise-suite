@@ -1,8 +1,10 @@
 "use client";
 
-import { LuBookPlus/* , LuEllipsisVertical */ } from "react-icons/lu";
+import { LuBookPlus, LuEllipsisVertical, LuPencil, LuTrash2, LuExternalLink } from "react-icons/lu";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Modal from "../ui/Modal";
+import ActionMenu from "../ui/ActionMenu";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
@@ -12,6 +14,7 @@ import { slugify } from "@/lib/utils/slug";
 
 export default function Pricebook() {
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
+  const router = useRouter();
   const [serviceBooks, setServiceBooks] = useState<ServiceBookItem[]>([]);
   const [loadingBooks, setLoadingBooks] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -148,14 +151,49 @@ export default function Pricebook() {
             {serviceBooks.map((book) => {
               const name = book.name ?? "Untitled";
               const slug = name ? slugify(name) : book.id;
+              const href = `/services/${slug}`;
+              const menuItems = [
+                {
+                  label: "Open",
+                  icon: <LuExternalLink className="size-4" />,
+                  onClick: () => router.push(href),
+                },
+                {
+                  label: "Edit",
+                  icon: <LuPencil className="size-4" />,
+                  onClick: () => { /* TODO: edit service book */ },
+                },
+                {
+                  label: "Delete",
+                  icon: <LuTrash2 className="size-4" />,
+                  onClick: () => { /* TODO: delete service book */ },
+                },
+              ];
               return (
-                <li key={book.id}>
-                  <Link
-                    href={`/services/${slug}`}
-                    className="block rounded-lg border border-neutral-300 bg-neutral-50 p-4 text-neutral-900 font-medium transition-colors hover:border-primary hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    {name}
-                  </Link>
+                // <li className="flex items-center gap-1 rounded-lg border w-full border-neutral-400 bg-neutral-50 transition-colors hover:bg-primary hover:text-neutral-50" key={book.id}>
+                //   <Link
+                //     href={href}
+                //     className="w-full pl-4"
+                //   >
+                //     {name}
+                //   </Link>
+                //   <div className="mr-4">
+                //     <ActionMenu
+                //       items={menuItems}
+                //       trigger={<LuEllipsisVertical className="size-6" />}
+                //       triggerLabel={`Actions for ${name}`}
+                //       align="right"
+                //     />
+                //   </div>
+                // </li>
+                <li key={book.id} className="flex items-center gap-x-2 rounded-lg px-4 border text-neutral-600 border-neutral-400 bg-neutral-50 transition-colors hover:border-primary hover:bg-neutral-100 hover:text-neutral-800">
+                  <Link className="w-full py-4" href={href}>{name}</Link>
+                  <ActionMenu
+                    items={menuItems}
+                    trigger={<LuEllipsisVertical className="size-6" />}
+                    triggerLabel={`Actions for ${name}`}
+                    align="right"
+                  />
                 </li>
               );
             })}
