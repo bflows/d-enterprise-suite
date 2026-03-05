@@ -226,7 +226,7 @@ export default function EmployeesTable() {
           ) : error ? (
             <p className="text-neutral-600 text-p py-6">{error}</p>
           ) : (
-            <table className="w-full table-auto">
+            <table className="w-full table-auto max-h-[80vh]">
             <thead>
               <tr>
                 <th className="text-left text-neutral-600 text-p font-normal py-2">

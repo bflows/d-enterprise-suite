@@ -260,7 +260,7 @@ export default function CustomersTable() {
 
           {/* Data area: loading, error, or table/cards */}
           {loading ? (
-            <div className="mt-6 flex justify-center min-h-[120px] items-center">
+            <div className="mt-6 flex justify-center min-h-30 items-center">
               <div className="text-center">
                 <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
                 <p className="text-neutral-800 text-p mt-2">Loading customers...</p>
@@ -292,7 +292,7 @@ export default function CustomersTable() {
 
               {/* Desktop/tablet: table */}
               <div className="mt-6 hidden md:block overflow-x-auto">
-            <table className="w-full table-auto">
+            <table className="w-full table-auto max-h-[80vh]">
               <thead>
                 <tr>
                   <th className="text-left text-neutral-600 text-p font-normal py-2">

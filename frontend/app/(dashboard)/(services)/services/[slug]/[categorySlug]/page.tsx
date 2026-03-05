@@ -258,7 +258,7 @@ export default function ServiceCategoryPage() {
         <>
           {/* Desktop: table */}
           <div className="mt-6 hidden overflow-x-auto rounded-lg border border-neutral-400 md:block">
-            <table className="w-full min-w-160 text-left text-p bg-neutral-50">
+            <table className="w-full min-w-160 max-h-[80vh] text-left text-p bg-neutral-50">
               <thead>
                 <tr className="border-b border-neutral-200">
                   <th className="px-4 py-3 font-semibold text-neutral-800">Title</th>
