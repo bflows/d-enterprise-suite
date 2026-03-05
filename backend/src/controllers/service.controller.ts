@@ -187,10 +187,26 @@ export const createServiceItem = async (req: Request, res: Response) => {
     }
 
     const unitNum = typeof unit === "string" ? parseInt(unit, 10) : Number(unit);
-    if (Number.isNaN(unitNum) || unitNum < 0) {
+    if (!Number.isInteger(unitNum) || unitNum < 0) {
       return res.status(400).json({
         success: false,
-        message: "unit must be a non-negative number"
+        message: "unit must be a non-negative integer"
+      });
+    }
+
+    const priceInt = typeof price === "string" ? parseInt(price, 10) : Number(price);
+    if (!Number.isInteger(priceInt) || priceInt < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "price must be a non-negative integer"
+      });
+    }
+
+    const durationInt = typeof duration === "string" ? parseInt(duration, 10) : Number(duration);
+    if (!Number.isInteger(durationInt) || durationInt < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "duration must be a non-negative integer"
       });
     }
 
@@ -200,8 +216,8 @@ export const createServiceItem = async (req: Request, res: Response) => {
         type,
         title: trimmedTitle,
         description: String(description),
-        price: String(price),
-        duration: String(duration),
+        price: priceInt,
+        duration: durationInt,
         unit: unitNum
       }
     });
