@@ -2,14 +2,19 @@ export type JobStatus = "scheduled" | "in_progress" | "completed" | "cancelled";
 
 export interface Job {
   id: string;
-  title: string;
+  title?: string;
   date: string; // YYYY-MM-DD
   startTime: string; // HH:mm
   endTime?: string;
   status: JobStatus;
   customerName?: string;
+  customerId?: string;
   address?: string;
   notes?: string;
+  technicianId?: string;
+  technicianName?: string;
+  /** IDs of service items (from Service Book) to attach to this job when saving. */
+  serviceItemIds?: string[];
 }
 
 export function isSameDay(dateStr: string, d: Date): boolean {
@@ -28,7 +33,6 @@ export function toDateKey(d: Date): string {
 
 export function getDaysInMonth(year: number, month: number): Date[] {
   const first = new Date(year, month, 1);
-  const last = new Date(year, month + 1, 0);
   const startPad = first.getDay(); // 0 = Sunday
   const days: Date[] = [];
   const start = new Date(first);
@@ -71,4 +75,23 @@ export function formatWeekRange(dates: Date[]): string {
     return `${first.toLocaleDateString("en-US", { month: "short" })} ${first.getDate()} – ${last.getDate()}, ${first.getFullYear()}`;
   }
   return `${first.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${last.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+}
+
+/** Returns true if a job overlaps the given window for the given technician (if technicianId provided). */
+export function jobOverlapsWindow(
+  job: Job,
+  windowStartDate: string,
+  windowStartTime: string,
+  windowEndDate: string,
+  windowEndTime: string,
+  technicianId?: string
+): boolean {
+  if (technicianId != null && job.technicianId !== technicianId) return false;
+  const jobStart = new Date(`${job.date}T${job.startTime}`).getTime();
+  const jobEnd = new Date(
+    `${job.date}T${job.endTime ?? job.startTime}`
+  ).getTime();
+  const start = new Date(`${windowStartDate}T${windowStartTime}`).getTime();
+  const end = new Date(`${windowEndDate}T${windowEndTime}`).getTime();
+  return jobStart < end && jobEnd > start;
 }

@@ -1,51 +1,100 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import type { Job, JobStatus } from "@/lib/calendar/types";
 import Modal from "@/components/ui/Modal";
 import { LuPencil, LuTrash2 } from "react-icons/lu";
+import { searchEmployees } from "@/lib/api/company";
+import type { EmployeeListItem } from "@/lib/api/company";
 
 export interface JobDetailModalProps {
+  companyId?: string;
   job: Job | null;
   isOpen: boolean;
   isEditMode: boolean;
   onClose: () => void;
   onEdit: () => void;
   onSave: (job: Job) => void;
-  onDelete: (id: string) => void;
+  onRequestDelete: (job: Job) => void;
+  saveLoading?: boolean;
+  saveError?: string | null;
 }
 
 const STATUS_OPTIONS: JobStatus[] = ["scheduled", "in_progress", "completed", "cancelled"];
 
+function technicianDisplayName(t: EmployeeListItem): string {
+  return [t.user.firstName, t.user.lastName].filter(Boolean).join(" ") || t.user.email || "";
+}
+
 export default function JobDetailModal({
+  companyId,
   job,
   isOpen,
   isEditMode,
   onClose,
   onEdit,
   onSave,
-  onDelete,
+  onRequestDelete,
+  saveLoading = false,
+  saveError,
 }: JobDetailModalProps) {
   const [form, setForm] = useState<Job | null>(job);
+  const [technicianSearchQuery, setTechnicianSearchQuery] = useState("");
+  const [technicianSuggestions, setTechnicianSuggestions] = useState<EmployeeListItem[]>([]);
+  const [technicianSuggestionsOpen, setTechnicianSuggestionsOpen] = useState(false);
+  const [technicianSearchLoading, setTechnicianSearchLoading] = useState(false);
+  const [technicianInputTouched, setTechnicianInputTouched] = useState(false);
+  const technicianInputRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setForm(job);
+    setTechnicianSearchQuery("");
+    setTechnicianSuggestionsOpen(false);
+    setTechnicianSuggestions([]);
+    setTechnicianInputTouched(false);
   }, [job]);
 
-  const updateForm = useCallback(
-    (updates: Partial<Job>) => {
-      if (!job) return;
-      setForm({ ...job, ...updates });
-    },
-    [job]
-  );
+  // Search technicians only after user has typed or cleared the input (not on modal open or focus)
+  useEffect(() => {
+    if (!companyId || !isOpen || !isEditMode || !technicianInputTouched) return;
+    const q = technicianSearchQuery.trim();
+    const timer = setTimeout(() => {
+      setTechnicianSearchLoading(true);
+      searchEmployees(companyId, q)
+        .then((res) => {
+          const techs = (res.employees ?? []).filter(
+            (e) => e.roleSlug === "technician"
+          );
+          setTechnicianSuggestions(techs);
+          setTechnicianSuggestionsOpen(true);
+        })
+        .catch(() => setTechnicianSuggestions([]))
+        .finally(() => setTechnicianSearchLoading(false));
+    }, q ? 200 : 0);
+    return () => clearTimeout(timer);
+  }, [companyId, isOpen, isEditMode, technicianInputTouched, technicianSearchQuery]);
+
+  useEffect(() => {
+    if (!technicianSuggestionsOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (technicianInputRef.current && !technicianInputRef.current.contains(e.target as Node)) {
+        setTechnicianSuggestionsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [technicianSuggestionsOpen]);
+
+  const updateForm = useCallback((updates: Partial<Job>) => {
+    setForm((prev) => (prev ? { ...prev, ...updates } : null));
+  }, []);
 
   if (!job) return null;
 
   const currentForm = form ?? job;
   const handleSave = () => onSave(currentForm);
-  const handleDelete = () => {
-    if (confirm("Delete this job?")) onDelete(job.id);
+  const handleRequestDelete = () => {
+    onRequestDelete(job);
   };
 
   return (
@@ -57,11 +106,20 @@ export default function JobDetailModal({
       closeOnBackdropClick={false}
       primaryAction={
         isEditMode
-          ? { label: "Save", onClick: handleSave }
+          ? {
+              label: saveLoading ? "Saving…" : "Save",
+              onClick: handleSave,
+              disabled: saveLoading,
+            }
           : undefined
       }
     >
       <div className="space-y-4">
+        {saveError && (
+          <p className="text-p text-secondary bg-red-50 py-2 px-3 rounded-lg" role="alert">
+            {saveError}
+          </p>
+        )}
         {isEditMode ? (
           <>
             <div>
@@ -70,7 +128,7 @@ export default function JobDetailModal({
               </label>
               <input
                 type="text"
-                value={currentForm.title}
+                value={currentForm.title ?? ""}
                 onChange={(e) => updateForm({ title: e.target.value })}
                 className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -130,6 +188,70 @@ export default function JobDetailModal({
                 />
               </div>
             </div>
+            {companyId && (
+              <div ref={technicianInputRef} className="relative">
+                <label className="block text-small font-semibold text-neutral-700 mb-1">
+                  Technician
+                </label>
+                <input
+                  type="text"
+                  value={
+                    technicianSearchQuery !== ""
+                      ? technicianSearchQuery
+                      : technicianInputTouched
+                        ? ""
+                        : (currentForm.technicianName ?? "")
+                  }
+                  onChange={(e) => {
+                    setTechnicianInputTouched(true);
+                    setTechnicianSearchQuery(e.target.value);
+                  }}
+                  placeholder="Search to reassign technician…"
+                  className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p focus:outline-none focus:ring-2 focus:ring-primary"
+                  autoComplete="off"
+                  aria-expanded={technicianSuggestionsOpen}
+                  aria-haspopup="listbox"
+                  aria-controls="technician-suggestions"
+                />
+                {(technicianSuggestionsOpen || technicianSearchLoading) && technicianInputTouched && (
+                  <div
+                    id="technician-suggestions"
+                    role="listbox"
+                    className="absolute z-10 mt-1 w-full max-h-48 overflow-auto rounded-lg border border-neutral-300 bg-white shadow-lg py-1"
+                  >
+                    {technicianSearchLoading ? (
+                      <p className="px-3 py-3 text-p text-neutral-500">Searching…</p>
+                    ) : technicianSuggestions.length > 0 ? (
+                      <ul className="list-none py-0 my-0">
+                        {technicianSuggestions.map((t) => (
+                          <li
+                            key={t.id}
+                            role="option"
+                            tabIndex={-1}
+                            className="px-3 py-2 text-p text-neutral-900 cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              updateForm({
+                                technicianId: t.id,
+                                technicianName: technicianDisplayName(t),
+                              });
+                              setTechnicianSearchQuery("");
+                              setTechnicianInputTouched(false);
+                              setTechnicianSuggestionsOpen(false);
+                              setTechnicianSuggestions([]);
+                            }}
+                          >
+                            {technicianDisplayName(t)}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : technicianSearchQuery.trim() !== "" ? (
+                      <p className="px-3 py-3 text-small text-neutral-500">No technicians found. Try a different search.</p>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            )}
             <div>
               <label className="block text-small font-semibold text-neutral-700 mb-1">
                 Customer
@@ -148,8 +270,9 @@ export default function JobDetailModal({
               <input
                 type="text"
                 value={currentForm.address ?? ""}
-                onChange={(e) => updateForm({ address: e.target.value || undefined })}
-                className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p focus:outline-none focus:ring-2 focus:ring-primary"
+                readOnly
+                className="w-full rounded-lg border border-neutral-300 bg-neutral-100 px-3 py-2 text-p text-neutral-700 cursor-default"
+                aria-label="Address (from customer, read-only)"
               />
             </div>
             <div>
@@ -168,7 +291,7 @@ export default function JobDetailModal({
           <>
             <div>
               <p className="text-small text-neutral-500">Title</p>
-              <p className="text-p font-semibold text-neutral-900">{job.title}</p>
+              <p className="text-p font-semibold text-neutral-900">{job.title?.trim() || job.customerName || "—"}</p>
             </div>
             <div className="flex gap-4 flex-wrap">
               <div>
@@ -188,6 +311,14 @@ export default function JobDetailModal({
                   {job.status.replace("_", " ")}
                 </p>
               </div>
+              {(job.technicianName != null && job.technicianName !== "") || job.technicianId ? (
+                <div>
+                  <p className="text-small text-neutral-500">Technician</p>
+                  <p className="text-p text-neutral-900">
+                    {job.technicianName ?? "—"}
+                  </p>
+                </div>
+              ) : null}
             </div>
             {job.customerName && (
               <div>
@@ -218,7 +349,7 @@ export default function JobDetailModal({
               </button>
               <button
                 type="button"
-                onClick={handleDelete}
+                onClick={handleRequestDelete}
                 className="inline-flex items-center gap-2 rounded-lg border border-neutral-400 bg-neutral-50 px-4 py-2 text-p font-medium text-neutral-700 hover:bg-red-50 hover:text-secondary hover:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary"
               >
                 <LuTrash2 className="size-4" />

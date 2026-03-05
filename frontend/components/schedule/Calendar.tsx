@@ -12,19 +12,28 @@ import {
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import JobCard from "./JobCard";
 import JobDetailModal from "./JobDetailModal";
+import Modal from "@/components/ui/Modal";
+import { deleteJob, updateJob, mapApiJobToJob } from "@/lib/api/jobs";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export interface CalendarProps {
+  companyId?: string;
   jobs: Job[];
   onJobUpdate?: (job: Job) => void;
   onJobDelete?: (id: string) => void;
 }
 
-export default function Calendar({ jobs, onJobUpdate, onJobDelete }: CalendarProps) {
+export default function Calendar({ companyId, jobs, onJobUpdate, onJobDelete }: CalendarProps) {
   const [viewDate, setViewDate] = useState(() => new Date());
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const jobsByDate = useMemo(() => {
     const map = new Map<string, Job[]>();
@@ -87,17 +96,72 @@ export default function Calendar({ jobs, onJobUpdate, onJobDelete }: CalendarPro
   const handleCloseModal = () => {
     setSelectedJob(null);
     setIsEditMode(false);
+    setSaveError(null);
   };
 
-  const handleSave = (updated: Job) => {
-    onJobUpdate?.(updated);
-    setSelectedJob(updated);
+  const handleSave = async (updated: Job) => {
+    setSaveError(null);
+    setSaveLoading(true);
+    try {
+      const res = await updateJob(updated.id, {
+        title: updated.title ?? null,
+        startDate: updated.date,
+        endDate: updated.date,
+        startTime: updated.startTime,
+        endTime: updated.endTime || updated.startTime,
+        notes: updated.notes ?? null,
+        status: updated.status,
+        ...(updated.technicianId != null && { technicianId: updated.technicianId }),
+      });
+      const job = mapApiJobToJob(res.job);
+      onJobUpdate?.(job);
+      setSelectedJob(job);
+      setIsEditMode(false);
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? String((err as { response?: { data?: { message?: string } } }).response?.data?.message)
+          : "Failed to update job.";
+      setSaveError(message ?? "Failed to update job.");
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  const handleRequestDelete = (job: Job) => {
+    setSelectedJob(null);
     setIsEditMode(false);
+    setJobToDelete(job);
+    setDeleteConfirmOpen(true);
+    setDeleteError(null);
   };
 
-  const handleDelete = (id: string) => {
-    onJobDelete?.(id);
-    handleCloseModal();
+  const handleConfirmDeleteClose = () => {
+    if (!deleteLoading) {
+      setDeleteConfirmOpen(false);
+      setJobToDelete(null);
+      setDeleteError(null);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!jobToDelete) return;
+    setDeleteLoading(true);
+    setDeleteError(null);
+    try {
+      await deleteJob(jobToDelete.id);
+      onJobDelete?.(jobToDelete.id);
+      setDeleteConfirmOpen(false);
+      setJobToDelete(null);
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? String((err as { response?: { data?: { message?: string } } }).response?.data?.message)
+          : "Failed to delete job.";
+      setDeleteError(message ?? "Failed to delete job.");
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const renderDayCell = (d: Date, isCurrentMonth: boolean) => {
@@ -257,14 +321,44 @@ export default function Calendar({ jobs, onJobUpdate, onJobDelete }: CalendarPro
       </div>
 
       <JobDetailModal
+        companyId={companyId}
         job={selectedJob}
         isOpen={!!selectedJob}
         isEditMode={isEditMode}
         onClose={handleCloseModal}
         onEdit={() => setIsEditMode(true)}
         onSave={handleSave}
-        onDelete={handleDelete}
+        onRequestDelete={handleRequestDelete}
+        saveLoading={saveLoading}
+        saveError={saveError}
       />
+
+      <Modal
+        isOpen={deleteConfirmOpen}
+        onClose={handleConfirmDeleteClose}
+        title="Delete job"
+        cancelLabel="Cancel"
+        primaryAction={{
+          label: deleteLoading ? "Deleting…" : "Delete",
+          onClick: handleConfirmDelete,
+          disabled: deleteLoading,
+        }}
+      >
+        <div className="space-y-3">
+          {jobToDelete && (
+            <p className="text-p text-neutral-700">
+              Are you sure you want to delete{" "}
+              <strong>{jobToDelete.title?.trim() || jobToDelete.customerName || "this job"}</strong>?
+              This cannot be undone.
+            </p>
+          )}
+          {deleteError && (
+            <p className="text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg" role="alert">
+              {deleteError}
+            </p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

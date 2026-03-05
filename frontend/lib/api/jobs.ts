@@ -1,0 +1,165 @@
+import { apiClient } from "@/lib/api/client";
+import type { Job } from "@/lib/calendar/types";
+
+/** Request body for creating a job. */
+export interface CreateJobBody {
+  companyId: string;
+  customerId: string;
+  technicianId: string;
+  startDate: string; // YYYY-MM-DD
+  endDate: string;
+  startTime: string; // HH:mm
+  endTime: string;
+  notes?: string;
+  leadSource?: string;
+  /** Initial status; defaults to "scheduled" on the server if omitted. */
+  status?: "scheduled" | "in_progress" | "completed" | "cancelled";
+  serviceItemIds?: string[];
+}
+
+/** API job response (Prisma include: customer, technician.user, services). */
+export interface ApiJobResponse {
+  id: string;
+  companyId: string;
+  customerId: string;
+  technicianId: string;
+  title: string | null;
+  notes: string | null;
+  leadSource: string | null;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  /** Job status from DB: SCHEDULED | IN_PROGRESS | COMPLETED | CANCELLED */
+  status: string;
+  customer: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    [key: string]: unknown;
+  };
+  technician: {
+    id: string;
+    userId: string;
+    user: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+  services?: Array<{ id: string; [key: string]: unknown }>;
+}
+
+export interface CreateJobResponse {
+  success: true;
+  message: string;
+  job: ApiJobResponse;
+}
+
+/** Request body for updating a job. Only provided fields are sent. */
+export interface UpdateJobBody {
+  id: string;
+  title?: string | null;
+  startDate?: string;
+  endDate?: string;
+  startTime?: string;
+  endTime?: string;
+  notes?: string | null;
+  status?: "scheduled" | "in_progress" | "completed" | "cancelled";
+  technicianId?: string;
+}
+
+export interface UpdateJobResponse {
+  success: true;
+  message: string;
+  job: ApiJobResponse;
+}
+
+export interface ListJobsResponse {
+  jobs: ApiJobResponse[];
+}
+
+/** Format ISO date/time from API to YYYY-MM-DD. */
+function toDateKey(iso: string): string {
+  return iso.slice(0, 10);
+}
+
+/** Format ISO date/time from API to HH:mm. */
+function toTimeKey(iso: string): string {
+  const d = new Date(iso);
+  const h = d.getHours();
+  const m = d.getMinutes();
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+const STATUS_MAP: Record<string, "scheduled" | "in_progress" | "completed" | "cancelled"> = {
+  SCHEDULED: "scheduled",
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+};
+
+/** Map API job to frontend Job type for calendar/schedule. */
+export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
+  const customerName = [apiJob.customer.firstName, apiJob.customer.lastName]
+    .filter(Boolean)
+    .join(" ") || apiJob.customer.email || apiJob.customer.phone || undefined;
+  const technicianName = [
+    apiJob.technician.user.firstName,
+    apiJob.technician.user.lastName,
+  ]
+    .filter(Boolean)
+    .join(" ") || apiJob.technician.user.email;
+  const status = apiJob.status && STATUS_MAP[apiJob.status] ? STATUS_MAP[apiJob.status] : "scheduled";
+  return {
+    id: apiJob.id,
+    title: apiJob.title ?? undefined,
+    date: toDateKey(apiJob.startDate),
+    startTime: toTimeKey(apiJob.startTime),
+    endTime: toTimeKey(apiJob.endTime),
+    status,
+    customerName: customerName ?? undefined,
+    customerId: apiJob.customerId,
+    address: apiJob.customer.address ?? undefined,
+    notes: apiJob.notes ?? undefined,
+    technicianId: apiJob.technician.id,
+    technicianName,
+    serviceItemIds:
+      apiJob.services && apiJob.services.length > 0
+        ? apiJob.services.map((s) => s.id)
+        : undefined,
+  };
+}
+
+export async function createJob(
+  body: CreateJobBody
+): Promise<CreateJobResponse> {
+  const { data } = await apiClient.post<CreateJobResponse>("/api/jobs/create", body);
+  return data;
+}
+
+export async function updateJob(
+  id: string,
+  body: Omit<UpdateJobBody, "id">
+): Promise<UpdateJobResponse> {
+  const { data } = await apiClient.put<UpdateJobResponse>("/api/jobs/update", { ...body, id });
+  return data;
+}
+
+export async function listJobs(): Promise<Job[]> {
+  const { data } = await apiClient.get<ListJobsResponse>("/api/jobs");
+  return data.jobs.map(mapApiJobToJob);
+}
+
+export async function deleteJob(id: string): Promise<{ success: true; message: string }> {
+  const { data } = await apiClient.delete<{ success: true; message: string }>("/api/jobs/delete", {
+    data: { id },
+  });
+  return data;
+}

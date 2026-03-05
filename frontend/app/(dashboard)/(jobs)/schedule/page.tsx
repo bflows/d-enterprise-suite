@@ -1,13 +1,37 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/app/store";
+import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import { LuPlus } from "react-icons/lu";
 import type { Job } from "@/lib/calendar/types";
-import { MOCK_JOBS } from "@/lib/calendar/mockJobs";
 import Calendar from "@/components/schedule/Calendar";
+import NewJobModal from "@/components/schedule/NewJobModal";
+import { listJobs } from "@/lib/api/jobs";
 
 export default function SchedulePage() {
-  const [jobs, setJobs] = useState<Job[]>(MOCK_JOBS);
+  const companyId = useSelector((state: RootState) =>
+    selectCurrentCompanyId(state)
+  );
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [newJobModalOpen, setNewJobModalOpen] = useState(false);
+  const [jobsLoading, setJobsLoading] = useState(true);
+  const [jobsError, setJobsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!companyId) {
+      setJobsLoading(false);
+      setJobs([]);
+      return;
+    }
+    setJobsLoading(true);
+    setJobsError(null);
+    listJobs()
+      .then(setJobs)
+      .catch(() => setJobsError("Failed to load jobs"))
+      .finally(() => setJobsLoading(false));
+  }, [companyId]);
 
   const handleJobUpdate = useCallback((updated: Job) => {
     setJobs((prev) =>
@@ -19,12 +43,17 @@ export default function SchedulePage() {
     setJobs((prev) => prev.filter((j) => j.id !== id));
   }, []);
 
+  const handleJobCreate = useCallback((job: Job) => {
+    setJobs((prev) => [...prev, job]);
+  }, []);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-neutral-900 text-h4 font-bold">Schedule</h1>
         <button
           type="button"
+          onClick={() => setNewJobModalOpen(true)}
           className="bg-primary text-neutral-200 text-p font-bold py-3 px-4 rounded-lg flex items-center gap-x-2 cursor-pointer transition-colors hover:bg-primary/90 hover:text-neutral-50"
         >
           <LuPlus className="size-6" />
@@ -32,10 +61,26 @@ export default function SchedulePage() {
         </button>
       </div>
 
-      <Calendar
-        jobs={jobs}
-        onJobUpdate={handleJobUpdate}
-        onJobDelete={handleJobDelete}
+      {jobsError && (
+        <p className="text-secondary text-p">{jobsError}</p>
+      )}
+
+      {jobsLoading ? (
+        <p className="text-neutral-600 text-p">Loading schedule…</p>
+      ) : (
+        <Calendar
+          companyId={companyId ?? undefined}
+          jobs={jobs}
+          onJobUpdate={handleJobUpdate}
+          onJobDelete={handleJobDelete}
+        />
+      )}
+
+      <NewJobModal
+        isOpen={newJobModalOpen}
+        onClose={() => setNewJobModalOpen(false)}
+        onSave={handleJobCreate}
+        existingJobs={jobs}
       />
     </div>
   );

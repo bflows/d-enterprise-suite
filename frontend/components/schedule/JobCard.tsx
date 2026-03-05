@@ -19,6 +19,7 @@ export default function JobCard({ job, onClick }: JobCardProps) {
   const timeLabel = job.endTime
     ? `${job.startTime} – ${job.endTime}`
     : job.startTime;
+  const displayTitle = job.title?.trim() || job.customerName || "Untitled job";
 
   return (
     <button
@@ -33,8 +34,8 @@ export default function JobCard({ job, onClick }: JobCardProps) {
         ${statusClass}
       `}
     >
-      <span className="font-semibold block truncate" title={job.title}>
-        {job.title}
+      <span className="font-semibold block truncate" title={displayTitle}>
+        {displayTitle}
       </span>
       <span className="text-neutral-600 block truncate" title={timeLabel}>
         {timeLabel}
