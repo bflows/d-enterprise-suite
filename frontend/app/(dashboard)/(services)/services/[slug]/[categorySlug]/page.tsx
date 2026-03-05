@@ -733,6 +733,7 @@ export default function ServiceCategoryPage() {
             setDeleteError(null);
           }
         }}
+        closeOnBackdropClick={true}
         title="Delete Service Item"
         primaryAction={{
           label: deleteLoading ? "Deleting…" : "Delete",
