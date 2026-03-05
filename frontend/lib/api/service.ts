@@ -39,3 +39,21 @@ export async function createServiceBook(
   );
   return data;
 }
+
+export interface CreateCategoryResponse {
+  success: true;
+  message: string;
+  category: { id: string; serviceBookId: string; name: string };
+}
+
+export async function createCategory(
+  companyId: string,
+  serviceBookId: string,
+  name: string
+): Promise<CreateCategoryResponse> {
+  const { data } = await apiClient.post<CreateCategoryResponse>(
+    "/api/service/create-category",
+    { companyId, serviceBookId, name: name.trim() }
+  );
+  return data;
+}
