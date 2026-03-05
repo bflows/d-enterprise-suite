@@ -184,3 +184,44 @@ export async function getServiceItemsByCategory(
   );
   return data;
 }
+
+export interface UpdateServiceItemPayload {
+  id: string;
+  type: ServiceItemType;
+  title: string;
+  description: string;
+  price: number;
+  duration: number;
+  unit: number;
+}
+
+export interface UpdateServiceItemResponse {
+  success: true;
+  message: string;
+  serviceItem: ServiceItemListItem;
+}
+
+export async function updateServiceItem(
+  payload: UpdateServiceItemPayload
+): Promise<UpdateServiceItemResponse> {
+  const { data } = await apiClient.put<UpdateServiceItemResponse>(
+    "/api/service/update-service-item",
+    payload
+  );
+  return data;
+}
+
+export interface DeleteServiceItemResponse {
+  success: true;
+  message: string;
+}
+
+export async function deleteServiceItem(
+  serviceItemId: string
+): Promise<DeleteServiceItemResponse> {
+  const { data } = await apiClient.delete<DeleteServiceItemResponse>(
+    "/api/service/delete-service-item",
+    { params: { serviceItemId } }
+  );
+  return data;
+}
