@@ -427,3 +427,129 @@ export const getServiceItemsByCategoryId = async (req: Request, res: Response) =
     });
   }
 };
+
+export const updateServiceItem = async (req: Request, res: Response) => {
+  try {
+    const { id, type, title, description, price, duration, unit } = req.body;
+
+    if (!id || !type || !title || description == null || price == null || duration == null || unit == null) {
+      return res.status(400).json({
+        success: false,
+        message: "id, type, title, description, price, duration, and unit are required"
+      });
+    }
+
+    if (!SERVICE_ITEM_TYPES.includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: "type must be SERVICE or ADDON"
+      });
+    }
+
+    const trimmedTitle = typeof title === "string" ? title.trim() : "";
+    if (!trimmedTitle) {
+      return res.status(400).json({
+        success: false,
+        message: "Title cannot be empty"
+      });
+    }
+
+    const existing = await prisma.serviceItem.findUnique({
+      where: { id }
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Service item not found"
+      });
+    }
+
+    const unitNum = typeof unit === "string" ? parseInt(unit, 10) : Number(unit);
+    if (!Number.isInteger(unitNum) || unitNum < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "unit must be a non-negative integer"
+      });
+    }
+
+    const priceInt = typeof price === "string" ? parseInt(price, 10) : Number(price);
+    if (!Number.isInteger(priceInt) || priceInt < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "price must be a non-negative integer"
+      });
+    }
+
+    const durationInt = typeof duration === "string" ? parseInt(duration, 10) : Number(duration);
+    if (!Number.isInteger(durationInt) || durationInt < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "duration must be a non-negative integer"
+      });
+    }
+
+    const serviceItem = await prisma.serviceItem.update({
+      where: { id },
+      data: {
+        type,
+        title: trimmedTitle,
+        description: String(description),
+        price: priceInt,
+        duration: durationInt,
+        unit: unitNum
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Service item updated successfully",
+      serviceItem
+    });
+  } catch (error) {
+    console.error("Update service item error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later."
+    });
+  }
+};
+
+export const deleteServiceItem = async (req: Request, res: Response) => {
+  try {
+    const serviceItemId = typeof req.query.serviceItemId === "string" ? req.query.serviceItemId : "";
+
+    if (!serviceItemId) {
+      return res.status(400).json({
+        success: false,
+        message: "serviceItemId is required"
+      });
+    }
+
+    const existing = await prisma.serviceItem.findUnique({
+      where: { id: serviceItemId }
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Service item not found"
+      });
+    }
+
+    await prisma.serviceItem.delete({
+      where: { id: serviceItemId }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Service item deleted successfully"
+    });
+  } catch (error) {
+    console.error("Delete service item error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later."
+    });
+  }
+};
