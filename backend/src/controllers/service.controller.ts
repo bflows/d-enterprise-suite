@@ -92,3 +92,54 @@ export const getServiceBooks = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const createCategory = async (req: Request, res: Response) => {
+  try {
+    const { serviceBookId, name } = req.body;
+
+    if (!serviceBookId || !name) {
+      return res.status(400).json({
+        success: false,
+        message: "serviceBookId and name are required"
+      });
+    }
+
+    const trimmedName = typeof name === "string" ? name.trim() : "";
+    if (!trimmedName) {
+      return res.status(400).json({
+        success: false,
+        message: "Category name cannot be empty"
+      });
+    }
+
+    const serviceBook = await prisma.serviceBook.findUnique({
+      where: { id: serviceBookId }
+    });
+
+    if (!serviceBook) {
+      return res.status(404).json({
+        success: false,
+        message: "Service book not found"
+      });
+    }
+
+    const category = await prisma.serviceBookCategory.create({
+      data: {
+        serviceBookId,
+        name: trimmedName
+      }
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Category created successfully",
+      category
+    });
+  } catch (error) {
+    console.error("Create category error", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later."
+    });
+  }
+};
