@@ -59,7 +59,6 @@ Replace Housecall Pro with a faster, simpler system that office staff can use wh
 - Technician Assigned
 - Services
 - Private notes
-- Callback Status
 - Lead source
 
 # 1) Users
