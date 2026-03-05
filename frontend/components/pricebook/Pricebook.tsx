@@ -275,22 +275,6 @@ export default function Pricebook() {
                 },
               ];
               return (
-                // <li className="flex items-center gap-1 rounded-lg border w-full border-neutral-400 bg-neutral-50 transition-colors hover:bg-primary hover:text-neutral-50" key={book.id}>
-                //   <Link
-                //     href={href}
-                //     className="w-full pl-4"
-                //   >
-                //     {name}
-                //   </Link>
-                //   <div className="mr-4">
-                //     <ActionMenu
-                //       items={menuItems}
-                //       trigger={<LuEllipsisVertical className="size-6" />}
-                //       triggerLabel={`Actions for ${name}`}
-                //       align="right"
-                //     />
-                //   </div>
-                // </li>
                 <li key={book.id} className="flex items-center gap-x-2 rounded-lg px-4 border text-neutral-600 border-neutral-400 bg-neutral-50 transition-colors hover:border-primary hover:bg-neutral-100 hover:text-neutral-800">
                   <Link className="w-full py-4" href={href}>{name}</Link>
                   <ActionMenu
