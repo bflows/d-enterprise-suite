@@ -213,7 +213,7 @@ export default function EmployeesTable() {
           )}
         </NewEmployeeModal>
         {/* Table area: loading / error / data */}
-        <div className="mt-6 min-h-[120px]">
+        <div className="mt-6 min-h-30">
           {loading ? (
             <div className="flex justify-center py-8">
               <div className="text-center">
