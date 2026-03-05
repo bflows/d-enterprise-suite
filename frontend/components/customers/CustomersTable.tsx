@@ -94,11 +94,7 @@ export default function CustomersTable() {
 
   const loadWithSearch = useCallback(
     (q: string) => {
-      if (!companyId) {
-        setLoading(false);
-        setCustomers([]);
-        return;
-      }
+      if (!companyId) return;
       setLoading(true);
       setError(null);
       const term = q.trim();
@@ -118,15 +114,16 @@ export default function CustomersTable() {
     [companyId]
   );
 
+  // Derive display state when no company: avoid setState in effect (cascading renders)
+  const effectiveCustomers = companyId ? customers : [];
+  const effectiveLoading = companyId ? loading : false;
+  const effectiveError = companyId ? error : null;
+
   useEffect(() => {
-    if (!companyId) {
-      setLoading(false);
-      setCustomers([]);
-      return;
-    }
+    if (!companyId) return;
     const term = searchQuery.trim();
     if (term === "") {
-      loadWithSearch("");
+      queueMicrotask(() => loadWithSearch(""));
       return;
     }
     if (searchDebounceRef.current) {
@@ -259,27 +256,27 @@ export default function CustomersTable() {
           </NewEmployeeModal>
 
           {/* Data area: loading, error, or table/cards */}
-          {loading ? (
+          {effectiveLoading ? (
             <div className="mt-6 flex justify-center min-h-30 items-center">
               <div className="text-center">
                 <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
                 <p className="text-neutral-800 text-p mt-2">Loading customers...</p>
               </div>
             </div>
-          ) : error ? (
-            <p className="text-neutral-600 text-p py-6 mt-6">{error}</p>
+          ) : effectiveError ? (
+            <p className="text-neutral-600 text-p py-6 mt-6">{effectiveError}</p>
           ) : (
             <>
               {/* Mobile: card list */}
               <div className="mt-6 md:hidden space-y-4">
-            {customers.length === 0 ? (
+            {effectiveCustomers.length === 0 ? (
               <p className="text-neutral-800 text-p text-center py-8">
                 {searchQuery.trim()
                   ? "No customers match your search."
                   : "No customers yet. Add a customer to get started."}
               </p>
             ) : (
-              customers.map((customer) => (
+              effectiveCustomers.map((customer) => (
                 <CustomerCard
                   key={customer.id}
                   customer={customer}
@@ -322,7 +319,7 @@ export default function CustomersTable() {
                 </tr>
               </thead>
               <tbody>
-                {customers.length === 0 ? (
+                {effectiveCustomers.length === 0 ? (
                   <tr>
                     <td
                       colSpan={8}
@@ -334,7 +331,7 @@ export default function CustomersTable() {
                     </td>
                   </tr>
                 ) : (
-                  customers.map((customer) => (
+                  effectiveCustomers.map((customer) => (
                     <tr key={customer.id} className="border-t border-neutral-200">
                       <td className="text-neutral-800 text-p py-2">
                         {displayName(customer)}
