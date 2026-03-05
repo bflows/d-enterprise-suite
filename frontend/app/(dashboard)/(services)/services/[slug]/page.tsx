@@ -152,10 +152,12 @@ export default function ServiceBookPage() {
             setCreateCategoryError(null);
             setCreateCategoryLoading(true);
             try {
-              await createCategory(companyId, serviceBook.id, name);
+              const res = await createCategory(companyId, serviceBook.id, name);
               setCreateCategoryOpen(false);
               setCategoryName("");
               fetchServiceBook();
+              const categorySlug = getSlugForCategory(res.category.name);
+              router.push(`/services/${slug}/${categorySlug}`);
             } catch (err: unknown) {
               const message =
                 err && typeof err === "object" && "response" in err
@@ -176,10 +178,12 @@ export default function ServiceBookPage() {
             setCreateCategoryError(null);
             setCreateCategoryLoading(true);
             try {
-              await createCategory(companyId, serviceBook.id, name);
+              const res = await createCategory(companyId, serviceBook.id, name);
               setCreateCategoryOpen(false);
               setCategoryName("");
               fetchServiceBook();
+              const categorySlug = getSlugForCategory(res.category.name);
+              router.push(`/services/${slug}/${categorySlug}`);
             } catch (err: unknown) {
               const message =
                 err && typeof err === "object" && "response" in err
