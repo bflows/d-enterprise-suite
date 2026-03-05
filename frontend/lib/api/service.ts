@@ -67,6 +67,22 @@ export async function updateServiceBook(
   return data;
 }
 
+export interface DeleteServiceBookResponse {
+  success: true;
+  message: string;
+}
+
+/** DELETE a service book. */
+export async function deleteServiceBook(
+  serviceBookId: string
+): Promise<DeleteServiceBookResponse> {
+  const { data } = await apiClient.delete<DeleteServiceBookResponse>(
+    "/api/service/delete-service-book",
+    { params: { serviceBookId } }
+  );
+  return data;
+}
+
 export interface CreateCategoryResponse {
   success: true;
   message: string;
