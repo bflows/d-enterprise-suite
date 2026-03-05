@@ -1,15 +1,16 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
-import { getServiceBooks, createCategory, type ServiceBookItem } from "@/lib/api/service";
+import { getServiceBooks, createCategory, updateCategory, deleteCategory, type ServiceBookItem, type ServiceBookCategoryItem } from "@/lib/api/service";
 import { slugify } from "@/lib/utils/slug";
-import { LuFolderPlus } from "react-icons/lu";
+import { LuFolderPlus, LuEllipsisVertical, LuExternalLink, LuPencil, LuTrash2 } from "react-icons/lu";
 import Modal from "@/components/ui/Modal";
+import ActionMenu from "@/components/ui/ActionMenu";
 
 function getSlugForBook(book: ServiceBookItem): string {
   const name = book.name ?? "";
@@ -22,6 +23,7 @@ function getSlugForCategory(name: string): string {
 
 export default function ServiceBookPage() {
   const params = useParams();
+  const router = useRouter();
   const slug = typeof params?.slug === "string" ? params.slug : "";
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
   const [serviceBook, setServiceBook] = useState<ServiceBookItem | null>(null);
@@ -30,6 +32,17 @@ export default function ServiceBookPage() {
   const [categoryName, setCategoryName] = useState("");
   const [createCategoryLoading, setCreateCategoryLoading] = useState(false);
   const [createCategoryError, setCreateCategoryError] = useState<string | null>(null);
+
+  const [editCategoryOpen, setEditCategoryOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<ServiceBookCategoryItem | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState("");
+  const [editCategoryLoading, setEditCategoryLoading] = useState(false);
+  const [editCategoryError, setEditCategoryError] = useState<string | null>(null);
+
+  const [deleteCategoryOpen, setDeleteCategoryOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<ServiceBookCategoryItem | null>(null);
+  const [deleteCategoryLoading, setDeleteCategoryLoading] = useState(false);
+  const [deleteCategoryError, setDeleteCategoryError] = useState<string | null>(null);
 
   const fetchServiceBook = () => {
     if (!companyId || !slug) return;
@@ -206,19 +219,197 @@ export default function ServiceBookPage() {
 
       {(serviceBook.catories?.length ?? 0) > 0 && (
         <div className="mt-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {serviceBook.catories?.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/services/${slug}/${getSlugForCategory(cat.name)}`}
-                className="block p-4 rounded-xl border border-neutral-300 bg-neutral-50 hover:bg-neutral-100 hover:border-primary/40 transition-colors text-neutral-800 font-medium shadow-sm"
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {serviceBook.catories?.map((cat) => {
+              const categoryHref = `/services/${slug}/${getSlugForCategory(cat.name)}`;
+              const menuItems = [
+                {
+                  label: "View",
+                  icon: <LuExternalLink className="size-4" />,
+                  onClick: () => router.push(categoryHref),
+                },
+                {
+                  label: "Edit",
+                  icon: <LuPencil className="size-4" />,
+                  onClick: () => {
+                    setEditingCategory(cat);
+                    setEditCategoryName(cat.name);
+                    setEditCategoryError(null);
+                    setEditCategoryOpen(true);
+                  },
+                },
+                {
+                  label: "Delete",
+                  icon: <LuTrash2 className="size-4" />,
+                  onClick: () => {
+                    setCategoryToDelete(cat);
+                    setDeleteCategoryError(null);
+                    setDeleteCategoryOpen(true);
+                  },
+                },
+              ];
+              return (
+                <li
+                  key={cat.id}
+                  className="flex items-center gap-x-2 rounded-lg px-4 border text-neutral-600 border-neutral-400 bg-neutral-50 transition-colors hover:border-primary hover:bg-neutral-100 hover:text-neutral-800"
+                >
+                  <Link className="w-full py-4" href={categoryHref}>
+                    {cat.name}
+                  </Link>
+                  <ActionMenu
+                    items={menuItems}
+                    trigger={<LuEllipsisVertical className="size-6" />}
+                    triggerLabel={`Actions for ${cat.name}`}
+                    align="right"
+                  />
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
+
+      <Modal
+        isOpen={editCategoryOpen}
+        onClose={() => {
+          if (!editCategoryLoading) {
+            setEditCategoryOpen(false);
+            setEditingCategory(null);
+            setEditCategoryName("");
+            setEditCategoryError(null);
+          }
+        }}
+        title="Edit Category"
+        primaryAction={{
+          label: editCategoryLoading ? "Saving…" : "Save",
+          disabled: !editCategoryName.trim() || editCategoryLoading,
+          onClick: async () => {
+            const name = editCategoryName.trim();
+            if (!name || !editingCategory) return;
+            setEditCategoryError(null);
+            setEditCategoryLoading(true);
+            try {
+              await updateCategory(editingCategory.id, name);
+              setEditCategoryOpen(false);
+              setEditingCategory(null);
+              setEditCategoryName("");
+              fetchServiceBook();
+            } catch (err: unknown) {
+              const message =
+                err && typeof err === "object" && "response" in err
+                  ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                  : "Failed to update category.";
+              setEditCategoryError(message ?? "Failed to update category.");
+            } finally {
+              setEditCategoryLoading(false);
+            }
+          },
+        }}
+      >
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const name = editCategoryName.trim();
+            if (!name || !editingCategory) return;
+            setEditCategoryError(null);
+            setEditCategoryLoading(true);
+            try {
+              await updateCategory(editingCategory.id, name);
+              setEditCategoryOpen(false);
+              setEditingCategory(null);
+              setEditCategoryName("");
+              fetchServiceBook();
+            } catch (err: unknown) {
+              const message =
+                err && typeof err === "object" && "response" in err
+                  ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                  : "Failed to update category.";
+              setEditCategoryError(message ?? "Failed to update category.");
+            } finally {
+              setEditCategoryLoading(false);
+            }
+          }}
+          className="space-y-4"
+        >
+          {editCategoryError && (
+            <p className="text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg" role="alert">
+              {editCategoryError}
+            </p>
+          )}
+          <div>
+            <label
+              htmlFor="edit-category-name"
+              className="block text-sm font-medium text-neutral-800 mb-1"
+            >
+              Name
+            </label>
+            <input
+              id="edit-category-name"
+              type="text"
+              value={editCategoryName}
+              onChange={(e) => setEditCategoryName(e.target.value)}
+              placeholder="Category name"
+              className="w-full rounded-lg border border-neutral-400 bg-neutral-50 mt-1 px-3 py-2 text-neutral-800 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary"
+              disabled={editCategoryLoading}
+              autoFocus
+            />
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={deleteCategoryOpen}
+        onClose={() => {
+          if (!deleteCategoryLoading) {
+            setDeleteCategoryOpen(false);
+            setCategoryToDelete(null);
+            setDeleteCategoryError(null);
+          }
+        }}
+        title="Delete Category"
+        primaryAction={{
+          label: deleteCategoryLoading ? "Deleting…" : "Delete",
+          disabled: deleteCategoryLoading,
+          onClick: async () => {
+            if (!categoryToDelete) return;
+            setDeleteCategoryError(null);
+            setDeleteCategoryLoading(true);
+            try {
+              await deleteCategory(categoryToDelete.id);
+              setDeleteCategoryOpen(false);
+              setCategoryToDelete(null);
+              fetchServiceBook();
+            } catch (err: unknown) {
+              const message =
+                err && typeof err === "object" && "response" in err
+                  ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                  : "Failed to delete category.";
+              setDeleteCategoryError(message ?? "Failed to delete category.");
+            } finally {
+              setDeleteCategoryLoading(false);
+            }
+          },
+        }}
+      >
+        <div className="space-y-4">
+          {deleteCategoryError && (
+            <p className="text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg" role="alert">
+              {deleteCategoryError}
+            </p>
+          )}
+          <p className="text-neutral-700 text-p">
+            {categoryToDelete ? (
+              <>
+                Are you sure you want to delete the category{" "}
+                <strong>{categoryToDelete.name}</strong>? Any service items in this category will
+                also be deleted.
+              </>
+            ) : (
+              "No category selected."
+            )}
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

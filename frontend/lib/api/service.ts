@@ -85,6 +85,38 @@ export async function createCategory(
   return data;
 }
 
+export interface UpdateCategoryResponse {
+  success: true;
+  message: string;
+  category?: { id: string; serviceBookId: string; name: string };
+}
+
+export async function updateCategory(
+  categoryId: string,
+  name: string
+): Promise<UpdateCategoryResponse> {
+  const { data } = await apiClient.put<UpdateCategoryResponse>(
+    "/api/service/update-category",
+    { categoryId, name: name.trim() }
+  );
+  return data;
+}
+
+export interface DeleteCategoryResponse {
+  success: true;
+  message: string;
+}
+
+export async function deleteCategory(
+  categoryId: string
+): Promise<DeleteCategoryResponse> {
+  const { data } = await apiClient.delete<DeleteCategoryResponse>(
+    "/api/service/delete-category",
+    { params: { categoryId } }
+  );
+  return data;
+}
+
 export type ServiceItemType = "SERVICE" | "ADDON";
 
 export interface CreateServiceItemPayload {
