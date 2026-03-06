@@ -321,6 +321,7 @@ export default function Calendar({ companyId, jobs, onJobUpdate, onJobDelete }: 
       </div>
 
       <JobDetailModal
+        key={selectedJob?.id ?? "closed"}
         companyId={companyId}
         job={selectedJob}
         isOpen={!!selectedJob}
