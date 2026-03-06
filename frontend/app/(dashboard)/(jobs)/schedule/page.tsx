@@ -20,18 +20,20 @@ export default function SchedulePage() {
   const [jobsError, setJobsError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!companyId) {
-      setJobsLoading(false);
-      setJobs([]);
-      return;
-    }
-    setJobsLoading(true);
-    setJobsError(null);
-    listJobs()
-      .then(setJobs)
-      .catch(() => setJobsError("Failed to load jobs"))
-      .finally(() => setJobsLoading(false));
+    if (!companyId) return;
+    const run = () => {
+      setJobsLoading(true);
+      setJobsError(null);
+      listJobs()
+        .then(setJobs)
+        .catch(() => setJobsError("Failed to load jobs"))
+        .finally(() => setJobsLoading(false));
+    };
+    queueMicrotask(run);
   }, [companyId]);
+
+  const displayJobs = companyId ? jobs : [];
+  const displayLoading = companyId ? jobsLoading : false;
 
   const handleJobUpdate = useCallback((updated: Job) => {
     setJobs((prev) =>
@@ -65,12 +67,12 @@ export default function SchedulePage() {
         <p className="text-secondary text-p">{jobsError}</p>
       )}
 
-      {jobsLoading ? (
+      {displayLoading ? (
         <p className="text-neutral-600 text-p">Loading schedule…</p>
       ) : (
         <Calendar
           companyId={companyId ?? undefined}
-          jobs={jobs}
+          jobs={displayJobs}
           onJobUpdate={handleJobUpdate}
           onJobDelete={handleJobDelete}
         />
@@ -80,7 +82,7 @@ export default function SchedulePage() {
         isOpen={newJobModalOpen}
         onClose={() => setNewJobModalOpen(false)}
         onSave={handleJobCreate}
-        existingJobs={jobs}
+        existingJobs={displayJobs}
       />
     </div>
   );
