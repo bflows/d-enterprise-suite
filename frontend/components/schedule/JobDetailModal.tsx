@@ -94,8 +94,30 @@ export default function JobDetailModal({
       isOpen={isOpen}
       onClose={onClose}
       title={isEditMode ? "Edit Job" : "Job Details"}
-      cancelLabel={isEditMode ? "Cancel" : "Close"}
       closeOnBackdropClick={false}
+      hideCancelButton
+      footerStartContent={
+        !isEditMode ? (
+          <div className="flex justify-end flex-wrap gap-2 w-full">
+            <button
+              type="button"
+              onClick={onEdit}
+              className="inline-flex items-center gap-2 rounded-lg cursor-pointer bg-primary px-4 py-2 text-p font-medium text-neutral-200 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <LuPencil className="size-4" />
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={handleRequestDelete}
+              className="inline-flex items-center gap-2 rounded-lg cursor-pointer border border-neutral-400 bg-neutral-50 px-4 py-2 text-p font-medium text-neutral-700 hover:bg-red-50 hover:text-secondary hover:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary"
+            >
+              <LuTrash2 className="size-4" />
+              Delete
+            </button>
+          </div>
+        ) : undefined
+      }
       primaryAction={
         isEditMode
           ? {
@@ -363,24 +385,6 @@ export default function JobDetailModal({
                 </div>
               </div>
             )}
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-neutral-300">
-              <button
-                type="button"
-                onClick={onEdit}
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-p font-medium text-neutral-200 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <LuPencil className="size-4" />
-                Edit
-              </button>
-              <button
-                type="button"
-                onClick={handleRequestDelete}
-                className="inline-flex items-center gap-2 rounded-lg border border-neutral-400 bg-neutral-50 px-4 py-2 text-p font-medium text-neutral-700 hover:bg-red-50 hover:text-secondary hover:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary"
-              >
-                <LuTrash2 className="size-4" />
-                Delete
-              </button>
-            </div>
           </>
         )}
       </div>
