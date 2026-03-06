@@ -77,6 +77,7 @@ export default function NewJobModal({
   const [submitError, setSubmitError] = useState<string | null>(null);
   /** 'books' | 'categories' | 'items' when the services picker is stepped into */
   const [servicesPickerView, setServicesPickerView] = useState<"books" | "categories" | "items" | null>(null);
+  const [notes, setNotes] = useState("");
 
   const customerDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const technicianDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -234,6 +235,7 @@ export default function NewJobModal({
     setSelectedCategory(null);
     setCategoryServiceItems([]);
     setServicesPickerView(null);
+    setNotes("");
     setSubmitError(null);
   }, []);
 
@@ -261,6 +263,7 @@ export default function NewJobModal({
           selectedServiceItems.length > 0
             ? selectedServiceItems.map((s) => s.id)
             : undefined,
+        ...(notes.trim() && { notes: notes.trim() }),
       });
       const job = mapApiJobToJob(response.job);
       onSave(job);
@@ -311,12 +314,12 @@ export default function NewJobModal({
         )}
         {/* Customer search & select */}
         <div className="relative">
-          <label className="block text-small font-semibold text-neutral-700 mb-1">
+          <label className="block text-small text-neutral-800 mb-1">
             Customer
           </label>
           {selectedCustomer ? (
             <div className="flex items-center justify-between rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2">
-              <span className="text-p text-neutral-900">
+              <span className="text-p text-neutral-800">
                 {displayCustomer(selectedCustomer)}
                 {selectedCustomer.address && (
                   <span className="text-neutral-500 text-small block truncate">
@@ -346,7 +349,7 @@ export default function NewJobModal({
                 }}
                 onFocus={() => setCustomerDropdownOpen(true)}
                 placeholder="Search customers..."
-                className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
               />
               {customerDropdownOpen && (
                 <>
@@ -397,18 +400,18 @@ export default function NewJobModal({
         {/* Start / End date */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-small font-semibold text-neutral-700 mb-1">
+            <label className="block text-small text-neutral-800 mb-1">
               Start date
             </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
-            <label className="block text-small font-semibold text-neutral-700 mb-1">
+            <label className="block text-small text-neutral-800 mb-1">
               End date
             </label>
             <input
@@ -416,7 +419,7 @@ export default function NewJobModal({
               value={endDate}
               min={startDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
@@ -424,32 +427,32 @@ export default function NewJobModal({
         {/* Start / End time */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-small font-semibold text-neutral-700 mb-1">
+            <label className="block text-small text-neutral-800 mb-1">
               Start time
             </label>
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
-            <label className="block text-small font-semibold text-neutral-700 mb-1">
+            <label className="block text-small text-neutral-800 mb-1">
               End time
             </label>
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
 
         {/* Technician search & select (only available for chosen window) */}
         <div className="relative">
-          <label className="block text-small font-semibold text-neutral-700 mb-1">
+          <label className="block text-small text-neutral-800 mb-1">
             Technician
           </label>
           <p className="text-xs text-neutral-500 mb-1">
@@ -483,7 +486,7 @@ export default function NewJobModal({
                 }}
                 onFocus={() => setTechnicianDropdownOpen(true)}
                 placeholder="Search technicians..."
-                className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
               />
               {technicianDropdownOpen && (
                 <>
@@ -530,7 +533,7 @@ export default function NewJobModal({
 
         {/* Services: Service Book → Category → ServiceItem */}
         <div>
-          <label className="block text-small font-semibold text-neutral-700 mb-1">
+          <label className="block text-small text-neutral-800 mb-1">
             Services
           </label>
           <p className="text-xs text-neutral-500 mb-2">
@@ -580,7 +583,7 @@ export default function NewJobModal({
               {servicesPickerView === "books" && (
                 <>
                   <div className="flex items-center justify-between">
-                    <span className="text-small font-semibold text-neutral-700">
+                    <span className="text-small text-neutral-800">
                       Select Service Book
                     </span>
                     <button
@@ -640,7 +643,7 @@ export default function NewJobModal({
                       Close
                     </button>
                   </div>
-                  <p className="text-small font-semibold text-neutral-700">
+                  <p className="text-small text-neutral-800">
                     {selectedServiceBook.name ?? "Unnamed"} – Select category
                   </p>
                   {(selectedServiceBook.catories?.length ?? 0) === 0 ? (
@@ -689,7 +692,7 @@ export default function NewJobModal({
                       Close
                     </button>
                   </div>
-                  <p className="text-small font-semibold text-neutral-700">
+                  <p className="text-small text-neutral-800">
                     {selectedCategory.name} – Click to add service
                   </p>
                   {categoryItemsLoading ? (
@@ -738,6 +741,16 @@ export default function NewJobModal({
               )}
             </div>
           )}
+        </div>
+
+        <div className="flex flex-col">
+          <label htmlFor="notes" className="text-neutral-700 text-small">Notes</label>
+          <textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="bg-neutral-50 rounded-lg py-2 px-4 mt-1 border border-neutral-400"
+          />
         </div>
       </div>
     </Modal>
