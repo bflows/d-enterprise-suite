@@ -17,6 +17,10 @@ export interface ModalProps {
   cancelLabel?: string;
   closeOnBackdropClick?: boolean;
   showCloseButton?: boolean;
+  /** When true, the footer Cancel button is hidden (use with header X to close). */
+  hideCancelButton?: boolean;
+  /** Optional content shown at the start of the footer (e.g. Edit / Delete buttons). */
+  footerStartContent?: ReactNode;
 }
 
 export default function Modal({
@@ -27,7 +31,9 @@ export default function Modal({
   primaryAction,
   cancelLabel = 'Cancel',
   closeOnBackdropClick = false,
-  showCloseButton = true
+  showCloseButton = true,
+  hideCancelButton = false,
+  footerStartContent
 }: ModalProps) {
   if (!isOpen) return null;
 
@@ -75,15 +81,17 @@ export default function Modal({
           {children}
         </div>
         {/* Sticky Footer */}
-        <div className="flex shrink-0 items-center justify-end gap-3 px-6 py-4 rounded-b-lg border-t border-neutral-400 bg-neutral-50">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg px-4 py-2 cursor-pointer border border-neutral-400 bg-neutral-50 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          >
-            {cancelLabel}
-          </button>
-          {primaryAction && (
+        <div className={`flex shrink-0 items-center gap-3 px-6 py-4 rounded-b-lg border-t border-neutral-400 bg-neutral-50 ${footerStartContent ? 'justify-between' : 'justify-end'}`}>
+          {footerStartContent ?? (!hideCancelButton && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg px-4 py-2 cursor-pointer border border-neutral-400 bg-neutral-50 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            >
+              {cancelLabel}
+            </button>
+          ))}
+          {primaryAction ? (
             <button
               type="button"
               onClick={(e) => { primaryAction.onClick(e); }}
@@ -92,7 +100,9 @@ export default function Modal({
             >
               {primaryAction.label}
             </button>
-          )}
+          ) : footerStartContent ? (
+            <span />
+          ) : null}
         </div>
       </div>
     </div>
