@@ -46,14 +46,6 @@ export default function JobDetailModal({
   const [technicianInputTouched, setTechnicianInputTouched] = useState(false);
   const technicianInputRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setForm(job);
-    setTechnicianSearchQuery("");
-    setTechnicianSuggestionsOpen(false);
-    setTechnicianSuggestions([]);
-    setTechnicianInputTouched(false);
-  }, [job]);
-
   // Search technicians only after user has typed or cleared the input (not on modal open or focus)
   useEffect(() => {
     if (!companyId || !isOpen || !isEditMode || !technicianInputTouched) return;
@@ -336,6 +328,37 @@ export default function JobDetailModal({
               <div>
                 <p className="text-small text-neutral-500">Notes</p>
                 <p className="text-p text-neutral-900 whitespace-pre-wrap">{job.notes}</p>
+              </div>
+            )}
+            {job.services && job.services.length > 0 && (
+              <div>
+                <p className="text-small text-neutral-500 mb-2">Services</p>
+                <div className="rounded-lg border border-neutral-300 overflow-hidden">
+                  <table className="w-full text-left text-p border-collapse">
+                    <thead>
+                      <tr className="bg-neutral-100 border-b border-neutral-300">
+                        <th className="py-2 px-3 font-semibold text-neutral-700">Service</th>
+                        <th className="py-2 px-3 font-semibold text-neutral-700">Quantity / unit</th>
+                        <th className="py-2 px-3 font-semibold text-neutral-700 text-right">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {job.services.map((s) => (
+                        <tr key={s.id} className="border-b border-neutral-200 last:border-b-0">
+                          <td className="py-2 px-3 text-neutral-900">
+                            {s.name ?? (s as { title?: string }).title ?? "—"}
+                          </td>
+                          <td className="py-2 px-3 text-neutral-900">
+                            {s.quantityOrUnit ?? (s as { unit?: number }).unit ?? "—"}
+                          </td>
+                          <td className="py-2 px-3 text-neutral-900 text-right">
+                            ${Number(s.price ?? 0).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
             <div className="flex flex-wrap gap-2 pt-2 border-t border-neutral-300">
