@@ -53,7 +53,15 @@ export interface ApiJobResponse {
     };
     [key: string]: unknown;
   };
-  services?: Array<{ id: string; [key: string]: unknown }>;
+  services?: Array<{
+    id: string;
+    title?: string;
+    unit?: number;
+    price?: number;
+    /** Mapped from API (title → name, unit → quantityOrUnit) */
+    name?: string;
+    quantityOrUnit?: number;
+  }>;
 }
 
 export interface CreateJobResponse {
@@ -133,6 +141,20 @@ export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
     serviceItemIds:
       apiJob.services && apiJob.services.length > 0
         ? apiJob.services.map((s) => s.id)
+        : undefined,
+    services:
+      apiJob.services && apiJob.services.length > 0
+        ? apiJob.services.map((s) => {
+            const name = s.title ?? (s as { name?: string }).name ?? "";
+            const quantityOrUnit = s.unit ?? (s as { quantityOrUnit?: number }).quantityOrUnit ?? 0;
+            const price = s.price ?? (s as { price?: number }).price ?? 0;
+            return {
+              id: s.id,
+              name,
+              quantityOrUnit,
+              price,
+            };
+          })
         : undefined,
   };
 }
