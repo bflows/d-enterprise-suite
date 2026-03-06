@@ -187,6 +187,7 @@ export default function JobDetailModal({
                 </label>
                 <input
                   type="text"
+                  role="combobox"
                   value={
                     technicianSearchQuery !== ""
                       ? technicianSearchQuery
@@ -219,6 +220,7 @@ export default function JobDetailModal({
                           <li
                             key={t.id}
                             role="option"
+                            aria-selected={false}
                             tabIndex={-1}
                             className="px-3 py-2 text-p text-neutral-900 cursor-pointer hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
                             onMouseDown={(e) => {
