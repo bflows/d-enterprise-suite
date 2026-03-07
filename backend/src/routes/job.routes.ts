@@ -4,9 +4,9 @@ import { createJob, listJobs, deleteJob, updateJob } from "../controllers/job.co
 
 const router = express.Router();
 
-router.get("/", requireAuth, requireRole("dispatcher", "admin", "technician"), listJobs);
-router.post("/create", requireAuth, requireRole("dispatcher", "admin"), createJob);
-router.put("/update", requireAuth, requireRole("dispatcher", "admin"), updateJob);
-router.delete("/delete", requireAuth, requireRole("dispatcher", "admin"), deleteJob);
+router.get("/", requireAuth, requireRole("admin", "dispatcher", "technician"), listJobs);
+router.post("/create", requireAuth, requireRole("admin", "dispatcher", "technician"), createJob);
+router.put("/update", requireAuth, requireRole("admin", "dispatcher", "technician"), updateJob);
+router.delete("/delete", requireAuth, requireRole("admin", "dispatcher", "technician"), deleteJob);
 
 export default router;
