@@ -341,7 +341,7 @@ export default function EditEmployeeForm({
                         )
                       );
                     }}
-                    className="rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary min-w-[120px]"
+                    className="rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary min-w-30"
                   >
                     {DAY_NAMES.map((name, d) => (
                       <option key={d} value={d}>
