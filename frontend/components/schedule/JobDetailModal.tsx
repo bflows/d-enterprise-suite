@@ -362,7 +362,7 @@ export default function JobDetailModal({
                     <thead>
                       <tr className="bg-neutral-100 border-b border-neutral-300">
                         <th className="py-2 px-3 font-semibold text-neutral-700">Service</th>
-                        <th className="py-2 px-3 font-semibold text-neutral-700">Quantity / unit</th>
+                        <th className="py-2 px-3 font-semibold text-neutral-700">Quantity</th>
                         <th className="py-2 px-3 font-semibold text-neutral-700 text-right">Price</th>
                       </tr>
                     </thead>
