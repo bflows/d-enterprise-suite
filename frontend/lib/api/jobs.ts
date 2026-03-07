@@ -146,12 +146,12 @@ export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
       apiJob.services && apiJob.services.length > 0
         ? apiJob.services.map((s) => {
             const name = s.title ?? (s as { name?: string }).name ?? "";
-            const quantityOrUnit = s.unit ?? (s as { quantityOrUnit?: number }).quantityOrUnit ?? 0;
+            const quantity = s.unit ?? (s as { quantity?: number }).quantity ?? 0;
             const price = s.price ?? (s as { price?: number }).price ?? 0;
             return {
               id: s.id,
               name,
-              quantityOrUnit,
+              quantity,
               price,
             };
           })
