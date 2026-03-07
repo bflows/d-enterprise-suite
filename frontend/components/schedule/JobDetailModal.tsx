@@ -373,7 +373,7 @@ export default function JobDetailModal({
                             {s.name ?? (s as { title?: string }).title ?? "—"}
                           </td>
                           <td className="py-2 px-3 text-neutral-900">
-                            {s.quantityOrUnit ?? (s as { unit?: number }).unit ?? "—"}
+                            {s.quantity ?? (s as { unit?: number }).unit ?? "—"}
                           </td>
                           <td className="py-2 px-3 text-neutral-900 text-right">
                             ${Number(s.price ?? 0).toFixed(2)}
