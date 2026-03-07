@@ -81,6 +81,8 @@ export interface UpdateJobBody {
   notes?: string | null;
   status?: "scheduled" | "in_progress" | "completed" | "cancelled";
   technicianId?: string;
+  /** Replace job's services with these service item IDs. */
+  serviceItemIds?: string[];
 }
 
 export interface UpdateJobResponse {
