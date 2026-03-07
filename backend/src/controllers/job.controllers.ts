@@ -12,6 +12,8 @@ interface UpdateJobBody {
   notes?: string | null;
   status?: "scheduled" | "in_progress" | "completed" | "cancelled";
   technicianId?: string;
+  /** IDs of service items to attach to this job. Replaces existing services when provided. */
+  serviceItemIds?: string[];
 }
 
 /** Request body for creating a job. Frontend sends date as YYYY-MM-DD and startTime/endTime as HH:mm. */
@@ -96,12 +98,15 @@ export const createJob = async (
 
     let title: string | null = null;
     if (serviceItemIds && serviceItemIds.length > 0) {
-      const firstServiceItem = await prisma.serviceItem.findUnique({
-        where: { id: serviceItemIds[0] },
-        select: { title: true },
-      });
-      if (firstServiceItem) {
-        title = firstServiceItem.title;
+      const firstId = serviceItemIds[0];
+      if (firstId !== undefined) {
+        const firstServiceItem = await prisma.serviceItem.findUnique({
+          where: { id: firstId },
+          select: { title: true },
+        });
+        if (firstServiceItem) {
+          title = firstServiceItem.title;
+        }
       }
     }
 
@@ -116,10 +121,11 @@ export const createJob = async (
       });
     }
 
-    const status =
+    const status = (
       statusFromBody !== undefined && STATUS_MAP[statusFromBody]
         ? STATUS_MAP[statusFromBody]
-        : "SCHEDULED";
+        : "SCHEDULED"
+    ) as "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 
     const job = await prisma.job.create({
       data: {
@@ -202,6 +208,7 @@ export const updateJob = async (
       endDate?: Date;
       startTime?: Date;
       endTime?: Date;
+      technicianId?: string;
     } = {};
     if (body.title !== undefined) data.title = body.title ?? null;
     if (body.notes !== undefined) data.notes = body.notes ?? null;
@@ -250,6 +257,11 @@ export const updateJob = async (
         });
       }
       data.technicianId = body.technicianId;
+    }
+    if (body.serviceItemIds !== undefined) {
+      (data as Record<string, unknown>).services = {
+        set: body.serviceItemIds.map((id) => ({ id })),
+      };
     }
     const job = await prisma.job.update({
       where: { id },
