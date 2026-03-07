@@ -60,7 +60,7 @@ export interface ApiJobResponse {
     price?: number;
     /** Mapped from API (title → name, unit → quantityOrUnit) */
     name?: string;
-    quantityOrUnit?: number;
+    quantity?: number;
   }>;
 }
 
