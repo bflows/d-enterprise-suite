@@ -112,6 +112,7 @@ export default function Calendar({ companyId, jobs, onJobUpdate, onJobDelete }: 
         notes: updated.notes ?? null,
         status: updated.status,
         ...(updated.technicianId != null && { technicianId: updated.technicianId }),
+        ...(updated.serviceItemIds !== undefined && { serviceItemIds: updated.serviceItemIds }),
       });
       const job = mapApiJobToJob(res.job);
       onJobUpdate?.(job);
