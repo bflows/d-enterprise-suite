@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "ServiceItem" ADD COLUMN     "quantity" INTEGER NOT NULL DEFAULT 1,
+ALTER COLUMN "unit" DROP NOT NULL;

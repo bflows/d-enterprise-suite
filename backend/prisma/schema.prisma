@@ -174,7 +174,8 @@ model ServiceItem {
   description String
   price       Int
   duration    Int
-  unit        Int
+  unit        Int?
+  quantity    Int @default(1)
 
   sortOrder Int?     @default(0)
   createdAt DateTime @default(now())
