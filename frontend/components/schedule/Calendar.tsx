@@ -23,7 +23,7 @@ export interface CalendarProps {
   onJobDelete?: (id: string) => void;
 }
 
-export default function Calendar({ companyId, jobs, onJobUpdate, onJobDelete }: CalendarProps) {
+export default function Calendar({ jobs }: CalendarProps) {
   const router = useRouter();
   const [viewDate, setViewDate] = useState(() => new Date());
 
