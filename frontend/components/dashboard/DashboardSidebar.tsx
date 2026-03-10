@@ -30,7 +30,7 @@ function isLinkActive(pathname: string, href: string): boolean {
 }
 
 const linkBaseClasses =
-  "flex items-center gap-x-2 px-4 py-2 rounded-lg group transition-colors duration-300 ease-in-out hover:bg-primary/10";
+  "flex items-center gap-x-2 px-4 py-2 rounded-lg w-fit group transition-colors duration-300 ease-in-out hover:bg-primary/10";
 const linkActiveClasses = "bg-primary/10 text-primary";
 const linkInactiveClasses = "text-neutral-600";
 const iconBaseClasses = "size-6 transition-colors duration-300 ease-in-out group-hover:text-primary";
