@@ -190,8 +190,11 @@ model ServiceItem {
 
 enum JobStatusType {
   SCHEDULED
-  IN_PROGRESS
+  EN_ROUTE
+  ON_SITE
   COMPLETED
+  INVOICED
+  PAID
   CANCELLED
 }
 
