@@ -10,12 +10,6 @@ export interface JobDetailViewProps {
 export default function JobDetailView({ job }: JobDetailViewProps) {
   return (
     <div className="space-y-4">
-      <div>
-        <p className="text-small text-neutral-500">Title</p>
-        <p className="text-p font-semibold text-neutral-900">
-          {job.title?.trim() || job.customerName || "—"}
-        </p>
-      </div>
       <div className="flex gap-4 flex-wrap">
         <div>
           <p className="text-small text-neutral-500">Date</p>
