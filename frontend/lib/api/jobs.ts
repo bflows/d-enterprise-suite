@@ -181,6 +181,12 @@ export async function listJobs(): Promise<Job[]> {
   return data.jobs.map(mapApiJobToJob);
 }
 
+/** Fetch a single job by id (uses listJobs and finds by id until a dedicated API exists). */
+export async function getJobById(id: string): Promise<Job | null> {
+  const jobs = await listJobs();
+  return jobs.find((j) => j.id === id) ?? null;
+}
+
 export async function deleteJob(id: string): Promise<{ success: true; message: string }> {
   const { data } = await apiClient.delete<{ success: true; message: string }>("/api/jobs/delete", {
     data: { id },
