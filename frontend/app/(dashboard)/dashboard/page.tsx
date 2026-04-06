@@ -1,48 +1,40 @@
 "use client";
 
-// import { useSelector } from "react-redux";
-// import Link from "next/link";
-// import { selectUser } from "@/features/auth/authSlice";
+import { useSelector } from "react-redux";
+import { selectUser } from "@/features/auth/authSlice";
+import EmployeeDashboard from "@/components/dashboard/EmployeeDashboard";
+import TechnicianDashboard from "@/components/dashboard/TechnicianDashboard";
+import DispatcherAdminDashboard from "@/components/dashboard/DispatcherAdminDashboard";
+import { ROLE_SLUGS } from "@/types/auth";
 
 export default function DashboardPage() {
-  // const user = useSelector(selectUser);
+  const user = useSelector(selectUser);
 
-  return (
-    <div>
-      <h1 className="text-neutral-900 text-h4 font-bold">Dashboard</h1>
-      {/* <p className="mt-1 text-neutral-600">
-        Welcome back, {user?.firstName ?? "User"}.
-      </p>
-      <div className="mt-6 rounded-lg border border-neutral-200 bg-white p-4">
-        <h2 className="text-sm font-medium text-neutral-500">Your account</h2>
-        <dl className="mt-2 space-y-1 text-sm">
-          <div>
-            <dt className="inline font-medium text-neutral-700">Email:</dt>{" "}
-            <dd className="inline text-neutral-600">{user?.email}</dd>
-          </div>
-          <div>
-            <dt className="inline font-medium text-neutral-700">Name:</dt>{" "}
-            <dd className="inline text-neutral-600">
-              {user?.firstName} {user?.lastName}
-            </dd>
-          </div>
-          <div>
-            <dt className="inline font-medium text-neutral-700">Phone:</dt>{" "}
-            <dd className="inline text-neutral-600">{user?.phoneNumber}</dd>
-          </div>
-          {user?.role && (
-            <div>
-              <dt className="inline font-medium text-neutral-700">Role:</dt>{" "}
-              <dd className="inline capitalize text-neutral-600">{user.role}</dd>
-            </div>
-          )}
-        </dl>
+  if (!user) {
+    return null;
+  }
+
+  if (!user.role) {
+    return (
+      <div className="grid min-h-[40vh] place-items-center">
+        <div className="text-center">
+          <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+          <p className="text-neutral-800 text-p mt-2">Loading your dashboard…</p>
+        </div>
       </div>
-      <p className="mt-4 text-sm text-neutral-500">
-        <Link href="/" className="text-primary hover:underline">
-          Back to home
-        </Link>
-      </p> */}
-    </div>
-  );
+    );
+  }
+
+  switch (user.role) {
+    case ROLE_SLUGS.TECHNICIAN:
+      return <TechnicianDashboard user={user} />;
+    case ROLE_SLUGS.DISPATCHER:
+      return <DispatcherAdminDashboard user={user} showEmployeesLink={false} />;
+    case ROLE_SLUGS.ADMIN:
+      return <DispatcherAdminDashboard user={user} showEmployeesLink={true} />;
+    case ROLE_SLUGS.EMPLOYEE:
+      return <EmployeeDashboard user={user} />;
+    default:
+      return <EmployeeDashboard user={user} />;
+  }
 }
