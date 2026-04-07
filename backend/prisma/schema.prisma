@@ -22,6 +22,7 @@ model User {
 
   refreshSessions RefreshSession[]
   employees       Employee[]
+  timeCards       TimeCard[]
 }
 
 model RefreshSession {
@@ -56,6 +57,7 @@ model Company {
   customers   Customer[]
   serviceBook ServiceBook[]
   jobs        Job[]
+  timeCards   TimeCard[]
 }
 
 model Role {
@@ -226,4 +228,24 @@ model Job {
   @@index([customerId])
   @@index([technicianId])
   @@index([startDate])
+}
+
+/// Clock in/out for a technician (user) within a company. Query by `companyId` and/or `userId`.
+model TimeCard {
+  id        String @id @default(cuid())
+  userId    String
+  companyId String
+
+  clockedInAt  DateTime
+  clockedOutAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, userId])
+  @@index([companyId])
+  @@index([userId])
 }

@@ -9,6 +9,7 @@ import customerRoutes from './routes/customer.routes';
 import serviceRoutes from './routes/service.routes';
 import technicianAvailabilityRoutes from './routes/availability.routes';
 import jobRoutes from './routes/job.routes';
+import timeCardRoutes from './routes/timeCard.routes';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use('/api/customer', customerRoutes);
 app.use('/api/service', serviceRoutes);
 app.use('/api/availability', technicianAvailabilityRoutes);
 app.use('/api/jobs', jobRoutes);
+app.use('/api/time-cards', timeCardRoutes);
 
 const startServer = async () => {
   try {
