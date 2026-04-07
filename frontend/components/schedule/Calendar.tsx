@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getDaysInMonth,
   getWeekDates,
@@ -25,7 +25,12 @@ export interface CalendarProps {
 
 export default function Calendar({ jobs }: CalendarProps) {
   const router = useRouter();
-  const [viewDate, setViewDate] = useState(() => new Date());
+  /** Avoid SSR/client mismatch: server TZ vs browser TZ for `new Date()` and calendar math. */
+  const [viewDate, setViewDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    queueMicrotask(() => setViewDate(new Date()));
+  }, []);
 
   const jobsByDate = useMemo(() => {
     const map = new Map<string, Job[]>();
@@ -41,10 +46,12 @@ export default function Calendar({ jobs }: CalendarProps) {
   }, [jobs]);
 
   const monthDays = useMemo(() => {
+    if (!viewDate) return [];
     return getDaysInMonth(viewDate.getFullYear(), viewDate.getMonth());
   }, [viewDate]);
 
   const weekDays = useMemo(() => {
+    if (!viewDate) return [];
     return getWeekDates(viewDate);
   }, [viewDate]);
 
@@ -84,6 +91,41 @@ export default function Calendar({ jobs }: CalendarProps) {
     const slug = jobSlug(job.title ?? job.customerName, job.id);
     router.push(`/schedule/job/${slug}`);
   };
+
+  if (!viewDate) {
+    return (
+      <div
+        className="flex flex-col gap-4 animate-pulse"
+        aria-busy="true"
+        aria-label="Loading calendar"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="h-10 w-full max-w-md rounded-lg bg-neutral-200" />
+        </div>
+        <div className="hidden md:grid grid-cols-7 gap-1 md:gap-2">
+          {WEEKDAY_LABELS.map((label) => (
+            <div
+              key={label}
+              className="h-6 rounded bg-neutral-200"
+            />
+          ))}
+        </div>
+        <div className="hidden md:grid grid-cols-7 gap-1 md:gap-2">
+          {Array.from({ length: 42 }).map((_, i) => (
+            <div
+              key={i}
+              className="min-h-25 md:min-h-30 rounded-lg bg-neutral-200"
+            />
+          ))}
+        </div>
+        <div className="md:hidden space-y-4">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className="h-32 rounded-lg bg-neutral-200" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const renderDayCell = (d: Date, isCurrentMonth: boolean) => {
     const key = toDateKey(d);
