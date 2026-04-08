@@ -27,6 +27,7 @@ import { LuArrowLeft, LuPencil, LuTrash2 } from "react-icons/lu";
 import { ROLE_SLUGS } from "@/types/auth";
 import JobProgress from "@/components/jobs/JobProgress";
 import JobCustomer from "@/components/jobs/JobCustomer";
+import JobSchedule from "@/components/jobs/JobSchedule";
 
 export default function JobDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -238,6 +239,7 @@ export default function JobDetailPage() {
 
       {/* Customer section */}
       <JobCustomer job={job} />
+      <JobSchedule job={job} />
 
       <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
         <h1 className="text-h5 font-bold text-neutral-900 mb-6">
