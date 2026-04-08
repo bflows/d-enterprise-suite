@@ -23,13 +23,14 @@ import { parseJobSlug } from "@/lib/utils/slug";
 import JobDetailView from "@/components/schedule/JobDetailView";
 import JobDetailModal from "@/components/schedule/JobDetailModal";
 import Modal from "@/components/ui/Modal";
-import { LuArrowLeft, LuPencil, LuTrash2 } from "react-icons/lu";
+import { LuArrowLeft } from "react-icons/lu";
 import { ROLE_SLUGS } from "@/types/auth";
 import JobProgress from "@/components/jobs/JobProgress";
 import JobCustomer from "@/components/jobs/JobCustomer";
 import JobSchedule from "@/components/jobs/JobSchedule";
 import JobLineItems from "@/components/jobs/JobLineItems";
 import JobAttachments from "@/components/jobs/JobAttachments";
+import JobNotes from "@/components/jobs/JobNotes";
 
 export default function JobDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -204,30 +205,28 @@ export default function JobDetailPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setEditModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg cursor-pointer bg-primary px-4 py-2 text-p font-medium text-neutral-200 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <LuPencil className="size-4" />
-            Edit
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setDeleteError(null);
-              setDeleteConfirmOpen(true);
-            }}
-            className="inline-flex items-center gap-2 rounded-lg cursor-pointer border border-neutral-400 bg-neutral-50 px-4 py-2 text-p font-medium text-neutral-700 hover:bg-red-50 hover:text-secondary hover:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary"
-          >
-            <LuTrash2 className="size-4" />
-            Delete
-          </button>
-        </div>
-      </div>
+    <div className="flex flex-col">
+      {/* <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setEditModalOpen(true)}
+          className="inline-flex items-center gap-2 rounded-lg cursor-pointer bg-primary px-4 py-2 text-p font-medium text-neutral-200 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <LuPencil className="size-4" />
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setDeleteError(null);
+            setDeleteConfirmOpen(true);
+          }}
+          className="inline-flex items-center gap-2 rounded-lg cursor-pointer border border-neutral-400 bg-neutral-50 px-4 py-2 text-p font-medium text-neutral-700 hover:bg-red-50 hover:text-secondary hover:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary"
+        >
+          <LuTrash2 className="size-4" />
+          Delete
+        </button>
+      </div> */}
 
       {/* Progress section */}
       <JobProgress
@@ -244,6 +243,7 @@ export default function JobDetailPage() {
       <JobSchedule job={job} />
       <JobLineItems job={job} />
       <JobAttachments jobId={job.id} />
+      <JobNotes />
 
       <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
         <h1 className="text-h5 font-bold text-neutral-900 mb-6">
