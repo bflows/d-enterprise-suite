@@ -13,10 +13,9 @@ import { HiCalendar, HiOutlineUser } from "react-icons/hi2";
 import { HiOutlineLocationMarker } from "react-icons/hi";
 
 const dateFmt = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
+  weekday: "long",
+  month: "long",
   day: "numeric",
-  year: "numeric",
 });
 
 function formatJobStatus(status: Job["status"]): string {
@@ -33,6 +32,17 @@ function jobTitleLine(job: Job): string {
   if (job.title?.trim()) return job.title.trim();
   if (job.customerName?.trim()) return job.customerName.trim();
   return "Job";
+}
+
+function formatJobStartTime(time: string): string {
+  const match = /^([01]?\d|2[0-3]):([0-5]\d)$/.exec(time.trim());
+  if (!match) return time;
+
+  const hours24 = Number(match[1]);
+  const minutes = match[2];
+  const meridiem = hours24 >= 12 ? "PM" : "AM";
+  const hours12 = hours24 % 12 || 12;
+  return `${hours12}:${minutes} ${meridiem}`;
 }
 
 /** Monday 00:00–Sunday (inclusive) of the current week, local time. `job.date` is YYYY-MM-DD. */
@@ -129,7 +139,7 @@ function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-small text-neutral-600">{dateLabel}</p>
-                    <p className="text-p text-neutral-800">{job.startTime}</p>
+                    <p className="text-p text-neutral-800">{formatJobStartTime(job.startTime)}</p>
                   </div>
                   <p className="mt-2 font-bold text-h6 text-neutral-900">
                     {jobTitleLine(job)}
