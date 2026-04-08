@@ -41,7 +41,7 @@ export default function DashboardShell({
     } else {
       dispatch(clearTimeCardState());
     }
-  }, [dispatch, user?.role, currentCompany?.id]);
+  }, [dispatch, user?.role, currentCompany]);
 
   return (
     <RequireAuth>
