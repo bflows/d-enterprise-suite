@@ -3,22 +3,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LuChevronLeft,
-  LuEllipsisVertical,
-  LuPanelLeftOpen,
-  LuPlus,
-} from "react-icons/lu";
-import {
   resolveMobileNavbarLeft,
   resolveMobileNavbarRight,
 } from "./dashboardNavbarConfig";
 import { useMobileNavDrawer } from "./MobileNavDrawer";
+import {
+  HiBars3,
+  HiChevronLeft,
+  HiEllipsisVertical,
+  HiPlus
+} from "react-icons/hi2";
 
 const backButtonClass =
-  "flex items-center justify-center -ml-1 p-1 rounded-md text-neutral-200 hover:bg-white/10";
+  "flex items-center justify-center -ml-2 p-1 rounded-md cursor-pointer text-neutral-200 hover:bg-white/10";
 
 const iconButtonClass =
-  "flex items-center justify-center -mr-1 p-1 rounded-md text-neutral-200 hover:bg-white/10";
+  "flex items-center justify-center -mr-2 p-1 rounded-md cursor-pointer text-neutral-200 hover:bg-white/10";
 
 export default function DashboardNavbar() {
   const pathname = usePathname();
@@ -36,7 +36,7 @@ export default function DashboardNavbar() {
               aria-label={left.ariaLabel}
               className={backButtonClass}
             >
-              <LuChevronLeft className="size-7" />
+              <HiChevronLeft className="size-8" />
             </Link>
           ) : (
             <button
@@ -45,7 +45,7 @@ export default function DashboardNavbar() {
               aria-label="Open navigation menu"
               className={backButtonClass}
             >
-              <LuPanelLeftOpen className="size-7" />
+              <HiBars3 className="size-8" />
             </button>
           )}
         </div>
@@ -59,10 +59,14 @@ export default function DashboardNavbar() {
               aria-label={right.ariaLabel}
               className={iconButtonClass}
             >
-              <LuPlus className="size-7" />
+              <HiPlus className="size-8" />
             </Link>
           ) : (
-            <LuEllipsisVertical className="text-neutral-200 size-7" />
+            <button
+              className={iconButtonClass}
+            >
+              <HiEllipsisVertical className="size-8" />
+            </button>
           )}
         </div>
       </div>
