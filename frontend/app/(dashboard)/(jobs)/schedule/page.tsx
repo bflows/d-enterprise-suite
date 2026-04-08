@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
@@ -11,6 +12,8 @@ import NewJobModal from "@/components/schedule/NewJobModal";
 import { listJobs } from "@/lib/api/jobs";
 
 export default function SchedulePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const companyId = useSelector((state: RootState) =>
     selectCurrentCompanyId(state)
   );
@@ -31,6 +34,12 @@ export default function SchedulePage() {
     };
     queueMicrotask(run);
   }, [companyId]);
+
+  useEffect(() => {
+    if (searchParams.get("newJob") !== "1") return;
+    setNewJobModalOpen(true);
+    router.replace("/schedule", { scroll: false });
+  }, [searchParams, router]);
 
   const displayJobs = companyId ? jobs : [];
   const displayLoading = companyId ? jobsLoading : false;
