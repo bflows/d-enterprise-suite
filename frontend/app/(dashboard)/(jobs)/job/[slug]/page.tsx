@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,6 +35,8 @@ export default function JobDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
   const isTechnician = useSelector((state: RootState) =>
     selectHasRole(state, ROLE_SLUGS.TECHNICIAN)
@@ -91,6 +93,16 @@ export default function JobDetailPage() {
       cancelled = true;
     };
   }, [jobId]);
+
+  useEffect(() => {
+    if (searchParams.get("action") !== "updateJob" || !job) return;
+    setEditModalOpen(true);
+    setSaveError(null);
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("action");
+    const q = next.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+  }, [searchParams, job, router, pathname]);
 
   const handleSave = useCallback(
     async (updated: Job) => {
