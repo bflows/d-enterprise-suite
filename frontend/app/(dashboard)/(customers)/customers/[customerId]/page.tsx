@@ -14,19 +14,11 @@ import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { LuArrowLeft } from "react-icons/lu";
 import type { AxiosError } from "axios";
+import { HiChatBubbleBottomCenterText, HiInbox, HiPhone } from "react-icons/hi2";
+import CustomerAddress from "@/components/customers/CustomerAddress";
 
 function displayName(c: Pick<CustomerDetail, "firstName" | "lastName">) {
   return [c.firstName, c.lastName].filter(Boolean).join(" ") || "—";
-}
-
-function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
-  if (value == null || value === "") return null;
-  return (
-    <div className="flex flex-wrap gap-x-2 py-2 border-b border-neutral-200 last:border-b-0">
-      <dt className="text-neutral-500 text-sm shrink-0 min-w-28">{label}</dt>
-      <dd className="text-neutral-900 text-p wrap-break-word">{value}</dd>
-    </div>
-  );
 }
 
 function CustomerDetailInner() {
@@ -253,15 +245,32 @@ function CustomerDetailInner() {
         Back to customers
       </Link>
 
-      <div className="bg-neutral-50 border border-neutral-400 rounded-lg p-4 sm:p-6 shadow-sm">
-        <h1 className="text-neutral-900 text-h5 font-bold">{name}</h1>
-        <p className="text-neutral-700 text-p mt-2">
-          <a href={`tel:${customer.phone}`} className="hover:text-primary underline">
-            {customer.phone}
-          </a>
-        </p>
+      <div className="rounded-lg p-4 border border-neutral-300 bg-neutral-50 sm:p-6">
+        <h1 className="text-h4 font-bold text-neutral-900">{name}</h1>
+        <div className="mt-4 flex flex-col gap-y-2">
+          {/* {customer.email && ( */}
+          <div className="flex items-center justify-between">
+            <p className="text-p text-neutral-800">{customer.email}billyflowers@gmail.com</p>
+            <div className="p-2 rounded-full w-fit bg-neutral-300/50">
+              <HiInbox className="size-6 text-neutral-600" />
+            </div>
+          </div>
+          {/* )}  */}
+          <div className="flex items-center justify-between">
+            <p className="text-p text-neutral-800">{customer.phone}</p>
+            <div className="flex gap-x-1">
+              <Link href={`sms:${customer.phone}`} className="p-2 rounded-full w-fit bg-primary/20">
+                <HiChatBubbleBottomCenterText className="size-6 text-primary" />
+              </Link>
+              <Link href={`tel:${customer.phone}`} className="p-2 rounded-full w-fit bg-primary/20">
+                <HiPhone className="size-6 text-primary" />
+              </Link>
+            </div>
+          </div>
+        </div>
 
-        <dl className="mt-6">
+
+        {/* <dl className="mt-6">
           <DetailRow label="Email" value={customer.email} />
           <DetailRow label="Address" value={customer.address} />
           <DetailRow label="Address line 2" value={customer.address2} />
@@ -277,8 +286,15 @@ function CustomerDetailInner() {
               </dd>
             </div>
           ) : null}
-        </dl>
+        </dl> */}
       </div>
+      {/*  */}
+      <CustomerAddress
+        address={customer.address}
+        address2={customer.address2}
+        city={customer.city}
+        zipCode={customer.zipCode}
+      />
     </div>
   );
 }
