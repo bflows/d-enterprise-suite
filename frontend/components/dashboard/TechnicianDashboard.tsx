@@ -6,16 +6,22 @@ import TechnicianTimeSummaryRow from "./TechnicianTimeSummaryRow";
 import TechnicianJobs from "./TechnicianJobs";
 
 export default function TechnicianDashboard({ user }: { user: AuthenticatedUser }) {
-  const [todayLine, setTodayLine] = useState<string | null>(null);
+  const [dayName, setDayName] = useState<string | null>(null);
+  const [calendarDate, setCalendarDate] = useState<string | null>(null);
 
   useEffect(() => {
     queueMicrotask(() => {
-      setTodayLine(
+      const now = new Date();
+      setDayName(
         new Intl.DateTimeFormat("en-US", {
           weekday: "long",
+        }).format(now)
+      );
+      setCalendarDate(
+        new Intl.DateTimeFormat("en-US", {
           month: "long",
           day: "numeric",
-        }).format(new Date())
+        }).format(now)
       );
     });
   }, []);
@@ -24,14 +30,20 @@ export default function TechnicianDashboard({ user }: { user: AuthenticatedUser 
     <div>
       <div>
         <div className="flex items-start justify-between gap-x-2">
-          <h1 className="text-h6 font-bold text-neutral-900 md:text-h3">
+          <h1 className="text-h5 font-bold text-neutral-900 md:text-h3">
             Welcome, {user.firstName}!
           </h1>
           <p className="py-1 px-3 rounded-full text-small bg-neutral-300 text-neutral-600 capitalize">
             {user.role}
           </p>
         </div>
-        <p className="mt-2">Today is {todayLine ?? "—"}</p>
+        <p>
+          Today is {" "}
+          <span className="font-bold">
+            {dayName ?? "—"}
+          </span>
+          {calendarDate ? `, ${calendarDate}` : ""}.
+        </p>
       </div>
       <TechnicianTimeSummaryRow user={user} />
       <TechnicianJobs user={user} />
