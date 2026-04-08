@@ -17,6 +17,12 @@ interface UpdateJobBody {
   serviceItemIds?: string[];
 }
 
+/** Request body for listing jobs assigned to the technician (employee) for this user + company. */
+interface ListTechnicianJobsBody {
+  userId: string;
+  companyId: string;
+}
+
 /** Request body for creating a job. Frontend sends date as YYYY-MM-DD and startTime/endTime as HH:mm. */
 interface CreateJobBody {
   companyId: string;
@@ -327,6 +333,66 @@ export const deleteJob = async (
     });
   } catch (error) {
     console.error("Delete job error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+
+/**
+ * List jobs assigned to the authenticated technician for the given user + company.
+ * Body must match the session (userId === req.user.id, companyId === req.business.id).
+ */
+export const listTechnicianJobs = async (
+  req: Request<{}, {}, ListTechnicianJobsBody>,
+  res: Response
+) => {
+  try {
+    const { userId, companyId } = req.body;
+    if (!userId || !companyId) {
+      return res.status(400).json({
+        success: false,
+        message: "userId and companyId are required.",
+      });
+    }
+    if (!req.user || !req.business) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication and company context are required.",
+      });
+    }
+    if (userId !== req.user.id || companyId !== req.business.id) {
+      return res.status(403).json({
+        success: false,
+        message: "userId and companyId must match the signed-in user and current company.",
+      });
+    }
+
+    const employee = await prisma.employee.findFirst({
+      where: { userId, companyId },
+      select: { id: true },
+    });
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee record not found for this user and company.",
+      });
+    }
+
+    const jobs = await prisma.job.findMany({
+      where: { companyId, technicianId: employee.id },
+      include: {
+        customer: true,
+        technician: { include: { user: true } },
+        services: true,
+      },
+      orderBy: [{ startDate: "asc" }, { startTime: "asc" }],
+    });
+
+    return res.status(200).json({ jobs });
+  } catch (error) {
+    console.error("List technician jobs error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error. Please try again later.",

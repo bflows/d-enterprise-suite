@@ -111,6 +111,8 @@ function toTimeKey(iso: string): string {
 const STATUS_MAP: Record<string, "scheduled" | "in_progress" | "completed" | "cancelled"> = {
   SCHEDULED: "scheduled",
   IN_PROGRESS: "in_progress",
+  /** Backend maps API `in_progress` to Prisma ON_SITE */
+  ON_SITE: "in_progress",
   COMPLETED: "completed",
   CANCELLED: "cancelled",
 };
@@ -178,6 +180,18 @@ export async function updateJob(
 
 export async function listJobs(): Promise<Job[]> {
   const { data } = await apiClient.get<ListJobsResponse>("/api/jobs");
+  return data.jobs.map(mapApiJobToJob);
+}
+
+/** Jobs assigned to the signed-in technician for the current user + company. */
+export async function listTechnicianJobs(
+  userId: string,
+  companyId: string
+): Promise<Job[]> {
+  const { data } = await apiClient.post<ListJobsResponse>("/api/jobs/technician", {
+    userId,
+    companyId,
+  });
   return data.jobs.map(mapApiJobToJob);
 }
 

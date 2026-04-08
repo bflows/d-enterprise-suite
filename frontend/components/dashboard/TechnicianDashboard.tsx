@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { AuthenticatedUser } from "@/types/auth";
 import TechnicianTimeSummaryRow from "./TechnicianTimeSummaryRow";
+import TechnicianJobs from "./TechnicianJobs";
 
 export default function TechnicianDashboard({ user }: { user: AuthenticatedUser }) {
   const [todayLine, setTodayLine] = useState<string | null>(null);
@@ -33,6 +34,7 @@ export default function TechnicianDashboard({ user }: { user: AuthenticatedUser 
         <p className="mt-2">Today is {todayLine ?? "—"}</p>
       </div>
       <TechnicianTimeSummaryRow user={user} />
+      <TechnicianJobs user={user} />
     </div>
   );
 }
