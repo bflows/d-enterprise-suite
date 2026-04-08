@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type { JobStatusType } from "../../generated/prisma/client";
 import { prisma } from "../lib/prisma";
 
 /** Request body for updating a job. Only provided fields are updated. */
@@ -50,9 +51,10 @@ function toDateTime(dateStr: string, timeStr: string): Date | null {
   return d;
 }
 
-const STATUS_MAP: Record<string, "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"> = {
+/** Maps API/frontend snake_case statuses to Prisma `JobStatusType` (replaces legacy IN_PROGRESS with ON_SITE). */
+const STATUS_MAP: Record<string, JobStatusType> = {
   scheduled: "SCHEDULED",
-  in_progress: "IN_PROGRESS",
+  in_progress: "ON_SITE",
   completed: "COMPLETED",
   cancelled: "CANCELLED",
 };
@@ -121,11 +123,10 @@ export const createJob = async (
       });
     }
 
-    const status = (
+    const status: JobStatusType =
       statusFromBody !== undefined && STATUS_MAP[statusFromBody]
         ? STATUS_MAP[statusFromBody]
-        : "SCHEDULED"
-    ) as "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+        : "SCHEDULED";
 
     const job = await prisma.job.create({
       data: {
@@ -203,7 +204,7 @@ export const updateJob = async (
     const data: {
       title?: string | null;
       notes?: string | null;
-      status?: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+      status?: JobStatusType;
       startDate?: Date;
       endDate?: Date;
       startTime?: Date;
