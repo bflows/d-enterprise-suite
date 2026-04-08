@@ -20,6 +20,14 @@ type LeftRule = {
 
 const MOBILE_NAVBAR_LEFT_RULES: LeftRule[] = [
   {
+    prefix: "/schedule/job",
+    slot: {
+      kind: "back",
+      href: "/schedule",
+      ariaLabel: "Back to schedule",
+    },
+  },
+  {
     prefix: "/dashboard/time-cards",
     slot: {
       kind: "back",

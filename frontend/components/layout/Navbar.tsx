@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   resolveMobileNavbarLeft,
   resolveMobileNavbarRight,
@@ -21,6 +21,7 @@ const iconButtonClass =
   "flex items-center justify-center -mr-2 p-1 rounded-md cursor-pointer text-neutral-200 hover:bg-white/10";
 
 export default function Navbar() {
+  const router = useRouter();
   const pathname = usePathname();
   const { openMenu } = useMobileNavMenu();
   const left = resolveMobileNavbarLeft(pathname);
@@ -31,13 +32,14 @@ export default function Navbar() {
       <div className="flex items-center justify-between h-full">
         <div className="min-w-7 flex items-center justify-start">
           {left.kind === "back" ? (
-            <Link
-              href={left.href}
+            <button
+              type="button"
+              onClick={() => router.back()}
               aria-label={left.ariaLabel}
               className={backButtonClass}
             >
               <HiChevronLeft className="size-8" />
-            </Link>
+            </button>
           ) : (
             <button
               type="button"
