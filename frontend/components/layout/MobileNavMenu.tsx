@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { LuLogOut, LuPanelLeftClose } from "react-icons/lu";
+import { HiXMark, HiArrowRightOnRectangle } from "react-icons/hi2";
 import type { AppDispatch } from "@/app/store";
 import { logout, selectUser } from "@/features/auth/authSlice";
 import {
@@ -152,18 +152,18 @@ function MobileNavMenuPanel({
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-400 bg-primary px-4">
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-400 bg-primary px-6">
           <span className="text-neutral-50 text-h6 font-bold">Duct Daddy</span>
           <button
             type="button"
             onClick={closeMenu}
             aria-label="Close navigation menu"
-            className="flex items-center justify-center rounded-md p-2 text-neutral-200 hover:bg-white/10"
+            className="flex items-center justify-center rounded-md p-2 -mr-2 cursor-pointer text-neutral-200 hover:bg-white/10"
           >
-            <LuPanelLeftClose className="size-7" />
+            <HiXMark className="size-8" />
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
           {DASHBOARD_NAV_SECTIONS.map(({ section, items }) => (
             <div key={section} className="mb-6 last:mb-0">
               <h2 className="text-neutral-400 text-small font-bold uppercase">
@@ -191,7 +191,7 @@ function MobileNavMenuPanel({
             </div>
           ))}
         </div>
-        <div className="shrink-0 border-t border-neutral-400 bg-neutral-50 px-4 py-3">
+        <div className="shrink-0 border-t border-neutral-300 bg-neutral-100 px-6 pt-4 pb-6">
           <div className="flex items-center gap-3">
             {user ? (
               <>
@@ -219,9 +219,9 @@ function MobileNavMenuPanel({
               type="button"
               onClick={handleSignOut}
               aria-label="Sign out"
-              className="flex shrink-0 items-center justify-center rounded-md p-2 text-neutral-700 hover:bg-primary/10 hover:text-primary"
+              className="flex shrink-0 items-center justify-center rounded-md p-2 -mr-2 cursor-pointer text-neutral-700 hover:bg-primary/10 hover:text-primary"
             >
-              <LuLogOut className="size-6" />
+              <HiArrowRightOnRectangle className="size-8" />
             </button>
           </div>
         </div>
