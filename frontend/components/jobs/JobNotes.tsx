@@ -71,12 +71,12 @@ export default function JobNotes({ jobId, notes, onSaved }: JobNotesProps) {
         </p>
       )}
       {isDirty && (
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={() => void handleSave()}
             disabled={saveLoading}
-            className="text-p font-bold py-2 px-3 rounded-lg cursor-pointer transition-colors duration-300 ease-in-out bg-primary/90 text-neutral-200 hover:bg-primary hover:text-neutral-100 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="text-p py-2 px-3 rounded-lg cursor-pointer transition-colors duration-300 ease-in-out bg-primary/90 text-neutral-200 hover:bg-primary hover:text-neutral-100 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saveLoading ? "Saving…" : "Save Notes"}
           </button>

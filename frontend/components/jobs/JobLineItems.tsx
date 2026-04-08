@@ -31,7 +31,7 @@ export default function JobLineItems({ job, discountAmount = 0 }: JobLineItemsPr
         <p className="mt-2 text-p text-neutral-600">No services added to this job.</p>
       ) : (
         <>
-          <div className="mt-2">
+          <div className="mt-2 flex flex-col gap-y-4">
             {services.map((service) => {
               const lineTotal = service.quantity * service.price;
               return (
@@ -64,18 +64,18 @@ export default function JobLineItems({ job, discountAmount = 0 }: JobLineItemsPr
           <div className="mt-6 border-t border-neutral-200 pt-2">
             <div className="flex items-center justify-between text-p text-neutral-700">
               <span>Subtotal</span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span>${formatCurrency(subtotal)}</span>
             </div>
             <hr className="pt-2 mt-2 border-t border-neutral-200" />
             {discount > 0 ? (
               <div className="flex items-center justify-between text-p text-neutral-700">
                 <span>Discount</span>
-                <span>-{formatCurrency(discount)}</span>
+                <span>-${formatCurrency(discount)}</span>
               </div>
             ) : null}
             <div className="flex items-center justify-between text-p font-bold text-neutral-900">
               <span>Total</span>
-              <span>{formatCurrency(total)}</span>
+              <span>${formatCurrency(total)}</span>
             </div>
           </div>
         </>
