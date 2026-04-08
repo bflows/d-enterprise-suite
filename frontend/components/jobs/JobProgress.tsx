@@ -70,7 +70,7 @@ export default function JobProgress({
           <HiPresentationChartLine className="size-6 shrink-0 text-primary" aria-hidden />
           <h2 className="text-h6 font-bold">Progress</h2>
         </div>
-        <p className="text-small py-1 px-3 rounded-full bg-neutral-100 text-neutral-800">
+        <p className="text-small text-neutral-600">
           {progressStatusLabel(status)}
         </p>
       </div>
