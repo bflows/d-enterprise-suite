@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/app/store";
-import { login, selectAuthLoading, selectAuthError } from "@/features/auth/authSlice";
+import { login, selectAuthError } from "@/features/auth/authSlice";
 
 function LoginFormFallback() {
   return (
@@ -25,19 +25,24 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
-  const isLoading = useSelector(selectAuthLoading);
   const error = useSelector(selectAuthError);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const redirect = searchParams.get("redirect") ?? "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await dispatch(login({ email: email.trim(), password }));
-    if (login.fulfilled.match(result)) {
-      router.push(redirect);
+    setIsSubmitting(true);
+    try {
+      const result = await dispatch(login({ email: email.trim(), password }));
+      if (login.fulfilled.match(result)) {
+        router.push(redirect);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -93,10 +98,10 @@ function LoginForm() {
         </div>
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isSubmitting}
           className="w-full rounded-md bg-primary py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
         >
-          {isLoading ? "Signing in..." : "Sign in"}
+          {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
       </form>
 

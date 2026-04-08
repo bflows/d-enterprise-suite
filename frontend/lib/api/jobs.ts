@@ -99,6 +99,36 @@ export interface ListJobsResponse {
   jobs: ApiJobResponse[];
 }
 
+export type JobPhotoSource = "camera_roll" | "live_camera" | "library";
+
+export interface JobPhoto {
+  id: string;
+  jobId: string;
+  companyId: string;
+  uploadedBy: string;
+  publicId: string;
+  url: string;
+  secureUrl: string;
+  format: string | null;
+  bytes: number | null;
+  width: number | null;
+  height: number | null;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ListJobPhotosResponse {
+  success: true;
+  photos: JobPhoto[];
+}
+
+export interface UploadJobPhotoResponse {
+  success: true;
+  message: string;
+  photo: JobPhoto;
+}
+
 /** Format ISO date/time from API to YYYY-MM-DD. */
 function toDateKey(iso: string): string {
   return iso.slice(0, 10);
@@ -240,4 +270,23 @@ export async function updateJobStatus(
 ): Promise<UpdateJobResponse> {
   const { data } = await apiClient.put<UpdateJobResponse>("/api/jobs/status", { id, status });
   return data;
+}
+
+export async function listJobPhotos(jobId: string): Promise<JobPhoto[]> {
+  const { data } = await apiClient.get<ListJobPhotosResponse>(`/api/jobs/${jobId}/photos`);
+  return data.photos;
+}
+
+export async function uploadJobPhoto(
+  jobId: string,
+  file: File,
+  source: JobPhotoSource
+): Promise<JobPhoto> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("source", source);
+  const { data } = await apiClient.post<UploadJobPhotoResponse>(`/api/jobs/${jobId}/photos`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data.photo;
 }

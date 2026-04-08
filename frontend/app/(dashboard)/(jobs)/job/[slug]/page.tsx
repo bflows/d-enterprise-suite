@@ -29,6 +29,7 @@ import JobProgress from "@/components/jobs/JobProgress";
 import JobCustomer from "@/components/jobs/JobCustomer";
 import JobSchedule from "@/components/jobs/JobSchedule";
 import JobLineItems from "@/components/jobs/JobLineItems";
+import JobAttachments from "@/components/jobs/JobAttachments";
 
 export default function JobDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -242,6 +243,7 @@ export default function JobDetailPage() {
       <JobCustomer job={job} />
       <JobSchedule job={job} />
       <JobLineItems job={job} />
+      <JobAttachments jobId={job.id} />
 
       <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
         <h1 className="text-h5 font-bold text-neutral-900 mb-6">
