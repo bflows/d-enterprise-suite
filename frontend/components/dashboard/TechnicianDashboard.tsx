@@ -180,11 +180,11 @@ export default function TechnicianDashboard({ user }: { user: AuthenticatedUser 
             <span className="sr-only">View time cards for the last 7 days</span>
           </Link>
         </div>
-        {!currentCompany && (
+        {/* {!currentCompany && (
           <p className="text-small text-neutral-600">
             Select a company context to use the clock. Refresh the page or log in again if this persists.
           </p>
-        )}
+        )} */}
         {reduxError && <p className="text-small text-red-700">{reduxError}</p>}
       </div>
     </div>
