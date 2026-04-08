@@ -36,8 +36,9 @@ export default function DashboardSidebar() {
                 {section}
               </h2>
               <ul className="mt-1 flex flex-col gap-y-1">
-                {items.map(({ href, label, icon: Icon }) => {
+                {items.map(({ href, label, iconSolid, iconOutline }) => {
                   const active = isDashboardNavLinkActive(pathname ?? "", href);
+                  const Icon = active ? iconSolid : iconOutline;
                   return (
                     <li key={href}>
                       <Link

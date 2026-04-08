@@ -94,9 +94,9 @@ export function MobileNavMenuProvider({ children }: { children: ReactNode }) {
 }
 
 const linkBaseClasses =
-  "flex items-center gap-x-3 px-4 py-3 rounded-lg w-full text-left transition-colors duration-200 hover:bg-primary/10";
+  "flex items-center gap-x-3 px-4 py-3 rounded-lg w-fit text-left transition-colors duration-300 ease-in-out group hover:bg-primary/10 hover:text-primary";
 const linkActiveClasses = "bg-primary/10 text-primary";
-const linkInactiveClasses = "text-neutral-800";
+const linkInactiveClasses = "text-neutral-600";
 
 /** Snappy but smooth drawer motion (quicker than 300ms, softer than linear ease-out). */
 const drawerMotion =
@@ -158,7 +158,7 @@ function MobileNavMenuPanel({
             type="button"
             onClick={closeMenu}
             aria-label="Close navigation menu"
-            className="flex items-center justify-center rounded-md p-2 -mr-2 cursor-pointer text-neutral-200 hover:bg-white/10"
+            className="flex items-center justify-center rounded-md p-1 -mr-1 cursor-pointer text-neutral-200 hover:bg-white/10"
           >
             <HiXMark className="size-8" />
           </button>
@@ -169,9 +169,10 @@ function MobileNavMenuPanel({
               <h2 className="text-neutral-400 text-small font-bold uppercase">
                 {section}
               </h2>
-              <ul className="mt-2 flex flex-col gap-y-1">
-                {items.map(({ href, label, icon: Icon }) => {
+              <ul className="mt-2 flex flex-wrap gap-1">
+                {items.map(({ href, label, iconSolid, iconOutline }) => {
                   const active = isDashboardNavLinkActive(pathname, href);
+                  const Icon = active ? iconSolid : iconOutline;
                   return (
                     <li key={href}>
                       <Link
@@ -180,7 +181,7 @@ function MobileNavMenuPanel({
                         className={`${linkBaseClasses} ${active ? linkActiveClasses : linkInactiveClasses}`}
                       >
                         <Icon
-                          className={`size-6 shrink-0 ${active ? "text-primary" : "text-neutral-600"}`}
+                          className={`size-6 shrink-0 transition-colors duration-300 ease-in-out ${active ? "text-primary" : "text-neutral-600 group-hover:text-primary"}`}
                         />
                         <span className="text-p font-bold">{label}</span>
                       </Link>
@@ -219,7 +220,7 @@ function MobileNavMenuPanel({
               type="button"
               onClick={handleSignOut}
               aria-label="Sign out"
-              className="flex shrink-0 items-center justify-center rounded-md p-2 -mr-2 cursor-pointer text-neutral-700 hover:bg-primary/10 hover:text-primary"
+              className="flex shrink-0 items-center justify-center rounded-md p-1 -mr-1 cursor-pointer text-neutral-700 hover:bg-primary/10 hover:text-primary"
             >
               <HiArrowRightOnRectangle className="size-8" />
             </button>
