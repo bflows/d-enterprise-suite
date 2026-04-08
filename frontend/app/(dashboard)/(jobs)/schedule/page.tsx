@@ -35,10 +35,13 @@ export default function SchedulePage() {
     queueMicrotask(run);
   }, [companyId]);
 
+  // Defer setState to avoid synchronous setState in effect (cascading renders).
   useEffect(() => {
     if (searchParams.get("newJob") !== "1") return;
-    setNewJobModalOpen(true);
-    router.replace("/schedule", { scroll: false });
+    queueMicrotask(() => {
+      setNewJobModalOpen(true);
+      router.replace("/schedule", { scroll: false });
+    });
   }, [searchParams, router]);
 
   const displayJobs = companyId ? jobs : [];
