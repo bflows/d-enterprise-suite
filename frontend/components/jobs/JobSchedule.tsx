@@ -43,7 +43,7 @@ export default function JobSchedule({ job }: JobScheduleProps) {
   const endTime = formatTimeParts(job.endTime);
 
   return (
-    <div className="p-4 rounded-lg border bg-neutral-50 border-neutral-300">
+    <div className="mt-4 p-4 rounded-lg border bg-neutral-50 border-neutral-300">
       <div className="flex items-center gap-x-2">
         <div>
           <HiCalendar className="size-6 text-neutral-900" />

@@ -18,7 +18,7 @@ export default function JobLineItems({ job, discountAmount = 0 }: JobLineItemsPr
   const total = Math.max(0, subtotal - discount);
 
   return (
-    <section className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
+    <section className="mt-4 rounded-lg border border-neutral-300 bg-neutral-50 p-4">
       <div>
         <div className="flex items-center gap-2 text-neutral-900">
           <HiListBullet className="size-6 shrink-0" aria-hidden />

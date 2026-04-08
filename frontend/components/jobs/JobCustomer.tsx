@@ -35,7 +35,7 @@ export default function JobCustomer({ job }: JobCustomerProps) {
     "rounded-full bg-neutral-50 p-2 transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1";
 
   return (
-    <div className="rounded-lg py-5 border border-neutral-300 bg-neutral-50">
+    <div className="mt-4 rounded-lg py-5 border border-neutral-300 bg-neutral-50">
       <div className="px-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-neutral-900">
           <HiUser className="size-6 shrink-0 text-neutral-900" aria-hidden />

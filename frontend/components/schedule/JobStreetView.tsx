@@ -63,7 +63,7 @@ export default function JobStreetView({
 
   if (loadState === "config") {
     return (
-      <p className="text-small text-neutral-600">
+      <p className="text-small px-4 text-neutral-600">
         Street View isn&apos;t configured on the server. Add{" "}
         <code className="text-xs bg-neutral-200 px-1 rounded">GOOGLE_MAPS_API_KEY</code> to the
         backend environment and enable Geocoding and Street View Static APIs in Google Cloud.
@@ -73,7 +73,7 @@ export default function JobStreetView({
 
   if (loadState === "unavailable") {
     return (
-      <p className="text-small text-neutral-600">
+      <p className="text-small px-4 text-neutral-600">
         Street View isn&apos;t available for this address (geocoding or imagery missing).
       </p>
     );
