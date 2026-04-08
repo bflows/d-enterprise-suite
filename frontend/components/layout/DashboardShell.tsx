@@ -18,7 +18,7 @@ import { ROLE_SLUGS } from "@/types/auth";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardNavbar from "./DashboardNavbar";
 import DashboardMobileNav from "./DashboardMobileNav";
-import { MobileNavDrawerProvider } from "./MobileNavDrawer";
+import { MobileNavMenuProvider } from "./MobileNavMenu";
 
 export default function DashboardShell({
   children,
@@ -46,7 +46,7 @@ export default function DashboardShell({
 
   return (
     <RequireAuth>
-      <MobileNavDrawerProvider>
+      <MobileNavMenuProvider>
         <div className="bg-neutral-200 flex flex-col sm:flex-row h-screen overflow-hidden">
           <DashboardNavbar />
           <DashboardSidebar />
@@ -57,7 +57,7 @@ export default function DashboardShell({
           </main>
           <DashboardMobileNav />
         </div>
-      </MobileNavDrawerProvider>
+      </MobileNavMenuProvider>
     </RequireAuth>
   );
 }

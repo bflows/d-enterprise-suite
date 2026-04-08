@@ -38,25 +38,25 @@ function userInitials(firstName: string, lastName: string): string {
   return "?";
 }
 
-type MobileNavDrawerContextValue = {
+type MobileNavMenuContextValue = {
   open: boolean;
   openMenu: () => void;
   closeMenu: () => void;
 };
 
-const MobileNavDrawerContext = createContext<
-  MobileNavDrawerContextValue | undefined
+const MobileNavMenuContext = createContext<
+  MobileNavMenuContextValue | undefined
 >(undefined);
 
-export function useMobileNavDrawer(): MobileNavDrawerContextValue {
-  const ctx = useContext(MobileNavDrawerContext);
+export function useMobileNavMenu(): MobileNavMenuContextValue {
+  const ctx = useContext(MobileNavMenuContext);
   if (!ctx) {
-    throw new Error("useMobileNavDrawer must be used within MobileNavDrawerProvider");
+    throw new Error("useMobileNavMenu must be used within MobileNavMenuProvider");
   }
   return ctx;
 }
 
-export function MobileNavDrawerProvider({ children }: { children: ReactNode }) {
+export function MobileNavMenuProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const drawerContainerRef = useRef<HTMLDivElement>(null);
 
@@ -83,13 +83,13 @@ export function MobileNavDrawerProvider({ children }: { children: ReactNode }) {
     };
   }, [open, closeMenu]);
 
-  const value: MobileNavDrawerContextValue = { open, openMenu, closeMenu };
+  const value: MobileNavMenuContextValue = { open, openMenu, closeMenu };
 
   return (
-    <MobileNavDrawerContext.Provider value={value}>
+    <MobileNavMenuContext.Provider value={value}>
       {children}
-      <MobileNavDrawerPanel containerRef={drawerContainerRef} />
-    </MobileNavDrawerContext.Provider>
+      <MobileNavMenuPanel containerRef={drawerContainerRef} />
+    </MobileNavMenuContext.Provider>
   );
 }
 
@@ -102,12 +102,12 @@ const linkInactiveClasses = "text-neutral-800";
 const drawerMotion =
   "duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:duration-150 motion-reduce:transition-none";
 
-function MobileNavDrawerPanel({
+function MobileNavMenuPanel({
   containerRef,
 }: {
   containerRef: RefObject<HTMLDivElement | null>;
 }) {
-  const { open, closeMenu } = useMobileNavDrawer();
+  const { open, closeMenu } = useMobileNavMenu();
   const pathname = usePathname() ?? "";
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();

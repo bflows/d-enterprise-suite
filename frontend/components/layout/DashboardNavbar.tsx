@@ -6,7 +6,7 @@ import {
   resolveMobileNavbarLeft,
   resolveMobileNavbarRight,
 } from "./dashboardNavbarConfig";
-import { useMobileNavDrawer } from "./MobileNavDrawer";
+import { useMobileNavMenu } from "./MobileNavMenu";
 import {
   HiBars3,
   HiChevronLeft,
@@ -22,7 +22,7 @@ const iconButtonClass =
 
 export default function DashboardNavbar() {
   const pathname = usePathname();
-  const { openMenu } = useMobileNavDrawer();
+  const { openMenu } = useMobileNavMenu();
   const left = resolveMobileNavbarLeft(pathname);
   const right = resolveMobileNavbarRight(pathname);
 
