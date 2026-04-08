@@ -85,19 +85,23 @@ export default function JobAttachments({ jobId }: JobAttachmentsProps) {
             type="button"
             onClick={() => uploadInputRef.current?.click()}
             disabled={uploading}
-            className="inline-flex items-center gap-2 rounded-lg cursor-pointer bg-primary px-3 py-2 text-neutral-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg cursor-pointer px-3 py-2 transition-colors duration-300 ease-in-out bg-primary/90 text-neutral-200 hover:bg-primary hover:text-neutral-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <LuUpload className="size-4" />
-            Upload
+            <div>
+              <LuUpload className="size-6" />
+            </div>
+            <span className="text-p">Upload</span>
           </button>
           <button
             type="button"
             onClick={() => cameraInputRef.current?.click()}
             disabled={uploading}
-            className="inline-flex items-center gap-2 rounded-lg cursor-pointer border border-neutral-400 bg-white px-3 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg cursor-pointer border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm font-medium transition-colors duration-300 ease-in-out text-neutral-600 hover:bg-neutral-200 hover:text-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <LuCamera className="size-4" />
-            Take Photo
+            <div>
+              <LuCamera className="size-6" />
+            </div>
+            <span className="text-p">Take Photo</span>
           </button>
         </div>
       </div>
@@ -131,14 +135,14 @@ export default function JobAttachments({ jobId }: JobAttachmentsProps) {
         </p>
       )}
 
-      {uploading && <p className="mt-3 text-sm text-neutral-600">Uploading image…</p>}
+      {uploading && <p className="mt-3 text-sm text-neutral-600">Uploading image...</p>}
 
       {loading ? (
-        <p className="mt-3 text-sm text-neutral-600">Loading attachments…</p>
+        <p className="mt-3 text-sm text-neutral-600">Loading attachments...</p>
       ) : photos.length === 0 ? (
         <p className="mt-3 text-sm text-neutral-600">No attachments yet.</p>
       ) : (
-        <div className="mt-4 flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-4">
+        <div className="mt-4 flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-4">
           {photos.map((photo) => (
             <Link
               key={photo.id}
