@@ -19,7 +19,7 @@ import { logout, selectUser } from "@/features/auth/authSlice";
 import {
   DASHBOARD_NAV_SECTIONS,
   isDashboardNavLinkActive,
-} from "./dashboardNavLinks";
+} from "./navLinks";
 
 function formatRoleLabel(role: string | undefined): string {
   if (!role) return "—";

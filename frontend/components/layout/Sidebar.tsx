@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   DASHBOARD_NAV_SECTIONS,
   isDashboardNavLinkActive,
-} from "./dashboardNavLinks";
+} from "./navLinks";
 
 const linkBaseClasses =
   "flex items-center gap-x-2 px-4 py-2 rounded-lg w-fit group transition-colors duration-300 ease-in-out hover:bg-primary/10";

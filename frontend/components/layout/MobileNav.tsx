@@ -13,7 +13,7 @@ import {
   HiOutlineUsers,
   HiUsers,
 } from "react-icons/hi2";
-import { isDashboardNavLinkActive } from "./dashboardNavLinks";
+import { isDashboardNavLinkActive } from "./navLinks";
 
 type NavItem = {
   href: string;

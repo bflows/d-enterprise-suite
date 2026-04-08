@@ -1,5 +1,5 @@
 /**
- * Mobile top bar (DashboardNavbar) — left/right slots by route.
+ * Mobile top bar (Navbar) — left/right slots by route.
  * Left: longest matching prefix wins (resolveMobileNavbarLeft).
  * Right: exact pathname only (resolveMobileNavbarRight) so /dashboard/foo does not get dashboard-home actions.
  */

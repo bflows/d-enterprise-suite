@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   resolveMobileNavbarLeft,
   resolveMobileNavbarRight,
-} from "./dashboardNavbarConfig";
+} from "./navbarConfig";
 import { useMobileNavMenu } from "./MobileNavMenu";
 import {
   HiBars3,
@@ -20,7 +20,7 @@ const backButtonClass =
 const iconButtonClass =
   "flex items-center justify-center -mr-2 p-1 rounded-md cursor-pointer text-neutral-200 hover:bg-white/10";
 
-export default function DashboardNavbar() {
+export default function Navbar() {
   const pathname = usePathname();
   const { openMenu } = useMobileNavMenu();
   const left = resolveMobileNavbarLeft(pathname);
