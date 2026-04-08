@@ -22,6 +22,8 @@ interface CreateCustomerBody {
   email?: string;
   leadSource?: string;
   address2?: string;
+  city?: string;
+  zipCode?: string;
   notes?: string;
 }
 
@@ -42,6 +44,8 @@ interface UpdateCustomerBody {
   email?: string | null;
   leadSource?: string | null;
   address2?: string | null;
+  city?: string | null;
+  zipCode?: string | null;
   companyName?: string | null;
   notes?: string | null;
 }
@@ -148,6 +152,8 @@ export const createCustomer = async (req: Request<{}, {}, CreateCustomerBody>, r
       email,
       leadSource,
       address2,
+      city,
+      zipCode,
       notes,
     } = req.body;
 
@@ -229,6 +235,8 @@ export const createCustomer = async (req: Request<{}, {}, CreateCustomerBody>, r
         ...(email !== undefined && email !== null && email !== "" && { email: String(email).trim() }),
         ...(leadSource !== undefined && leadSource !== null && leadSource !== "" && { leadSource: String(leadSource).trim() }),
         ...(address2 !== undefined && address2 !== null && address2 !== "" && { address2: String(address2).trim() }),
+        ...(city !== undefined && city !== null && city !== "" && { city: String(city).trim() }),
+        ...(zipCode !== undefined && zipCode !== null && zipCode !== "" && { zipCode: String(zipCode).trim() }),
         ...(notes !== undefined && notes !== null && notes !== "" && { notes: String(notes).trim() }),
       },
       include: { company: true },
@@ -267,6 +275,8 @@ export const updateCustomer = async (
       email,
       leadSource,
       address2,
+      city,
+      zipCode,
       companyName,
       notes,
     } = req.body;
@@ -371,6 +381,8 @@ export const updateCustomer = async (
       email?: string | null;
       leadSource?: string | null;
       address2?: string | null;
+      city?: string | null;
+      zipCode?: string | null;
       companyName?: string | null;
       notes?: string | null;
     } = {};
@@ -381,6 +393,8 @@ export const updateCustomer = async (
     if (email !== undefined) data.email = email === null || email === "" ? null : String(email).trim();
     if (leadSource !== undefined) data.leadSource = leadSource === null || leadSource === "" ? null : String(leadSource).trim();
     if (address2 !== undefined) data.address2 = address2 === null || address2 === "" ? null : String(address2).trim();
+    if (city !== undefined) data.city = city === null || city === "" ? null : String(city).trim();
+    if (zipCode !== undefined) data.zipCode = zipCode === null || zipCode === "" ? null : String(zipCode).trim();
     if (companyName !== undefined) data.companyName = companyName === null || companyName === "" ? null : String(companyName).trim();
     if (notes !== undefined) data.notes = notes === null || notes === "" ? null : String(notes).trim();
 

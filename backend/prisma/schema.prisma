@@ -124,6 +124,8 @@ model Customer {
   leadSource  String?
   address     String
   address2    String?
+  city        String?
+  zipCode     String?
   companyName String?
   notes       String?
 
