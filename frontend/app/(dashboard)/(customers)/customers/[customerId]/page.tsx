@@ -194,7 +194,7 @@ function CustomerDetailInner() {
       <NewEmployeeModal
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}
-        title="Edit Customer"
+        title="Customer Information"
       >
         {companyId ? (
           <EditCustomerForm
