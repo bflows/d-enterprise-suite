@@ -182,8 +182,8 @@ export default function TechnicianJobs({ user }: TechnicianJobsProps) {
 
   return (
     <section className="mt-8">
-      <div className="flex items-start gap-x-2 text-neutral-900">
-        <div className="pt-0.5 shrink-0">
+      <div className="flex items-center gap-x-2 text-neutral-900">
+        <div>
           <HiCalendar className="size-6" />
         </div>
         <h2 className="text-h6 font-bold md:text-h5">Jobs</h2>
