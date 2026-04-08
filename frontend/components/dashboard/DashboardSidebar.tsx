@@ -2,32 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LuBookCheck, LuBookUser, LuCalendarDays, LuHouse, LuUsers } from "react-icons/lu";
-
-// Add new links here — structure is scalable for more sections and items
-const SIDEBAR_LINKS = [
-  {
-    section: "Home",
-    items: [
-      { href: "/dashboard", label: "Dashboard", icon: LuHouse },
-      { href: "/schedule", label: "Schedule", icon: LuCalendarDays },
-    ],
-  },
-  {
-    section: "Company",
-    items: [
-      { href: "/customers", label: "Customers", icon: LuBookUser },
-      { href: "/services", label: "Services", icon: LuBookCheck },
-      { href: "/employees", label: "Employees", icon: LuUsers },
-    ],
-  },
-] as const;
-
-function isLinkActive(pathname: string, href: string): boolean {
-  if (pathname === href) return true;
-  if (href === "/dashboard") return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
-  return pathname.startsWith(href + "/") || pathname === href;
-}
+import {
+  DASHBOARD_NAV_SECTIONS,
+  isDashboardNavLinkActive,
+} from "./dashboardNavLinks";
 
 const linkBaseClasses =
   "flex items-center gap-x-2 px-4 py-2 rounded-lg w-fit group transition-colors duration-300 ease-in-out hover:bg-primary/10";
@@ -52,14 +30,14 @@ export default function DashboardSidebar() {
 
         {/* Links */}
         <div className="mt-8 flex flex-col gap-y-2 md:gap-y-4">
-          {SIDEBAR_LINKS.map(({ section, items }) => (
+          {DASHBOARD_NAV_SECTIONS.map(({ section, items }) => (
             <div key={section}>
               <h2 className="text-neutral-400 text-small uppercase font-bold hidden md:block">
                 {section}
               </h2>
               <ul className="mt-1 flex flex-col gap-y-1">
                 {items.map(({ href, label, icon: Icon }) => {
-                  const active = isLinkActive(pathname ?? "", href);
+                  const active = isDashboardNavLinkActive(pathname ?? "", href);
                   return (
                     <li key={href}>
                       <Link

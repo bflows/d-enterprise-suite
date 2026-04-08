@@ -12,6 +12,7 @@ import {
   resolveMobileNavbarLeft,
   resolveMobileNavbarRight,
 } from "./dashboardNavbarConfig";
+import { useMobileNavDrawer } from "./MobileNavDrawer";
 
 const backButtonClass =
   "flex items-center justify-center -ml-1 p-1 rounded-md text-neutral-200 hover:bg-white/10";
@@ -21,6 +22,7 @@ const iconButtonClass =
 
 export default function DashboardNavbar() {
   const pathname = usePathname();
+  const { openMenu } = useMobileNavDrawer();
   const left = resolveMobileNavbarLeft(pathname);
   const right = resolveMobileNavbarRight(pathname);
 
@@ -37,7 +39,14 @@ export default function DashboardNavbar() {
               <LuChevronLeft className="size-7" />
             </Link>
           ) : (
-            <LuPanelLeftOpen className="text-neutral-200 size-7" />
+            <button
+              type="button"
+              onClick={openMenu}
+              aria-label="Open navigation menu"
+              className={backButtonClass}
+            >
+              <LuPanelLeftOpen className="size-7" />
+            </button>
           )}
         </div>
         <div>
