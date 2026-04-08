@@ -1,6 +1,7 @@
 "use client";
 
 import { LuUserRoundPlus, LuUserRoundPen, LuUserRoundMinus, LuUserRoundSearch } from "react-icons/lu";
+import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
@@ -21,10 +22,12 @@ function CustomerCard({
   customer,
   onEdit,
   onDelete,
+  onOpenDetails,
 }: {
   customer: CustomerListItem;
   onEdit: (customer: CustomerListItem) => void;
   onDelete: (customer: CustomerListItem) => void;
+  onOpenDetails: (customer: CustomerListItem) => void;
 }) {
   const name = displayName(customer);
   const optional: { label: string; value: string | null }[] = [];
@@ -34,13 +37,27 @@ function CustomerCard({
   if (customer.notes) optional.push({ label: "Notes", value: customer.notes });
 
   return (
-    <article className="bg-neutral-50 border border-neutral-400 rounded-lg p-4 shadow-sm">
+    <article
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpenDetails(customer)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpenDetails(customer);
+        }
+      }}
+      className="bg-neutral-50 border border-neutral-400 rounded-lg p-4 shadow-sm cursor-pointer hover:border-primary/50 transition-colors"
+    >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-neutral-900 font-semibold text-p">{name}</h3>
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => onEdit(customer)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(customer);
+            }}
             className="p-1.5 rounded-lg text-neutral-600 hover:bg-primary/10 hover:text-primary transition-colors"
             aria-label={`Edit ${name}`}
           >
@@ -48,7 +65,10 @@ function CustomerCard({
           </button>
           <button
             type="button"
-            onClick={() => onDelete(customer)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(customer);
+            }}
             className="p-1.5 rounded-lg text-neutral-600 hover:bg-red-100 hover:text-red-600 transition-colors"
             aria-label={`Delete ${name}`}
           >
@@ -57,7 +77,11 @@ function CustomerCard({
         </div>
       </div>
       <p className="text-neutral-700 text-p mt-1">
-        <a href={`tel:${customer.phone}`} className="hover:text-primary underline">
+        <a
+          href={`tel:${customer.phone}`}
+          onClick={(e) => e.stopPropagation()}
+          className="hover:text-primary underline"
+        >
           {customer.phone}
         </a>
       </p>
@@ -79,6 +103,7 @@ function CustomerCard({
 }
 
 export default function CustomersTable() {
+  const router = useRouter();
   const companyId = useSelector((state: RootState) =>
     selectCurrentCompanyId(state)
   );
@@ -282,6 +307,7 @@ export default function CustomersTable() {
                   customer={customer}
                   onEdit={(c) => setEditingCustomer(c)}
                   onDelete={(c) => setCustomerToDelete(c)}
+                  onOpenDetails={(c) => router.push(`/customers/${c.id}`)}
                 />
               ))
             )}

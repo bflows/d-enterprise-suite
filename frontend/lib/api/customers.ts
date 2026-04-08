@@ -27,6 +27,28 @@ export interface SearchCustomersResponse {
   customers: CustomerListItem[];
 }
 
+/** Full customer record from GET /api/customer/details (matches Prisma Customer). */
+export interface CustomerDetail extends CustomerListItem {
+  companyName: string | null;
+}
+
+export interface GetCustomerDetailsResponse {
+  success: true;
+  message: string;
+  customer: CustomerDetail;
+}
+
+export async function getCustomerDetails(
+  companyId: string,
+  customerId: string
+): Promise<GetCustomerDetailsResponse> {
+  const { data } = await apiClient.get<GetCustomerDetailsResponse>(
+    "/api/customer/details",
+    { params: { companyId, customerId } }
+  );
+  return data;
+}
+
 export async function getCustomers(
   companyId: string
 ): Promise<GetCustomersResponse> {
