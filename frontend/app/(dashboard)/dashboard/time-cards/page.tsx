@@ -78,7 +78,7 @@ export default function TimeCardsPage() {
           <h1 className="text-neutral-900 text-h4 font-bold">
             Time cards
           </h1>
-          <div className="mt-4 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 sm:text-end">
+          <div className="mt-4 sm:mt-0 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 sm:text-end">
             <p className="text-small text-neutral-600">Total (last 7 days)</p>
             <p className="text-h6 font-bold text-neutral-900">{totalLabel}</p>
           </div>
