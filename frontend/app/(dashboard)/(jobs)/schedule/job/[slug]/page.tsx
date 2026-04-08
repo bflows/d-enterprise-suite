@@ -127,15 +127,12 @@ export default function JobDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-6">
-        <Link
-          href="/schedule"
-          className="inline-flex items-center gap-2 text-p text-neutral-600 hover:text-neutral-900"
-        >
-          <LuArrowLeft className="size-4" />
-          Back to Schedule
-        </Link>
-        <p className="text-neutral-600">Loading job…</p>
+      <div className="mt-4 flex items-center gap-x-3 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-4">
+        <div
+          className="inline-block size-6 animate-spin rounded-full border-2 border-primary border-r-transparent"
+          aria-hidden
+        />
+        <p className="text-neutral-800 text-p">Loading job…</p>
       </div>
     );
   }
@@ -158,13 +155,6 @@ export default function JobDetailPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link
-          href="/schedule"
-          className="inline-flex items-center gap-2 text-p text-neutral-600 hover:text-neutral-900"
-        >
-          <LuArrowLeft className="size-4" />
-          Back to Schedule
-        </Link>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -205,7 +195,7 @@ export default function JobDetailPage() {
           setEditModalOpen(false);
           setSaveError(null);
         }}
-        onEdit={() => {}}
+        onEdit={() => { }}
         onSave={handleSave}
         onRequestDelete={handleRequestDelete}
         saveLoading={saveLoading}
