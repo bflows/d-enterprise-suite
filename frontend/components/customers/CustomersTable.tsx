@@ -11,6 +11,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
 import NewCustomerForm from "@/components/customers/NewCustomerForm";
 import EditCustomerForm from "@/components/customers/EditCustomerForm";
+import Link from "next/link";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -360,7 +361,9 @@ export default function CustomersTable() {
                   effectiveCustomers.map((customer) => (
                     <tr key={customer.id} className="border-t border-neutral-200">
                       <td className="text-neutral-800 text-p py-2">
+                        <Link href={`/customers/${customer.id}`}>
                         {displayName(customer)}
+                        </Link>
                       </td>
                       <td className="text-neutral-800 text-p py-2">
                         <a
