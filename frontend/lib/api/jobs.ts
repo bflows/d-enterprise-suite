@@ -59,6 +59,7 @@ export interface ApiJobResponse {
   services?: Array<{
     id: string;
     title?: string;
+    description?: string;
     unit?: number;
     price?: number;
     /** Mapped from API (title → name, unit → quantityOrUnit) */
@@ -169,6 +170,7 @@ export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
             return {
               id: s.id,
               name,
+              description: s.description,
               quantity,
               price,
             };
