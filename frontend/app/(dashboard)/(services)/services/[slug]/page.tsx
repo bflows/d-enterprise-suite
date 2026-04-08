@@ -233,12 +233,12 @@ export default function ServiceBookPage() {
               const menuItems = [
                 {
                   label: "View",
-                  icon: <LuExternalLink className="size-4" />,
+                  icon: LuExternalLink,
                   onClick: () => router.push(categoryHref),
                 },
                 {
                   label: "Edit",
-                  icon: <LuPencil className="size-4" />,
+                  icon: LuPencil,
                   onClick: () => {
                     setEditingCategory(cat);
                     setEditCategoryName(cat.name);
@@ -248,7 +248,7 @@ export default function ServiceBookPage() {
                 },
                 {
                   label: "Delete",
-                  icon: <LuTrash2 className="size-4" />,
+                  icon: LuTrash2,
                   onClick: () => {
                     setCategoryToDelete(cat);
                     setDeleteCategoryError(null);

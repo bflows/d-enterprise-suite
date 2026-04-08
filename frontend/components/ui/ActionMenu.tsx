@@ -1,18 +1,32 @@
 "use client";
 
-import { useRef, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import Link from "next/link";
+import { useRef, useEffect, useState, type ReactNode } from "react";
+import type { IconType } from "react-icons";
 
 export interface ActionMenuItem {
   label: string;
-  icon: ReactNode;
-  onClick: () => void;
+  icon: IconType;
+  /** Override icon sizing (react-icons `size` prop). */
+  iconSize?: number;
+  /** Optional Tailwind classes (e.g. "size-4 text-neutral-500"). */
+  iconClassName?: string;
+  /** If provided, item will render as a link. */
+  href?: string;
+  /** If provided, item will call this action. */
+  onClick?: () => void;
   disabled?: boolean;
 }
 
 export interface ActionMenuProps {
   items: ActionMenuItem[];
   trigger?: ReactNode;
+  /** Optional trigger icon component (e.g. HiCircle) */
+  triggerIcon?: IconType;
+  /** Optional trigger icon size (react-icons `size` prop). */
+  triggerIconSize?: number;
+  /** Optional trigger icon className for Tailwind sizing/colors. */
+  triggerIconClassName?: string;
   /** Optional aria-label for the trigger button */
   triggerLabel?: string;
   /** Align dropdown: "left" | "right" (default "right") */
@@ -22,77 +36,41 @@ export interface ActionMenuProps {
 export default function ActionMenu({
   items,
   trigger,
+  triggerIcon: TriggerIcon,
+  triggerIconSize,
+  triggerIconClassName = "size-5",
   triggerLabel = "Open menu",
   align = "right",
 }: ActionMenuProps) {
   const [open, setOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-
-  useLayoutEffect(() => {
-    if (!open || typeof document === "undefined") return;
-    const triggerEl = triggerRef.current;
-    if (!triggerEl) return;
-    const rect = triggerEl.getBoundingClientRect();
-    const minWidth = 160; // min-w-40
-    const left = align === "right" ? rect.right - minWidth : rect.left;
-    setDropdownPosition({
-      top: rect.bottom + 4,
-      left,
-    });
-  }, [open, align]);
 
   useEffect(() => {
     if (!open) return;
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        const target = e.target as Node;
-        const portal = document.getElementById("action-menu-portal");
-        if (portal?.contains(target)) return;
         setOpen(false);
       }
     };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
 
   const handleItemClick = (item: ActionMenuItem) => {
     if (item.disabled) return;
-    item.onClick();
+    item.onClick?.();
     setOpen(false);
   };
 
-  const dropdownContent = open && dropdownPosition && typeof document !== "undefined" && createPortal(
-    <div
-      id="action-menu-portal"
-      role="menu"
-      className="fixed flex flex-col gap-y-1 z-100 min-w-40 rounded-lg border border-neutral-400 bg-neutral-50 px-2 py-2 shadow-lg"
-      style={{
-        top: dropdownPosition.top,
-        left: dropdownPosition.left,
-      }}
-    >
-      {items.map((item, index) => (
-        <button
-          key={index}
-          type="button"
-          role="menuitem"
-          onClick={() => handleItemClick(item)}
-          disabled={item.disabled}
-          className="flex w-full items-center gap-x-3 px-2 py-2 text-left rounded-lg cursor-pointer group text-neutral-600 transition-colors hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <div className="size-6 flex items-center justify-center transition-colors group-hover:text-neutral-50">
-            {item.icon}
-          </div>
-          <span className="font-bold text-p">
-            {item.label}
-          </span>
-        </button>
-      ))}
-    </div>,
-    document.body
-  );
+  const alignClass = align === "left" ? "left-0" : "right-0";
 
   return (
     <div className="relative inline-flex" ref={containerRef}>
@@ -100,14 +78,93 @@ export default function ActionMenu({
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="rounded-lg p-1 text-neutral-600 cursor-pointer transition-colors hover:bg-neutral-200 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+        className="rounded-lg p-1 text-neutral-600 cursor-pointer transition-colors hover:bg-neutral-100/10 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
         aria-label={triggerLabel}
         aria-haspopup="true"
         aria-expanded={open}
       >
-        {trigger}
+        {trigger ?? (TriggerIcon ? <TriggerIcon aria-hidden size={triggerIconSize} className={triggerIconClassName} /> : null)}
       </button>
-      {dropdownContent}
+      {open && (
+        <div
+          role="menu"
+          className={`absolute top-full mt-2 w-56 ${alignClass} z-50 rounded-lg border border-neutral-300 bg-neutral-50 p-2 shadow-lg`}
+        >
+          <div className="flex flex-col gap-y-1">
+            {items.map((item, index) =>
+              item.href ? (
+                item.disabled ? (
+                  <div
+                    key={index}
+                    role="menuitem"
+                    aria-disabled="true"
+                    className="flex w-full items-center gap-x-2 rounded-lg px-3 py-2 text-left text-neutral-600 opacity-50 cursor-not-allowed"
+                  >
+                    <div>
+                      {(() => {
+                        const Icon = item.icon;
+                        return (
+                          <Icon
+                            aria-hidden
+                            size={item.iconSize}
+                            className={item.iconClassName ?? "size-4"}
+                          />
+                        );
+                      })()}
+                    </div>
+                    <p className="font-bold text-p">{item.label}</p>
+                  </div>
+                ) : (
+                  <Link
+                    key={index}
+                    href={item.href}
+                    role="menuitem"
+                    onClick={() => setOpen(false)}
+                    className="flex w-full items-center gap-x-2 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out border border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <div>
+                      {(() => {
+                        const Icon = item.icon;
+                        return (
+                          <Icon
+                            aria-hidden
+                            size={item.iconSize}
+                            className={item.iconClassName ?? "size-4"}
+                          />
+                        );
+                      })()}
+                    </div>
+                    <p className="font-bold text-p">{item.label}</p>
+                  </Link>
+                )
+              ) : (
+                <button
+                  key={index}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => handleItemClick(item)}
+                  disabled={item.disabled || !item.onClick}
+                  className="flex w-full items-center gap-x-2 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out border border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <div>
+                    {(() => {
+                      const Icon = item.icon;
+                      return (
+                        <Icon
+                          aria-hidden
+                          size={item.iconSize}
+                          className={item.iconClassName ?? "size-4"}
+                        />
+                      );
+                    })()}
+                  </div>
+                  <p className="font-bold text-p">{item.label}</p>
+                </button>
+              )
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -130,7 +130,7 @@ export default function ServiceCategoryPage() {
     return [
       {
         label: "View",
-        icon: <LuExternalLink className="size-4" />,
+        icon: LuExternalLink,
         onClick: () => {
           setViewingItem(item);
           setViewItemOpen(true);
@@ -138,7 +138,7 @@ export default function ServiceCategoryPage() {
       },
       {
         label: "Edit",
-        icon: <LuPencil className="size-4" />,
+        icon: LuPencil,
         onClick: () => {
           setEditingItem(item);
           setEditType(item.type);
@@ -153,7 +153,7 @@ export default function ServiceCategoryPage() {
       },
       {
         label: "Delete",
-        icon: <LuTrash2 className="size-4" />,
+        icon: LuTrash2,
         onClick: () => {
           setItemToDelete(item);
           setDeleteError(null);

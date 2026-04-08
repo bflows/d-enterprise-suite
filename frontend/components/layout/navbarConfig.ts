@@ -12,6 +12,14 @@ export type MobileNavbarRightSlot =
   | { kind: "overflow" }
   | { kind: "newJob"; href: string; ariaLabel: string };
 
+export type OverflowMenuItemDescriptor = {
+  label: string;
+  icon: "sendInvoice" | "requestPayment" | "updateJob" | "removeJob";
+} & (
+  | { href: string; action?: never }
+  | { action: "sendInvoice" | "requestPayment" | "updateJob" | "removeJob"; href?: never }
+);
+
 type LeftRule = {
   /** Match this path and any subpath (e.g. /dashboard/time-cards/foo). */
   prefix: string;
@@ -82,4 +90,16 @@ const MOBILE_NAVBAR_RIGHT_BY_EXACT_PATH: Record<string, MobileNavbarRightSlot> =
 export function resolveMobileNavbarRight(pathname: string): MobileNavbarRightSlot {
   const path = normalizePathname(pathname);
   return MOBILE_NAVBAR_RIGHT_BY_EXACT_PATH[path] ?? { kind: "overflow" };
+}
+
+export function resolveOverflowMenuItems(pathname: string): OverflowMenuItemDescriptor[] {
+  const path = normalizePathname(pathname);
+  if (!pathMatchesPrefix(path, "/job")) return [];
+
+  return [
+    { label: "Send Invoice", icon: "sendInvoice", action: "sendInvoice" },
+    { label: "Request Payment", icon: "requestPayment", action: "requestPayment" },
+    { label: "Update Job", icon: "updateJob", action: "updateJob" },
+    { label: "Remove Job", icon: "removeJob", action: "removeJob" },
+  ];
 }

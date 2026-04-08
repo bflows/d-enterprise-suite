@@ -314,12 +314,12 @@ export default function Pricebook() {
               const menuItems = [
                 {
                   label: "Open",
-                  icon: <LuExternalLink className="size-4" />,
+                  icon: LuExternalLink,
                   onClick: () => router.push(href),
                 },
                 {
                   label: "Edit",
-                  icon: <LuPencil className="size-4" />,
+                  icon: LuPencil,
                   onClick: () => {
                     setEditingBook(book);
                     setEditName(book.name ?? "Untitled");
@@ -329,7 +329,7 @@ export default function Pricebook() {
                 },
                 {
                   label: "Delete",
-                  icon: <LuTrash2 className="size-4" />,
+                  icon: LuTrash2,
                   onClick: () => {
                     setBookToDelete(book);
                     setDeleteError(null);
