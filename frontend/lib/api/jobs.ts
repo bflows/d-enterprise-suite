@@ -39,6 +39,9 @@ export interface ApiJobResponse {
     email?: string | null;
     phone?: string | null;
     address?: string | null;
+    address2?: string | null;
+    city?: string | null;
+    zipCode?: string | null;
     [key: string]: unknown;
   };
   technician: {
@@ -141,8 +144,15 @@ export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
     endTime: toTimeKey(apiJob.endTime),
     status,
     customerName: customerName ?? undefined,
+    customerFirstName: apiJob.customer.firstName ?? undefined,
+    customerLastName: apiJob.customer.lastName ?? undefined,
+    customerPhone: apiJob.customer.phone ?? undefined,
+    customerEmail: apiJob.customer.email ?? undefined,
     customerId: apiJob.customerId,
     address: apiJob.customer.address ?? undefined,
+    address2: apiJob.customer.address2 ?? undefined,
+    city: apiJob.customer.city ?? undefined,
+    zipCode: apiJob.customer.zipCode ?? undefined,
     notes: apiJob.notes ?? undefined,
     technicianId: apiJob.technician.id,
     technicianName,

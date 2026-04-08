@@ -23,6 +23,8 @@ export default function NewCustomerForm({
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [address2, setAddress2] = useState("");
+  const [city, setCity] = useState("");
+  const [zipCode, setZipCode] = useState("");
   const [email, setEmail] = useState("");
   const [leadSource, setLeadSource] = useState("");
   const [notes, setNotes] = useState("");
@@ -42,6 +44,8 @@ export default function NewCustomerForm({
       if (email.trim()) body.email = email.trim();
       if (leadSource.trim()) body.leadSource = leadSource.trim();
       if (address2.trim()) body.address2 = address2.trim();
+      if (city.trim()) body.city = city.trim();
+      if (zipCode.trim()) body.zipCode = zipCode.trim();
       if (notes.trim()) body.notes = notes.trim();
 
       await createCustomer(body);
@@ -146,6 +150,37 @@ export default function NewCustomerForm({
           className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           placeholder="Apt 4B"
         />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="customer-city" className="text-neutral-800 text-sm">
+            City <span className="text-neutral-400">(optional)</span>
+          </label>
+          <input
+            id="customer-city"
+            type="text"
+            autoComplete="address-level2"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            placeholder="Springfield"
+          />
+        </div>
+        <div>
+          <label htmlFor="customer-zipCode" className="text-neutral-800 text-sm">
+            ZIP <span className="text-neutral-400">(optional)</span>
+          </label>
+          <input
+            id="customer-zipCode"
+            type="text"
+            autoComplete="postal-code"
+            value={zipCode}
+            onChange={(e) => setZipCode(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            placeholder="62701"
+          />
+        </div>
       </div>
 
       <div>

@@ -25,12 +25,19 @@ import JobDetailModal from "@/components/schedule/JobDetailModal";
 import Modal from "@/components/ui/Modal";
 import { LuArrowLeft, LuPencil, LuTrash2 } from "react-icons/lu";
 import {
+  HiChatBubbleLeftRight,
   HiCheckCircle,
   HiPaperAirplane,
+  HiPhone,
   HiPlayCircle,
   HiPresentationChartLine,
+  HiUser,
 } from "react-icons/hi2";
 import { ROLE_SLUGS } from "@/types/auth";
+
+function phoneDigitsForLinks(phone: string): string {
+  return phone.replace(/\D/g, "");
+}
 
 function progressStatusLabel(status: JobStatus): string {
   const labels: Record<JobStatus, string> = {
@@ -241,6 +248,16 @@ export default function JobDetailPage() {
         : "cursor-not-allowed bg-neutral-200 text-neutral-500 focus:ring-neutral-300"
     }`;
 
+  const customerNameDisplay =
+    [job.customerFirstName, job.customerLastName].filter(Boolean).join(" ").trim() ||
+    job.customerName ||
+    "—";
+  const customerPhoneDigits = job.customerPhone
+    ? phoneDigitsForLinks(job.customerPhone)
+    : "";
+  const contactLinkClass =
+    "inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-400 bg-neutral-50 px-4 py-2 text-p font-medium text-neutral-800 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1";
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -317,6 +334,59 @@ export default function JobDetailPage() {
             </p>
           )}
         </div>
+
+      <div className="rounded-lg p-4 border border-neutral-300 bg-neutral-50">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-neutral-900">
+            <HiUser className="size-6 shrink-0 text-primary" aria-hidden />
+            <h2 className="text-p font-semibold">Customer</h2>
+          </div>
+        </div>
+        <div className="mt-4 space-y-3">
+          <div>
+            <p className="text-small text-neutral-500">Name</p>
+            <p className="text-p text-neutral-900">{customerNameDisplay}</p>
+          </div>
+          <div>
+            <p className="text-small text-neutral-500">Location</p>
+            <div className="text-p text-neutral-900 space-y-1">
+              {job.address ? <p>{job.address}</p> : <p className="text-neutral-500">—</p>}
+              {job.address2 ? <p>{job.address2}</p> : null}
+              <p>
+                <span className="text-neutral-500 text-small">City: </span>
+                {job.city?.trim() ? job.city : "—"}
+              </p>
+              <p>
+                <span className="text-neutral-500 text-small">ZIP: </span>
+                {job.zipCode?.trim() ? job.zipCode : "—"}
+              </p>
+            </div>
+          </div>
+          {customerPhoneDigits ? (
+            <div>
+              <p className="text-small text-neutral-500 mb-2">Contact</p>
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href={`sms:${customerPhoneDigits}`}
+                  className={contactLinkClass}
+                >
+                  <HiChatBubbleLeftRight className="size-5 shrink-0" aria-hidden />
+                  Message
+                </a>
+                <a href={`tel:${customerPhoneDigits}`} className={contactLinkClass}>
+                  <HiPhone className="size-5 shrink-0" aria-hidden />
+                  Phone
+                </a>
+              </div>
+              <p className="mt-1 text-small text-neutral-600">{job.customerPhone}</p>
+            </div>
+          ) : job.customerPhone ? (
+            <p className="text-p text-neutral-900">{job.customerPhone}</p>
+          ) : (
+            <p className="text-small text-neutral-500">No phone on file.</p>
+          )}
+        </div>
+      </div>
 
       <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
         <h1 className="text-h5 font-bold text-neutral-900 mb-6">

@@ -10,6 +10,8 @@ export interface CustomerListItem {
   email: string | null;
   leadSource: string | null;
   address2: string | null;
+  city: string | null;
+  zipCode: string | null;
   notes: string | null;
 }
 
@@ -56,6 +58,8 @@ export interface CreateCustomerBody {
   email?: string;
   leadSource?: string;
   address2?: string;
+  city?: string;
+  zipCode?: string;
   notes?: string;
 }
 
@@ -86,6 +90,8 @@ export interface UpdateCustomerBody {
   email?: string | null;
   leadSource?: string | null;
   address2?: string | null;
+  city?: string | null;
+  zipCode?: string | null;
   companyName?: string | null;
   notes?: string | null;
 }

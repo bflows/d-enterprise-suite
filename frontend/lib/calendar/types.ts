@@ -13,8 +13,15 @@ export interface Job {
   endTime?: string;
   status: JobStatus;
   customerName?: string;
+  customerFirstName?: string;
+  customerLastName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
   customerId?: string;
   address?: string;
+  address2?: string;
+  city?: string;
+  zipCode?: string;
   notes?: string;
   technicianId?: string;
   technicianName?: string;

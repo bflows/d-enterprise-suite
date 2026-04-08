@@ -26,6 +26,8 @@ export default function EditCustomerForm({
   const [phone, setPhone] = useState(customer.phone);
   const [address, setAddress] = useState(customer.address);
   const [address2, setAddress2] = useState(customer.address2 ?? "");
+  const [city, setCity] = useState(customer.city ?? "");
+  const [zipCode, setZipCode] = useState(customer.zipCode ?? "");
   const [email, setEmail] = useState(customer.email ?? "");
   const [leadSource, setLeadSource] = useState(customer.leadSource ?? "");
   const [notes, setNotes] = useState(customer.notes ?? "");
@@ -49,6 +51,10 @@ export default function EditCustomerForm({
       else body.leadSource = null;
       if (address2.trim()) body.address2 = address2.trim();
       else body.address2 = null;
+      if (city.trim()) body.city = city.trim();
+      else body.city = null;
+      if (zipCode.trim()) body.zipCode = zipCode.trim();
+      else body.zipCode = null;
       if (notes.trim()) body.notes = notes.trim();
       else body.notes = null;
 
@@ -154,6 +160,37 @@ export default function EditCustomerForm({
           className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           placeholder="Apt 4B"
         />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="edit-customer-city" className="text-neutral-800 text-sm">
+            City <span className="text-neutral-400">(optional)</span>
+          </label>
+          <input
+            id="edit-customer-city"
+            type="text"
+            autoComplete="address-level2"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            placeholder="Springfield"
+          />
+        </div>
+        <div>
+          <label htmlFor="edit-customer-zipCode" className="text-neutral-800 text-sm">
+            ZIP <span className="text-neutral-400">(optional)</span>
+          </label>
+          <input
+            id="edit-customer-zipCode"
+            type="text"
+            autoComplete="postal-code"
+            value={zipCode}
+            onChange={(e) => setZipCode(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            placeholder="62701"
+          />
+        </div>
       </div>
 
       <div>
