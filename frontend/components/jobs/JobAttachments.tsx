@@ -9,7 +9,7 @@ import {
   type JobPhoto,
   type JobPhotoSource,
 } from "@/lib/api/jobs";
-import { HiLink } from "react-icons/hi2";
+import { HiPaperClip } from "react-icons/hi2";
 import Link from "next/link";
 
 interface JobAttachmentsProps {
@@ -74,10 +74,10 @@ export default function JobAttachments({ jobId }: JobAttachmentsProps) {
   };
 
   return (
-    <section className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
+    <section className="mt-4 rounded-lg border border-neutral-300 bg-neutral-50 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-neutral-900">
-          <HiLink className="size-6 shrink-0 text-neutral-900" aria-hidden />
+          <HiPaperClip className="size-6 shrink-0 text-neutral-900" aria-hidden />
           <h2 className="text-h6 font-bold md:text-h5">Attachments</h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
