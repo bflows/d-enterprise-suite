@@ -20,7 +20,6 @@ import {
   type ApiJobStatus,
 } from "@/lib/api/jobs";
 import { parseJobSlug } from "@/lib/utils/slug";
-import JobDetailView from "@/components/schedule/JobDetailView";
 import JobDetailModal from "@/components/schedule/JobDetailModal";
 import Modal from "@/components/ui/Modal";
 import { LuArrowLeft } from "react-icons/lu";
@@ -245,12 +244,12 @@ export default function JobDetailPage() {
       <JobAttachments jobId={job.id} />
       <JobNotes jobId={job.id} notes={job.notes} onSaved={(updated) => setJob(updated)} />
 
-      <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
+      {/* <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
         <h1 className="text-h5 font-bold text-neutral-900 mb-6">
           {job.title?.trim() || job.customerName || "Job Details"}
         </h1>
         <JobDetailView job={job} />
-      </div>
+      </div> */}
 
       <JobDetailModal
         key={job.id}
