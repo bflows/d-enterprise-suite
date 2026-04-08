@@ -64,7 +64,7 @@ export default function Navbar() {
           {left.kind === "back" ? (
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={() => router.push(left.href)}
               aria-label={left.ariaLabel}
               className={backButtonClass}
             >

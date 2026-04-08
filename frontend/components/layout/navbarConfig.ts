@@ -61,8 +61,21 @@ function pathMatchesPrefix(pathname: string, prefix: string): boolean {
  * Returns the left-slot config for the current path.
  * Uses the longest matching prefix so nested routes inherit the parent bar unless you add a more specific rule.
  */
+/** Single-segment detail under /customers, e.g. /customers/abc (not the list at /customers). */
+function isCustomerDetailPath(path: string): boolean {
+  return /^\/customers\/[^/]+$/.test(path);
+}
+
 export function resolveMobileNavbarLeft(pathname: string): MobileNavbarLeftSlot {
   const path = normalizePathname(pathname);
+
+  if (isCustomerDetailPath(path)) {
+    return {
+      kind: "back",
+      href: "/customers",
+      ariaLabel: "Back to customers",
+    };
+  }
 
   const matches = MOBILE_NAVBAR_LEFT_RULES.filter((rule) =>
     pathMatchesPrefix(path, rule.prefix),
