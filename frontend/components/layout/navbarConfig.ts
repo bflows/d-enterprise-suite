@@ -125,17 +125,17 @@ export function resolveOverflowMenuItems(pathname: string): OverflowMenuItemDesc
 
   if (isCustomerDetailPath(path)) {
     return [
-      { label: "Update customer", icon: "updateCustomer", action: "updateCustomer" },
-      { label: "Remove customer", icon: "removeCustomer", action: "removeCustomer" },
+      { label: "Update", icon: "updateCustomer", action: "updateCustomer" },
+      { label: "Remove", icon: "removeCustomer", action: "removeCustomer" },
     ];
   }
 
   if (!pathMatchesPrefix(path, "/job")) return [];
 
   return [
-    { label: "Send Invoice", icon: "sendInvoice", action: "sendInvoice" },
-    { label: "Request Payment", icon: "requestPayment", action: "requestPayment" },
-    { label: "Update Job", icon: "updateJob", action: "updateJob" },
-    { label: "Remove Job", icon: "removeJob", action: "removeJob" },
+    { label: "Invoice", icon: "sendInvoice", action: "sendInvoice" },
+    { label: "Payment", icon: "requestPayment", action: "requestPayment" },
+    { label: "Update", icon: "updateJob", action: "updateJob" },
+    { label: "Remove", icon: "removeJob", action: "removeJob" },
   ];
 }
