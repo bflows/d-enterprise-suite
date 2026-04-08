@@ -104,6 +104,17 @@ export default function JobDetailPage() {
     router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
   }, [searchParams, job, router, pathname]);
 
+  useEffect(() => {
+    if (searchParams.get("action") !== "removeJob" || !job) return;
+    setEditModalOpen(false);
+    setDeleteConfirmOpen(true);
+    setDeleteError(null);
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("action");
+    const q = next.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+  }, [searchParams, job, router, pathname]);
+
   const handleSave = useCallback(
     async (updated: Job) => {
       setSaveError(null);
@@ -217,27 +228,9 @@ export default function JobDetailPage() {
 
   return (
     <div className="flex flex-col">
-      {/* <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setEditModalOpen(true)}
-          className="inline-flex items-center gap-2 rounded-lg cursor-pointer bg-primary px-4 py-2 text-p font-medium text-neutral-200 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <LuPencil className="size-4" />
-          Edit
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setDeleteError(null);
-            setDeleteConfirmOpen(true);
-          }}
-          className="inline-flex items-center gap-2 rounded-lg cursor-pointer border border-neutral-400 bg-neutral-50 px-4 py-2 text-p font-medium text-neutral-700 hover:bg-red-50 hover:text-secondary hover:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary"
-        >
-          <LuTrash2 className="size-4" />
-          Delete
-        </button>
-      </div> */}
+      <h1 className="text-h4 font-bold font-neutral-900">
+        {job.title}
+      </h1>
 
       {/* Progress section */}
       <JobProgress
