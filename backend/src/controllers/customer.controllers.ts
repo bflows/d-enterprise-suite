@@ -1,6 +1,12 @@
 import type { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 
+/** Query params for a single customer's details. */
+interface CustomerDetailsQuery {
+  companyId?: string;
+  customerId?: string;
+}
+
 /** Query params for listing customers. */
 interface ListCustomersQuery {
   companyId?: string;
@@ -51,6 +57,59 @@ interface UpdateCustomerBody {
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Get one customer by id for a company.
+ * Query: companyId and customerId (required), same scoping pattern as listCustomers.
+ */
+export const customerDetails = async (
+  req: Request<{}, {}, {}, CustomerDetailsQuery>,
+  res: Response
+) => {
+  try {
+    const { companyId, customerId } = req.query;
+
+    if (!companyId || typeof companyId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "companyId is required",
+      });
+    }
+
+    if (!customerId || typeof customerId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "customerId is required",
+      });
+    }
+
+    const customer = await prisma.customer.findFirst({
+      where: {
+        id: customerId,
+        companyId,
+      },
+    });
+
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Customer retrieved successfully",
+      customer,
+    });
+  } catch (error) {
+    console.error("Customer details error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
 
 /**
  * Search customers for a company by name (first or last) or phone number.
