@@ -287,13 +287,14 @@ export default function JobDetailPage() {
         </div>
       </div>
 
+      {/* Progress section */}
       <div className="rounded-lg p-4 border border-neutral-300 bg-neutral-50">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-neutral-900">
             <HiPresentationChartLine className="size-6 shrink-0 text-primary" aria-hidden />
-            <h2 className="text-p font-semibold">Progress</h2>
+            <h2 className="text-h6 font-bold">Progress</h2>
           </div>
-          <p className="text-p font-medium text-neutral-800">
+          <p className="text-small py-1 px-3 rounded-full bg-neutral-100 text-neutral-800">
             {progressStatusLabel(job.status)}
           </p>
         </div>
@@ -338,6 +339,7 @@ export default function JobDetailPage() {
         )}
       </div>
 
+      {/* Customer section */}
       <div className="rounded-lg py-5 border border-neutral-300 bg-neutral-50">
         <div className="px-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-neutral-900">
