@@ -21,7 +21,9 @@ import {
 } from "@/lib/api/jobs";
 import { parseJobSlug } from "@/lib/utils/slug";
 import JobDetailView from "@/components/schedule/JobDetailView";
+import JobStreetView from "@/components/schedule/JobStreetView";
 import JobDetailModal from "@/components/schedule/JobDetailModal";
+import { formatJobAddress } from "@/lib/formatJobAddress";
 import Modal from "@/components/ui/Modal";
 import { LuArrowLeft, LuPencil, LuTrash2 } from "react-icons/lu";
 import {
@@ -34,6 +36,7 @@ import {
   HiUser,
 } from "react-icons/hi2";
 import { ROLE_SLUGS } from "@/types/auth";
+import { HiLocationMarker } from "react-icons/hi";
 
 function phoneDigitsForLinks(phone: string): string {
   return phone.replace(/\D/g, "");
@@ -242,10 +245,9 @@ export default function JobDetailPage() {
     !progressLoading;
 
   const progressBtnClass = (enabled: boolean) =>
-    `inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-p font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ${
-      enabled
-        ? "cursor-pointer bg-primary text-neutral-200 hover:bg-primary/90 focus:ring-primary"
-        : "cursor-not-allowed bg-neutral-200 text-neutral-500 focus:ring-neutral-300"
+    `inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-p font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ${enabled
+      ? "cursor-pointer bg-primary text-neutral-200 hover:bg-primary/90 focus:ring-primary"
+      : "cursor-not-allowed bg-neutral-200 text-neutral-500 focus:ring-neutral-300"
     }`;
 
   const customerNameDisplay =
@@ -255,8 +257,9 @@ export default function JobDetailPage() {
   const customerPhoneDigits = job.customerPhone
     ? phoneDigitsForLinks(job.customerPhone)
     : "";
+  const jobAddressLine = formatJobAddress(job);
   const contactLinkClass =
-    "inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-400 bg-neutral-50 px-4 py-2 text-p font-medium text-neutral-800 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1";
+    "rounded-full bg-neutral-50 p-2 transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1";
 
   return (
     <div className="flex flex-col gap-6">
@@ -285,106 +288,109 @@ export default function JobDetailPage() {
       </div>
 
       <div className="rounded-lg p-4 border border-neutral-300 bg-neutral-50">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-neutral-900">
-              <HiPresentationChartLine className="size-6 shrink-0 text-primary" aria-hidden />
-              <h2 className="text-p font-semibold">Progress</h2>
-            </div>
-            <p className="text-p font-medium text-neutral-800">
-              {progressStatusLabel(job.status)}
-            </p>
-          </div>
-          {progressError && (
-            <p className="mt-2 text-sm text-red-600" role="alert">
-              {progressError}
-            </p>
-          )}
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              disabled={!enrouteEnabled}
-              className={progressBtnClass(enrouteEnabled)}
-              onClick={() => void handleProgressStatus("EN_ROUTE")}
-            >
-              <HiPaperAirplane className="size-5 shrink-0" aria-hidden />
-              {progressLoading && job.status === "scheduled" ? "Updating…" : "Enroute"}
-            </button>
-            <button
-              type="button"
-              disabled={!startEnabled}
-              className={progressBtnClass(startEnabled)}
-              onClick={() => void handleProgressStatus("ON_SITE")}
-            >
-              <HiPlayCircle className="size-5 shrink-0" aria-hidden />
-              {progressLoading && job.status === "en_route" ? "Updating…" : "Start Job"}
-            </button>
-            <button
-              type="button"
-              disabled={!finishEnabled}
-              className={progressBtnClass(finishEnabled)}
-              onClick={() => void handleProgressStatus("COMPLETED")}
-            >
-              <HiCheckCircle className="size-5 shrink-0" aria-hidden />
-              {progressLoading && job.status === "in_progress" ? "Updating…" : "Finish Job"}
-            </button>
-          </div>
-          {isTechnician && job.status === "scheduled" && !technicianClockedIn && (
-            <p className="mt-2 text-small text-neutral-600">
-              You must be clocked in to Enroute.
-            </p>
-          )}
-        </div>
-
-      <div className="rounded-lg p-4 border border-neutral-300 bg-neutral-50">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-neutral-900">
+            <HiPresentationChartLine className="size-6 shrink-0 text-primary" aria-hidden />
+            <h2 className="text-p font-semibold">Progress</h2>
+          </div>
+          <p className="text-p font-medium text-neutral-800">
+            {progressStatusLabel(job.status)}
+          </p>
+        </div>
+        {progressError && (
+          <p className="mt-2 text-sm text-red-600" role="alert">
+            {progressError}
+          </p>
+        )}
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            disabled={!enrouteEnabled}
+            className={progressBtnClass(enrouteEnabled)}
+            onClick={() => void handleProgressStatus("EN_ROUTE")}
+          >
+            <HiPaperAirplane className="size-5 shrink-0" aria-hidden />
+            {progressLoading && job.status === "scheduled" ? "Updating…" : "Enroute"}
+          </button>
+          <button
+            type="button"
+            disabled={!startEnabled}
+            className={progressBtnClass(startEnabled)}
+            onClick={() => void handleProgressStatus("ON_SITE")}
+          >
+            <HiPlayCircle className="size-5 shrink-0" aria-hidden />
+            {progressLoading && job.status === "en_route" ? "Updating…" : "Start Job"}
+          </button>
+          <button
+            type="button"
+            disabled={!finishEnabled}
+            className={progressBtnClass(finishEnabled)}
+            onClick={() => void handleProgressStatus("COMPLETED")}
+          >
+            <HiCheckCircle className="size-5 shrink-0" aria-hidden />
+            {progressLoading && job.status === "in_progress" ? "Updating…" : "Finish Job"}
+          </button>
+        </div>
+        {isTechnician && job.status === "scheduled" && !technicianClockedIn && (
+          <p className="mt-2 text-small text-neutral-600">
+            You must be clocked in to Enroute.
+          </p>
+        )}
+      </div>
+
+      <div className="rounded-lg py-5 border border-neutral-300 bg-neutral-50">
+        <div className="px-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-neutral-900">
             <HiUser className="size-6 shrink-0 text-primary" aria-hidden />
-            <h2 className="text-p font-semibold">Customer</h2>
+            <h2 className="text-h6 font-bold md:text-h5">Customer</h2>
           </div>
         </div>
-        <div className="mt-4 space-y-3">
-          <div>
-            <p className="text-small text-neutral-500">Name</p>
-            <p className="text-p text-neutral-900">{customerNameDisplay}</p>
-          </div>
-          <div>
-            <p className="text-small text-neutral-500">Location</p>
-            <div className="text-p text-neutral-900 space-y-1">
-              {job.address ? <p>{job.address}</p> : <p className="text-neutral-500">—</p>}
-              {job.address2 ? <p>{job.address2}</p> : null}
-              <p>
-                <span className="text-neutral-500 text-small">City: </span>
-                {job.city?.trim() ? job.city : "—"}
-              </p>
-              <p>
-                <span className="text-neutral-500 text-small">ZIP: </span>
-                {job.zipCode?.trim() ? job.zipCode : "—"}
-              </p>
-            </div>
-          </div>
-          {customerPhoneDigits ? (
+        <div className="mt-4">
+          {jobAddressLine ? (
+            <JobStreetView
+              key={`${job.address ?? ""}|${job.address2 ?? ""}|${job.city ?? ""}|${job.zipCode ?? ""}`}
+              labelAddress={jobAddressLine}
+              street={job.address}
+              address2={job.address2}
+              city={job.city}
+              zipCode={job.zipCode}
+            />
+          ) : null}
+          <div className="mt-4 px-4 flex items-center justify-between gap-x-2">
+            <p className="text-h6 font-bold text-neutral-800">{customerNameDisplay}</p>
             <div>
-              <p className="text-small text-neutral-500 mb-2">Contact</p>
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href={`sms:${customerPhoneDigits}`}
-                  className={contactLinkClass}
-                >
-                  <HiChatBubbleLeftRight className="size-5 shrink-0" aria-hidden />
-                  Message
-                </a>
-                <a href={`tel:${customerPhoneDigits}`} className={contactLinkClass}>
-                  <HiPhone className="size-5 shrink-0" aria-hidden />
-                  Phone
-                </a>
-              </div>
-              <p className="mt-1 text-small text-neutral-600">{job.customerPhone}</p>
+              {customerPhoneDigits && (
+                <div>
+                  <div className="flex flex-wrap gap-2">
+                    <a
+                      href={`sms:${customerPhoneDigits}`}
+                      className={`${contactLinkClass} bg-neutral-200/50 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-800`}
+                    >
+                      <HiChatBubbleLeftRight className="size-6 shrink-0" aria-hidden />
+                    </a>
+                    <a href={`tel:${customerPhoneDigits}`} className={`${contactLinkClass} bg-primary/90 text-neutral-200 hover:text-neutral-100 hover:bg-primary`}>
+                      <HiPhone className="size-6 shrink-0" aria-hidden />
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
-          ) : job.customerPhone ? (
-            <p className="text-p text-neutral-900">{job.customerPhone}</p>
-          ) : (
-            <p className="text-small text-neutral-500">No phone on file.</p>
-          )}
+          </div>
+          {job.address ? (
+            <div className="px-4 flex items-start gap-x-2">
+              <div>
+                <HiLocationMarker className="size-6 text-primary" />
+              </div>
+              <div>
+                <Link href={`https://www.google.com/maps/place/${job.address}`} target="_blank" className="text-p underline transition-colors duration-300 ease-in-out text-neutral-600 hover:text-primary">
+                  {job.address}
+                </Link>
+                <p className="text-small text-neutral-800">
+                  {job.city?.trim() ? job.city : "—"}, {job.zipCode?.trim() ? job.zipCode : "—"}
+                </p>
+              </div>
+            </div>
+          ) : <p className="text-neutral-500">—</p>}
         </div>
       </div>
 
@@ -392,7 +398,6 @@ export default function JobDetailPage() {
         <h1 className="text-h5 font-bold text-neutral-900 mb-6">
           {job.title?.trim() || job.customerName || "Job Details"}
         </h1>
-
         <JobDetailView job={job} />
       </div>
 
