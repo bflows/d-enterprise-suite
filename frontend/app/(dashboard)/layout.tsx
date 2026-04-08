@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import DashboardShell from "@/components/dashboard/DashboardShell";
+import DashboardShell from "@/components/layout/DashboardShell";
 
 export const metadata: Metadata = {
   title: "Dashboard | Daddy Enterprise Suite",
