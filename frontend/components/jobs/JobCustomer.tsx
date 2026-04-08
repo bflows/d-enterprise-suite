@@ -38,7 +38,7 @@ export default function JobCustomer({ job }: JobCustomerProps) {
     <div className="rounded-lg py-5 border border-neutral-300 bg-neutral-50">
       <div className="px-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-neutral-900">
-          <HiUser className="size-6 shrink-0 text-primary" aria-hidden />
+          <HiUser className="size-6 shrink-0 text-neutral-900" aria-hidden />
           <h2 className="text-h6 font-bold md:text-h5">Customer</h2>
         </div>
       </div>

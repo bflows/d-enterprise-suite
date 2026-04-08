@@ -67,7 +67,7 @@ export default function JobProgress({
     <div className="rounded-lg p-4 border border-neutral-300 bg-neutral-50">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-neutral-900">
-          <HiPresentationChartLine className="size-6 shrink-0 text-primary" aria-hidden />
+          <HiPresentationChartLine className="size-6 shrink-0 text-neutral-900" aria-hidden />
           <h2 className="text-h6 font-bold">Progress</h2>
         </div>
         <p className="text-small text-neutral-600">
