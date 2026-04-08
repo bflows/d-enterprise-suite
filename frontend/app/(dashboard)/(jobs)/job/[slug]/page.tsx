@@ -3,21 +3,55 @@
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/app/store";
-import { selectCurrentCompanyId } from "@/features/auth/authSlice";
-import type { Job } from "@/lib/calendar/types";
-import { getJobById, updateJob, deleteJob, mapApiJobToJob } from "@/lib/api/jobs";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/app/store";
+import { selectCurrentCompanyId, selectHasRole } from "@/features/auth/authSlice";
+import {
+  fetchActiveTimeCard,
+  selectIsClockedInTechnician,
+} from "@/features/timeCard/timeCardSlice";
+import type { Job, JobStatus } from "@/lib/calendar/types";
+import {
+  getJobById,
+  updateJob,
+  deleteJob,
+  mapApiJobToJob,
+  updateJobStatus,
+  type ApiJobStatus,
+} from "@/lib/api/jobs";
 import { parseJobSlug } from "@/lib/utils/slug";
 import JobDetailView from "@/components/schedule/JobDetailView";
 import JobDetailModal from "@/components/schedule/JobDetailModal";
 import Modal from "@/components/ui/Modal";
 import { LuArrowLeft, LuPencil, LuTrash2 } from "react-icons/lu";
+import {
+  HiCheckCircle,
+  HiPaperAirplane,
+  HiPlayCircle,
+  HiPresentationChartLine,
+} from "react-icons/hi2";
+import { ROLE_SLUGS } from "@/types/auth";
+
+function progressStatusLabel(status: JobStatus): string {
+  const labels: Record<JobStatus, string> = {
+    scheduled: "Scheduled",
+    en_route: "En route",
+    in_progress: "On site",
+    completed: "Completed",
+    cancelled: "Cancelled",
+  };
+  return labels[status] ?? status;
+}
 
 export default function JobDetailPage() {
+  const dispatch = useDispatch<AppDispatch>();
   const params = useParams();
   const router = useRouter();
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
+  const isTechnician = useSelector((state: RootState) =>
+    selectHasRole(state, ROLE_SLUGS.TECHNICIAN)
+  );
+  const technicianClockedIn = useSelector(selectIsClockedInTechnician);
   const slug = typeof params?.slug === "string" ? params.slug : "";
   const jobId = parseJobSlug(slug);
 
@@ -30,6 +64,14 @@ export default function JobDetailPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [progressLoading, setProgressLoading] = useState(false);
+  const [progressError, setProgressError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isTechnician) {
+      void dispatch(fetchActiveTimeCard());
+    }
+  }, [dispatch, isTechnician]);
 
   useEffect(() => {
     if (!jobId) {
@@ -125,6 +167,27 @@ export default function JobDetailPage() {
     }
   }, [deleteLoading]);
 
+  const handleProgressStatus = useCallback(
+    async (apiStatus: ApiJobStatus) => {
+      if (!job) return;
+      setProgressError(null);
+      setProgressLoading(true);
+      try {
+        const res = await updateJobStatus(job.id, apiStatus);
+        setJob(mapApiJobToJob(res.job));
+      } catch (err: unknown) {
+        const message =
+          err && typeof err === "object" && "response" in err
+            ? String((err as { response?: { data?: { message?: string } } }).response?.data?.message)
+            : "Could not update job status.";
+        setProgressError(message ?? "Could not update job status.");
+      } finally {
+        setProgressLoading(false);
+      }
+    },
+    [job]
+  );
+
   if (loading) {
     return (
       <div className="mt-4 flex items-center gap-x-3 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-4">
@@ -152,6 +215,32 @@ export default function JobDetailPage() {
     );
   }
 
+  const terminalProgress =
+    job.status === "completed" || job.status === "cancelled";
+  const enrouteEnabled =
+    isTechnician &&
+    technicianClockedIn &&
+    job.status === "scheduled" &&
+    !terminalProgress &&
+    !progressLoading;
+  const startEnabled =
+    isTechnician &&
+    job.status === "en_route" &&
+    !terminalProgress &&
+    !progressLoading;
+  const finishEnabled =
+    isTechnician &&
+    job.status === "in_progress" &&
+    !terminalProgress &&
+    !progressLoading;
+
+  const progressBtnClass = (enabled: boolean) =>
+    `inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-p font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+      enabled
+        ? "cursor-pointer bg-primary text-neutral-200 hover:bg-primary/90 focus:ring-primary"
+        : "cursor-not-allowed bg-neutral-200 text-neutral-500 focus:ring-neutral-300"
+    }`;
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -178,10 +267,62 @@ export default function JobDetailPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-neutral-300 bg-white p-6">
+      <div className="rounded-lg p-4 border border-neutral-300 bg-neutral-50">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-neutral-900">
+              <HiPresentationChartLine className="size-6 shrink-0 text-primary" aria-hidden />
+              <h2 className="text-p font-semibold">Progress</h2>
+            </div>
+            <p className="text-p font-medium text-neutral-800">
+              {progressStatusLabel(job.status)}
+            </p>
+          </div>
+          {progressError && (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {progressError}
+            </p>
+          )}
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="button"
+              disabled={!enrouteEnabled}
+              className={progressBtnClass(enrouteEnabled)}
+              onClick={() => void handleProgressStatus("EN_ROUTE")}
+            >
+              <HiPaperAirplane className="size-5 shrink-0" aria-hidden />
+              {progressLoading && job.status === "scheduled" ? "Updating…" : "Enroute"}
+            </button>
+            <button
+              type="button"
+              disabled={!startEnabled}
+              className={progressBtnClass(startEnabled)}
+              onClick={() => void handleProgressStatus("ON_SITE")}
+            >
+              <HiPlayCircle className="size-5 shrink-0" aria-hidden />
+              {progressLoading && job.status === "en_route" ? "Updating…" : "Start Job"}
+            </button>
+            <button
+              type="button"
+              disabled={!finishEnabled}
+              className={progressBtnClass(finishEnabled)}
+              onClick={() => void handleProgressStatus("COMPLETED")}
+            >
+              <HiCheckCircle className="size-5 shrink-0" aria-hidden />
+              {progressLoading && job.status === "in_progress" ? "Updating…" : "Finish Job"}
+            </button>
+          </div>
+          {isTechnician && job.status === "scheduled" && !technicianClockedIn && (
+            <p className="mt-2 text-small text-neutral-600">
+              You must be clocked in to Enroute.
+            </p>
+          )}
+        </div>
+
+      <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
         <h1 className="text-h5 font-bold text-neutral-900 mb-6">
           {job.title?.trim() || job.customerName || "Job Details"}
         </h1>
+
         <JobDetailView job={job} />
       </div>
 

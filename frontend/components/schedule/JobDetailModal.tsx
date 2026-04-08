@@ -28,7 +28,13 @@ export interface JobDetailModalProps {
   saveError?: string | null;
 }
 
-const STATUS_OPTIONS: JobStatus[] = ["scheduled", "in_progress", "completed", "cancelled"];
+const STATUS_OPTIONS: JobStatus[] = [
+  "scheduled",
+  "en_route",
+  "in_progress",
+  "completed",
+  "cancelled",
+];
 
 function technicianDisplayName(t: EmployeeListItem): string {
   return [t.user.firstName, t.user.lastName].filter(Boolean).join(" ") || t.user.email || "";

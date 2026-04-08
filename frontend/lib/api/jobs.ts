@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/client";
-import type { Job } from "@/lib/calendar/types";
+import type { Job, JobStatus } from "@/lib/calendar/types";
 
 /** Request body for creating a job. */
 export interface CreateJobBody {
@@ -13,7 +13,7 @@ export interface CreateJobBody {
   notes?: string;
   leadSource?: string;
   /** Initial status; defaults to "scheduled" on the server if omitted. */
-  status?: "scheduled" | "in_progress" | "completed" | "cancelled";
+  status?: "scheduled" | "en_route" | "in_progress" | "completed" | "cancelled";
   serviceItemIds?: string[];
 }
 
@@ -79,7 +79,7 @@ export interface UpdateJobBody {
   startTime?: string;
   endTime?: string;
   notes?: string | null;
-  status?: "scheduled" | "in_progress" | "completed" | "cancelled";
+  status?: "scheduled" | "en_route" | "in_progress" | "completed" | "cancelled";
   technicianId?: string;
   /** Replace job's services with these service item IDs. */
   serviceItemIds?: string[];
@@ -108,13 +108,16 @@ function toTimeKey(iso: string): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-const STATUS_MAP: Record<string, "scheduled" | "in_progress" | "completed" | "cancelled"> = {
+const STATUS_MAP: Record<string, JobStatus> = {
   SCHEDULED: "scheduled",
+  EN_ROUTE: "en_route",
   IN_PROGRESS: "in_progress",
   /** Backend maps API `in_progress` to Prisma ON_SITE */
   ON_SITE: "in_progress",
   COMPLETED: "completed",
   CANCELLED: "cancelled",
+  INVOICED: "completed",
+  PAID: "completed",
 };
 
 /** Map API job to frontend Job type for calendar/schedule. */
@@ -128,7 +131,8 @@ export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
   ]
     .filter(Boolean)
     .join(" ") || apiJob.technician.user.email;
-  const status = apiJob.status && STATUS_MAP[apiJob.status] ? STATUS_MAP[apiJob.status] : "scheduled";
+  const status: JobStatus =
+    apiJob.status && STATUS_MAP[apiJob.status] ? STATUS_MAP[apiJob.status]! : "scheduled";
   return {
     id: apiJob.id,
     title: apiJob.title ?? undefined,
@@ -205,5 +209,23 @@ export async function deleteJob(id: string): Promise<{ success: true; message: s
   const { data } = await apiClient.delete<{ success: true; message: string }>("/api/jobs/delete", {
     data: { id },
   });
+  return data;
+}
+
+/** Prisma-aligned job status for PUT /api/jobs/status */
+export type ApiJobStatus =
+  | "SCHEDULED"
+  | "EN_ROUTE"
+  | "ON_SITE"
+  | "COMPLETED"
+  | "INVOICED"
+  | "PAID"
+  | "CANCELLED";
+
+export async function updateJobStatus(
+  id: string,
+  status: ApiJobStatus
+): Promise<UpdateJobResponse> {
+  const { data } = await apiClient.put<UpdateJobResponse>("/api/jobs/status", { id, status });
   return data;
 }

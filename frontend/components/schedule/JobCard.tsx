@@ -9,6 +9,7 @@ export interface JobCardProps {
 
 const statusColors: Record<Job["status"], string> = {
   scheduled: "bg-primary/15 text-primary border-primary/30",
+  en_route: "bg-sky-500/15 text-sky-900 border-sky-500/30",
   in_progress: "bg-amber-500/15 text-amber-800 border-amber-500/30",
   completed: "bg-green-500/15 text-green-800 border-green-500/30",
   cancelled: "bg-neutral-200 text-neutral-500 border-neutral-300",

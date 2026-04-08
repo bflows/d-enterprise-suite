@@ -21,6 +21,7 @@ const dateFmt = new Intl.DateTimeFormat("en-US", {
 function formatJobStatus(status: Job["status"]): string {
   const labels: Record<Job["status"], string> = {
     scheduled: "Scheduled",
+    en_route: "En route",
     in_progress: "In progress",
     completed: "Completed",
     cancelled: "Cancelled",
@@ -134,7 +135,7 @@ function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
             return (
               <li key={job.id}>
                 <Link
-                  href={`/schedule/job/${slug}`}
+                  href={`/job/${slug}`}
                   className="block rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 transition-colors hover:border-primary hover:bg-neutral-100"
                 >
                   <div className="flex items-center justify-between">

@@ -1,4 +1,9 @@
-export type JobStatus = "scheduled" | "in_progress" | "completed" | "cancelled";
+export type JobStatus =
+  | "scheduled"
+  | "en_route"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
 
 export interface Job {
   id: string;

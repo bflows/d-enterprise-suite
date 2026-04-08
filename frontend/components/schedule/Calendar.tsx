@@ -57,7 +57,8 @@ export default function Calendar({ jobs }: CalendarProps) {
 
   const goPrev = () => {
     setViewDate((d) => {
-      const next = new Date(d);
+      const base = d ?? new Date();
+      const next = new Date(base);
       next.setDate(next.getDate() - 7);
       return next;
     });
@@ -65,7 +66,8 @@ export default function Calendar({ jobs }: CalendarProps) {
 
   const goNext = () => {
     setViewDate((d) => {
-      const next = new Date(d);
+      const base = d ?? new Date();
+      const next = new Date(base);
       next.setDate(next.getDate() + 7);
       return next;
     });
@@ -73,7 +75,8 @@ export default function Calendar({ jobs }: CalendarProps) {
 
   const goPrevMonth = () => {
     setViewDate((d) => {
-      const next = new Date(d);
+      const base = d ?? new Date();
+      const next = new Date(base);
       next.setMonth(next.getMonth() - 1);
       return next;
     });
@@ -81,7 +84,8 @@ export default function Calendar({ jobs }: CalendarProps) {
 
   const goNextMonth = () => {
     setViewDate((d) => {
-      const next = new Date(d);
+      const base = d ?? new Date();
+      const next = new Date(base);
       next.setMonth(next.getMonth() + 1);
       return next;
     });
@@ -89,7 +93,7 @@ export default function Calendar({ jobs }: CalendarProps) {
 
   const handleJobClick = (job: Job) => {
     const slug = jobSlug(job.title ?? job.customerName, job.id);
-    router.push(`/schedule/job/${slug}`);
+    router.push(`/job/${slug}`);
   };
 
   if (!viewDate) {

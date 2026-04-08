@@ -20,7 +20,7 @@ type LeftRule = {
 
 const MOBILE_NAVBAR_LEFT_RULES: LeftRule[] = [
   {
-    prefix: "/schedule/job",
+    prefix: "/job",
     slot: {
       kind: "back",
       href: "/schedule",
