@@ -14,10 +14,25 @@ export type MobileNavbarRightSlot =
 
 export type OverflowMenuItemDescriptor = {
   label: string;
-  icon: "sendInvoice" | "requestPayment" | "updateJob" | "removeJob";
+  icon:
+    | "sendInvoice"
+    | "requestPayment"
+    | "updateJob"
+    | "removeJob"
+    | "updateCustomer"
+    | "removeCustomer";
 } & (
   | { href: string; action?: never }
-  | { action: "sendInvoice" | "requestPayment" | "updateJob" | "removeJob"; href?: never }
+  | {
+      action:
+        | "sendInvoice"
+        | "requestPayment"
+        | "updateJob"
+        | "removeJob"
+        | "updateCustomer"
+        | "removeCustomer";
+      href?: never;
+    }
 );
 
 type LeftRule = {
@@ -107,6 +122,14 @@ export function resolveMobileNavbarRight(pathname: string): MobileNavbarRightSlo
 
 export function resolveOverflowMenuItems(pathname: string): OverflowMenuItemDescriptor[] {
   const path = normalizePathname(pathname);
+
+  if (isCustomerDetailPath(path)) {
+    return [
+      { label: "Update customer", icon: "updateCustomer", action: "updateCustomer" },
+      { label: "Remove customer", icon: "removeCustomer", action: "removeCustomer" },
+    ];
+  }
+
   if (!pathMatchesPrefix(path, "/job")) return [];
 
   return [

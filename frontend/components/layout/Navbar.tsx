@@ -39,7 +39,7 @@ export default function Navbar() {
         ? HiArrowUpOnSquare
         : d.icon === "requestPayment"
           ? HiCreditCard
-          : d.icon === "updateJob"
+          : d.icon === "updateJob" || d.icon === "updateCustomer"
             ? HiPencilSquare
             : HiTrash;
 

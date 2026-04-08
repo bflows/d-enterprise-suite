@@ -1,14 +1,16 @@
 "use client";
 
 import RequireRole from "@/components/auth/RequireRole";
+import EditCustomerForm from "@/components/customers/EditCustomerForm";
+import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
-import { getCustomerDetails } from "@/lib/api/customers";
+import { deleteCustomer, getCustomerDetails } from "@/lib/api/customers";
 import type { CustomerDetail } from "@/lib/api/customers";
 import { ROLE_SLUGS } from "@/types/auth";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { LuArrowLeft } from "react-icons/lu";
 import type { AxiosError } from "axios";
@@ -29,6 +31,9 @@ function DetailRow({ label, value }: { label: string; value: string | null | und
 
 function CustomerDetailInner() {
   const params = useParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const customerId = typeof params?.customerId === "string" ? params.customerId : "";
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
 
@@ -37,6 +42,24 @@ function CustomerDetailInner() {
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const refetchCustomer = useCallback(() => {
+    if (!companyId || !customerId) return;
+    void getCustomerDetails(companyId, customerId)
+      .then((res) => setCustomer(res.customer))
+      .catch((err: AxiosError<{ message?: string }>) => {
+        setCustomer(null);
+        const msg =
+          err.response?.data?.message ??
+          (err.response?.status === 404 ? "Customer not found" : null) ??
+          err.message ??
+          "Failed to load customer";
+        setError(msg);
+      });
+  }, [companyId, customerId]);
 
   useEffect(() => {
     if (!canFetch) return;
@@ -70,6 +93,50 @@ function CustomerDetailInner() {
       cancelled = true;
     };
   }, [canFetch, companyId, customerId]);
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (!action || fetchLoading) return;
+    if (action !== "updateCustomer" && action !== "removeCustomer") return;
+    if (customer) return;
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("action");
+    const q = next.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+  }, [searchParams, customer, fetchLoading, router, pathname]);
+
+  useEffect(() => {
+    if (searchParams.get("action") !== "updateCustomer" || !customer) return;
+    queueMicrotask(() => {
+      setEditModalOpen(true);
+      const next = new URLSearchParams(searchParams.toString());
+      next.delete("action");
+      const q = next.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    });
+  }, [searchParams, customer, router, pathname]);
+
+  useEffect(() => {
+    if (searchParams.get("action") !== "removeCustomer" || !customer) return;
+    queueMicrotask(() => {
+      setDeleteConfirmOpen(true);
+      const next = new URLSearchParams(searchParams.toString());
+      next.delete("action");
+      const q = next.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    });
+  }, [searchParams, customer, router, pathname]);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!customer || !companyId) return;
+    setDeleteLoading(true);
+    void deleteCustomer(customer.id, companyId)
+      .then(() => {
+        setDeleteConfirmOpen(false);
+        router.push("/customers");
+      })
+      .finally(() => setDeleteLoading(false));
+  }, [customer, companyId, router]);
 
   if (!companyId) {
     return (
@@ -124,6 +191,60 @@ function CustomerDetailInner() {
 
   return (
     <div>
+      <NewEmployeeModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Customer"
+      >
+        {companyId ? (
+          <EditCustomerForm
+            companyId={companyId}
+            customer={customer}
+            onClose={() => setEditModalOpen(false)}
+            onSuccess={() => {
+              refetchCustomer();
+            }}
+          />
+        ) : null}
+      </NewEmployeeModal>
+
+      <NewEmployeeModal
+        open={deleteConfirmOpen}
+        onClose={() => !deleteLoading && setDeleteConfirmOpen(false)}
+        title="Delete customer?"
+      >
+        <div className="space-y-4">
+          <p className="text-neutral-700 text-p">
+            Are you sure you want to delete <strong>{name}</strong>? This cannot be undone.
+          </p>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setDeleteConfirmOpen(false)}
+              disabled={deleteLoading}
+              className="px-4 py-2 rounded-lg cursor-pointer border border-neutral-400 text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDelete}
+              disabled={deleteLoading}
+              className="px-4 py-2 rounded-lg cursor-pointer bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {deleteLoading ? (
+                <>
+                  <span className="inline-block size-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </button>
+          </div>
+        </div>
+      </NewEmployeeModal>
+
       <Link
         href="/customers"
         className="hidden items-center gap-2 text-primary font-medium hover:underline sm:inline-flex"
