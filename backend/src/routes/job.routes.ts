@@ -7,7 +7,11 @@ import {
   deleteJob,
   updateJob,
   updateJobStatus,
+  uploadPhotoToJob,
+  listJobPhotos,
+  deleteJobPhoto,
 } from "../controllers/job.controllers";
+import { uploadJobPhoto } from "../middleware/upload.middleware";
 
 const router = express.Router();
 
@@ -25,6 +29,25 @@ router.put(
   requireAuth,
   requireRole("admin", "dispatcher", "technician"),
   updateJobStatus
+);
+router.get(
+  "/:jobId/photos",
+  requireAuth,
+  requireRole("admin", "dispatcher", "technician"),
+  listJobPhotos
+);
+router.post(
+  "/:jobId/photos",
+  requireAuth,
+  requireRole("admin", "dispatcher", "technician"),
+  uploadJobPhoto.single("file"),
+  uploadPhotoToJob
+);
+router.delete(
+  "/:jobId/photos/:photoId",
+  requireAuth,
+  requireRole("admin", "dispatcher", "technician"),
+  deleteJobPhoto
 );
 router.delete("/delete", requireAuth, requireRole("admin", "dispatcher", "technician"), deleteJob);
 

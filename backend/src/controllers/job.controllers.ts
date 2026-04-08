@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
-import type { JobStatusType } from "../../generated/prisma/client";
+import type { UploadApiResponse } from "cloudinary";
+import type { JobPhotoSource, JobStatusType } from "../../generated/prisma/client";
 import { prisma } from "../lib/prisma";
+import { cloudinary } from "../lib/cloudinary";
 
 /** Request body for updating a job. Only provided fields are updated. */
 interface UpdateJobBody {
@@ -20,6 +22,10 @@ interface UpdateJobBody {
 interface UpdateJobStatusBody {
   id: string;
   status: JobStatusType;
+}
+
+interface UploadJobPhotoBody {
+  source?: "camera_roll" | "live_camera" | "library";
 }
 
 /** Request body for listing jobs assigned to the technician (employee) for this user + company. */
@@ -80,6 +86,41 @@ const ALLOWED_JOB_STATUSES: JobStatusType[] = [
   "PAID",
   "CANCELLED",
 ];
+
+const PHOTO_SOURCE_MAP: Record<string, JobPhotoSource> = {
+  camera_roll: "CAMERA_ROLL",
+  live_camera: "LIVE_CAMERA",
+  library: "LIBRARY",
+};
+
+function normalizePhotoSource(input?: string): JobPhotoSource {
+  if (!input) return "LIBRARY";
+  const normalized = input.toLowerCase().trim();
+  return PHOTO_SOURCE_MAP[normalized] ?? "LIBRARY";
+}
+
+function uploadBufferToCloudinary(
+  fileBuffer: Buffer,
+  folder: string
+): Promise<UploadApiResponse> {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error || !result) {
+          reject(error ?? new Error("Cloudinary upload failed."));
+          return;
+        }
+        resolve(result);
+      }
+    );
+
+    stream.end(fileBuffer);
+  });
+}
 
 /**
  * Create a job. Sets job title to the first ServiceItem's title when serviceItemIds are provided,
@@ -512,6 +553,178 @@ export const updateJobStatus = async (
     });
   } catch (error) {
     console.error("Update job status error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+
+/**
+ * Upload a photo for a specific job.
+ * Expected multipart/form-data:
+ * - file: image file (camera roll/live camera/library upload all come in as a file)
+ * - source: camera_roll | live_camera | library (optional)
+ */
+export const uploadPhotoToJob = async (
+  req: Request<{ jobId: string }, {}, UploadJobPhotoBody>,
+  res: Response
+) => {
+  try {
+    const companyId = req.business?.id;
+    const userId = req.user?.id;
+    const { jobId } = req.params;
+
+    if (!companyId || !userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication and company context are required.",
+      });
+    }
+
+    if (!jobId) {
+      return res.status(400).json({
+        success: false,
+        message: "jobId is required.",
+      });
+    }
+
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({
+        success: false,
+        message: "An image file is required in field 'file'.",
+      });
+    }
+
+    const job = await prisma.job.findFirst({
+      where: { id: jobId, companyId },
+      select: { id: true },
+    });
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found.",
+      });
+    }
+
+    const uploadResult = await uploadBufferToCloudinary(
+      file.buffer,
+      `companies/${companyId}/jobs/${jobId}`
+    );
+
+    const source = normalizePhotoSource(req.body?.source);
+
+    const photo = await prisma.jobPhoto.create({
+      data: {
+        jobId,
+        companyId,
+        uploadedBy: userId,
+        publicId: uploadResult.public_id,
+        url: uploadResult.url,
+        secureUrl: uploadResult.secure_url,
+        format: uploadResult.format ?? null,
+        bytes: uploadResult.bytes ?? null,
+        width: uploadResult.width ?? null,
+        height: uploadResult.height ?? null,
+        source,
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Job photo uploaded successfully.",
+      photo,
+    });
+  } catch (error) {
+    console.error("Upload job photo error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+
+/** List all photos for a specific job within the current company. */
+export const listJobPhotos = async (
+  req: Request<{ jobId: string }>,
+  res: Response
+) => {
+  try {
+    const companyId = req.business?.id;
+    const { jobId } = req.params;
+
+    if (!companyId) {
+      return res.status(400).json({
+        success: false,
+        message: "Company context is required.",
+      });
+    }
+
+    const job = await prisma.job.findFirst({
+      where: { id: jobId, companyId },
+      select: { id: true },
+    });
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found.",
+      });
+    }
+
+    const photos = await prisma.jobPhoto.findMany({
+      where: { jobId, companyId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return res.status(200).json({ success: true, photos });
+  } catch (error) {
+    console.error("List job photos error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+
+/** Delete a photo from a job and remove it from Cloudinary. */
+export const deleteJobPhoto = async (
+  req: Request<{ jobId: string; photoId: string }>,
+  res: Response
+) => {
+  try {
+    const companyId = req.business?.id;
+    const { jobId, photoId } = req.params;
+
+    if (!companyId) {
+      return res.status(400).json({
+        success: false,
+        message: "Company context is required.",
+      });
+    }
+
+    const photo = await prisma.jobPhoto.findFirst({
+      where: { id: photoId, jobId, companyId },
+    });
+    if (!photo) {
+      return res.status(404).json({
+        success: false,
+        message: "Photo not found for this job.",
+      });
+    }
+
+    await cloudinary.uploader.destroy(photo.publicId, {
+      resource_type: "image",
+    });
+
+    await prisma.jobPhoto.delete({ where: { id: photo.id } });
+
+    return res.status(200).json({
+      success: true,
+      message: "Job photo deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Delete job photo error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error. Please try again later.",

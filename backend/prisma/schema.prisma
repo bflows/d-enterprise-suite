@@ -23,6 +23,7 @@ model User {
   refreshSessions RefreshSession[]
   employees       Employee[]
   timeCards       TimeCard[]
+  jobPhotos       JobPhoto[]
 }
 
 model RefreshSession {
@@ -58,6 +59,7 @@ model Company {
   serviceBook ServiceBook[]
   jobs        Job[]
   timeCards   TimeCard[]
+  jobPhotos   JobPhoto[]
 }
 
 model Role {
@@ -225,11 +227,45 @@ model Job {
   customer   Customer      @relation(fields: [customerId], references: [id])
   technician Employee      @relation(fields: [technicianId], references: [id])
   services   ServiceItem[]
+  photos     JobPhoto[]
 
   @@index([companyId])
   @@index([customerId])
   @@index([technicianId])
   @@index([startDate])
+}
+
+enum JobPhotoSource {
+  CAMERA_ROLL
+  LIVE_CAMERA
+  LIBRARY
+}
+
+model JobPhoto {
+  id         String @id @default(cuid())
+  jobId      String
+  companyId  String
+  uploadedBy String
+
+  publicId   String
+  url        String
+  secureUrl  String
+  format     String?
+  bytes      Int?
+  width      Int?
+  height     Int?
+  source     JobPhotoSource @default(LIBRARY)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  job     Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([companyId])
+  @@index([uploadedBy])
 }
 
 /// Clock in/out for a technician (user) within a company. Query by `companyId` and/or `userId`.

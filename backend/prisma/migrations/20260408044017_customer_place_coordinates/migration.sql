@@ -1,0 +1,1 @@
+-- Empty migration placeholder to restore Prisma migration chain consistency.
