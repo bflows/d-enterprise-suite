@@ -160,7 +160,7 @@ function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
                       <p className="text-p">{job.address}</p>
                     )}
                   </div>
-                  <p className="mt-4 w-fit rounded-full px-3 py-1 text-small capitalize bg-neutral-200 text-neutral-800">
+                  <p className="mt-4 w-fit rounded-full px-3 py-1 text-small capitalize bg-neutral-200 text-neutral-600">
                     {formatJobStatus(job.status)}
                   </p>
                 </Link>
