@@ -14,9 +14,9 @@ import {
   HiEllipsisVertical,
   HiPlus,
   HiArrowUpOnSquare,
-  HiBanknotes,
   HiPencilSquare,
   HiTrash,
+  HiCreditCard,
 } from "react-icons/hi2";
 import ActionMenu, { type ActionMenuItem } from "@/components/ui/ActionMenu";
 
@@ -38,7 +38,7 @@ export default function Navbar() {
       d.icon === "sendInvoice"
         ? HiArrowUpOnSquare
         : d.icon === "requestPayment"
-          ? HiBanknotes
+          ? HiCreditCard
           : d.icon === "updateJob"
             ? HiPencilSquare
             : HiTrash;

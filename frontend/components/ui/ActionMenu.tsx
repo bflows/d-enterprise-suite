@@ -38,7 +38,7 @@ export default function ActionMenu({
   trigger,
   triggerIcon: TriggerIcon,
   triggerIconSize,
-  triggerIconClassName = "size-5",
+  triggerIconClassName = "size-6",
   triggerLabel = "Open menu",
   align = "right",
 }: ActionMenuProps) {
@@ -78,7 +78,7 @@ export default function ActionMenu({
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="rounded-lg p-1 text-neutral-600 cursor-pointer transition-colors hover:bg-neutral-100/10 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+        className="rounded-lg p-1 cursor-pointer transition-colors text-neutral-800 hover:bg-neutral-100/10 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
         aria-label={triggerLabel}
         aria-haspopup="true"
         aria-expanded={open}
@@ -98,7 +98,7 @@ export default function ActionMenu({
                     key={index}
                     role="menuitem"
                     aria-disabled="true"
-                    className="flex w-full items-center gap-x-2 rounded-lg px-3 py-2 text-left text-neutral-600 opacity-50 cursor-not-allowed"
+                    className="flex w-full items-center gap-x-2 rounded-lg px-3 py-2 text-left text-neutral-6 opacity-50 cursor-not-allowed"
                   >
                     <div>
                       {(() => {
@@ -107,7 +107,7 @@ export default function ActionMenu({
                           <Icon
                             aria-hidden
                             size={item.iconSize}
-                            className={item.iconClassName ?? "size-4"}
+                            className={item.iconClassName ?? "size-6"}
                           />
                         );
                       })()}
@@ -120,7 +120,7 @@ export default function ActionMenu({
                     href={item.href}
                     role="menuitem"
                     onClick={() => setOpen(false)}
-                    className="flex w-full items-center gap-x-2 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out border border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex w-full items-center gap-x-2 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out border border-neutral-300 bg-neutral-200 text-neutral-800 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <div>
                       {(() => {
@@ -129,7 +129,7 @@ export default function ActionMenu({
                           <Icon
                             aria-hidden
                             size={item.iconSize}
-                            className={item.iconClassName ?? "size-4"}
+                            className={item.iconClassName ?? "size-6"}
                           />
                         );
                       })()}
@@ -144,7 +144,7 @@ export default function ActionMenu({
                   role="menuitem"
                   onClick={() => handleItemClick(item)}
                   disabled={item.disabled || !item.onClick}
-                  className="flex w-full items-center gap-x-2 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out border border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full items-center gap-x-2 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out border border-neutral-300 bg-neutral-200 text-neutral-800 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <div>
                     {(() => {
