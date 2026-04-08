@@ -74,7 +74,7 @@ function ClockSummaryButton({
       type="button"
       disabled={disabled || actionLoading}
       onClick={() => void onClockClick()}
-      className={`w-1/2 py-3 px-4 text-start rounded-lg flex flex-col cursor-pointer transition-all duration-300 ease-in-out  disabled:opacity-50 disabled:cursor-not-allowed ${
+      className={`w-1/2 py-3 px-4 text-start rounded-lg flex flex-col cursor-pointer transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed ${
         clockedIn
           ? "bg-primary hover:bg-primary/90"
           : "border bg-neutral-50 border-neutral-300 hover:bg-neutral-100 hover:border-primary"
