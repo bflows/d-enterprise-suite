@@ -11,10 +11,15 @@ interface UpdateJobBody {
   startTime?: string; // HH:mm
   endTime?: string;
   notes?: string | null;
-  status?: "scheduled" | "in_progress" | "completed" | "cancelled";
+  status?: "scheduled" | "en_route" | "in_progress" | "completed" | "cancelled";
   technicianId?: string;
   /** IDs of service items to attach to this job. Replaces existing services when provided. */
   serviceItemIds?: string[];
+}
+
+interface UpdateJobStatusBody {
+  id: string;
+  status: JobStatusType;
 }
 
 /** Request body for listing jobs assigned to the technician (employee) for this user + company. */
@@ -35,7 +40,7 @@ interface CreateJobBody {
   notes?: string;
   leadSource?: string;
   /** Optional initial status; defaults to SCHEDULED. */
-  status?: "scheduled" | "in_progress" | "completed" | "cancelled";
+  status?: "scheduled" | "en_route" | "in_progress" | "completed" | "cancelled";
   /** IDs of service items (from Service Book) to attach to this job. First item's title is used as job title. */
   serviceItemIds?: string[];
 }
@@ -60,10 +65,21 @@ function toDateTime(dateStr: string, timeStr: string): Date | null {
 /** Maps API/frontend snake_case statuses to Prisma `JobStatusType` (replaces legacy IN_PROGRESS with ON_SITE). */
 const STATUS_MAP: Record<string, JobStatusType> = {
   scheduled: "SCHEDULED",
+  en_route: "EN_ROUTE",
   in_progress: "ON_SITE",
   completed: "COMPLETED",
   cancelled: "CANCELLED",
 };
+
+const ALLOWED_JOB_STATUSES: JobStatusType[] = [
+  "SCHEDULED",
+  "EN_ROUTE",
+  "ON_SITE",
+  "COMPLETED",
+  "INVOICED",
+  "PAID",
+  "CANCELLED",
+];
 
 /**
  * Create a job. Sets job title to the first ServiceItem's title when serviceItemIds are provided,
@@ -426,6 +442,76 @@ export const listJobs = async (req: Request, res: Response) => {
     return res.status(200).json({ jobs });
   } catch (error) {
     console.error("List jobs error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+
+/**
+ * Update only the status of a job.
+ * Expects job id in route params and status in body.
+ */
+export const updateJobStatus = async (
+  req: Request<{}, {}, UpdateJobStatusBody>,
+  res: Response
+) => {
+  try {
+    const companyId = req.business?.id;
+    if (!companyId) {
+      return res.status(400).json({
+        success: false,
+        message: "Company context is required.",
+      });
+    }
+
+    const { id, status } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Job id is required.",
+      });
+    }
+
+    if (!status || !ALLOWED_JOB_STATUSES.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid status. Allowed values: SCHEDULED, EN_ROUTE, ON_SITE, COMPLETED, INVOICED, PAID, CANCELLED.",
+      });
+    }
+
+    const existing = await prisma.job.findFirst({
+      where: { id, companyId },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found.",
+      });
+    }
+
+    const job = await prisma.job.update({
+      where: { id },
+      data: { status },
+      include: {
+        customer: true,
+        technician: { include: { user: true } },
+        services: true,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Job status updated successfully.",
+      job,
+    });
+  } catch (error) {
+    console.error("Update job status error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error. Please try again later.",
