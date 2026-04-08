@@ -55,32 +55,30 @@ export default function JobCustomer({ job }: JobCustomerProps) {
           />
         ) : null}
 
-        <div className="mt-4 px-4 flex items-center justify-between gap-x-2">
+        <div className="mt-2 px-4 flex items-center justify-between gap-x-2">
           <p className="text-h6 font-bold text-neutral-800">{customerNameDisplay}</p>
-          <div>
-            {customerPhoneDigits && (
-              <div className="flex flex-wrap gap-2">
-                <a
-                  href={`sms:${customerPhoneDigits}`}
-                  className={`${contactLinkClass} bg-neutral-200/50 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-800`}
-                >
-                  <HiChatBubbleLeftRight className="size-6 shrink-0" aria-hidden />
-                </a>
-                <a
-                  href={`tel:${customerPhoneDigits}`}
-                  className={`${contactLinkClass} bg-primary/90 text-neutral-200 hover:text-neutral-100 hover:bg-primary`}
-                >
-                  <HiPhone className="size-6 shrink-0" aria-hidden />
-                </a>
-              </div>
-            )}
-          </div>
+          {customerPhoneDigits && (
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={`sms:${customerPhoneDigits}`}
+                className={`${contactLinkClass} bg-neutral-200/50 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-800`}
+              >
+                <HiChatBubbleLeftRight className="size-6 shrink-0" aria-hidden />
+              </a>
+              <a
+                href={`tel:${customerPhoneDigits}`}
+                className={`${contactLinkClass} bg-primary/90 text-neutral-200 hover:text-neutral-100 hover:bg-primary`}
+              >
+                <HiPhone className="size-6 shrink-0" aria-hidden />
+              </a>
+            </div>
+          )}
         </div>
 
         {job.address ? (
-          <div className="px-4 flex items-start gap-x-2">
+          <div className="mt-2 px-4 flex items-start gap-x-2">
             <div>
-              <HiLocationMarker className="size-6 text-primary" />
+              <HiLocationMarker className="size-8 text-primary" />
             </div>
             <div>
               <Link
