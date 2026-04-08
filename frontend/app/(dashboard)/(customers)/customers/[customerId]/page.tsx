@@ -123,16 +123,16 @@ function CustomerDetailInner() {
   const name = displayName(customer);
 
   return (
-    <div className="mt-4">
+    <div>
       <Link
         href="/customers"
-        className="inline-flex items-center gap-2 text-primary font-medium hover:underline mb-6"
+        className="hidden items-center gap-2 text-primary font-medium hover:underline sm:inline-flex"
       >
         <LuArrowLeft className="size-5" />
         Back to customers
       </Link>
 
-      <div className="bg-neutral-50 border border-neutral-400 rounded-lg p-4 sm:p-6 shadow-sm max-w-2xl">
+      <div className="bg-neutral-50 border border-neutral-400 rounded-lg p-4 sm:p-6 shadow-sm">
         <h1 className="text-neutral-900 text-h5 font-bold">{name}</h1>
         <p className="text-neutral-700 text-p mt-2">
           <a href={`tel:${customer.phone}`} className="hover:text-primary underline">
