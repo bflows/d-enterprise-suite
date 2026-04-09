@@ -1,7 +1,7 @@
 "use client";
 
 import React, { ReactNode } from "react";
-import { LuX } from "react-icons/lu";
+import { HiXMark } from "react-icons/hi2";
 
 export interface ModalProps {
   isOpen: boolean;
@@ -44,7 +44,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center sm:p-4"
       aria-modal="true"
       role="dialog"
       aria-labelledby="modal-title"
@@ -57,22 +57,22 @@ export default function Modal({
       />
       {/* Panel */}
       <div
-      className="relative z-10 flex w-full max-w-lg max-h-[90vh] flex-col rounded-lg border border-neutral-400 bg-neutral-200"
+      className="relative z-10 flex w-full max-w-lg h-screen flex-col sm:border border-neutral-400 bg-neutral-200 sm:max-h-[90vh] sm:rounded-lg"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky Header */}
-        <div className="flex shrink-0 items-center justify-between rounded-t-lg border-b border-neutral-400 bg-neutral-50 px-6 py-4">
-          <h2 id="modal-title" className="text-lg font-bold text-neutral-900">
+        <div className="flex shrink-0 items-center justify-between px-6 py-4 h-16 text-neutral-50 bg-primary sm:rounded-t-lg sm:border-b">
+          <h2 id="modal-title" className="text-lg font-bold text-neutral-50">
             {title}
           </h2>
           {showCloseButton && (
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-1 cursor-pointer text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              className="rounded-lg p-1 -mr-2 cursor-pointer text-neutral-200 transition-colors hover:bg-neutral-200 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               aria-label="Close"
             >
-              <LuX className="size-6" />
+              <HiXMark className="size-8" />
             </button>
           )}
         </div>
