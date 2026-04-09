@@ -24,6 +24,7 @@ model User {
   employees       Employee[]
   timeCards       TimeCard[]
   jobPhotos       JobPhoto[]
+  jobActivities   JobActivity[]
 }
 
 model RefreshSession {
@@ -53,13 +54,16 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  roles       Role[]
-  employees   Employee[]
-  customers   Customer[]
-  serviceBook ServiceBook[]
-  jobs        Job[]
-  timeCards   TimeCard[]
-  jobPhotos   JobPhoto[]
+  roles         Role[]
+  employees     Employee[]
+  customers     Customer[]
+  serviceBook   ServiceBook[]
+  jobs          Job[]
+  timeCards     TimeCard[]
+  jobPhotos     JobPhoto[]
+  jobActivities JobActivity[]
+
+  @@index([id])
 }
 
 model Role {
@@ -181,7 +185,7 @@ model ServiceItem {
   price       Int
   duration    Int
   unit        Int?
-  quantity    Int @default(1)
+  quantity    Int    @default(1)
 
   sortOrder Int?     @default(0)
   createdAt DateTime @default(now())
@@ -228,11 +232,30 @@ model Job {
   technician Employee      @relation(fields: [technicianId], references: [id])
   services   ServiceItem[]
   photos     JobPhoto[]
+  activities JobActivity[]
 
   @@index([companyId])
   @@index([customerId])
   @@index([technicianId])
   @@index([startDate])
+}
+
+model JobActivity {
+  id        String  @id @default(cuid())
+  jobId     String
+  companyId String
+  logName   String
+  userId    String?
+
+  createdAt DateTime @default(now())
+
+  job     Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([jobId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 enum JobPhotoSource {
@@ -247,14 +270,14 @@ model JobPhoto {
   companyId  String
   uploadedBy String
 
-  publicId   String
-  url        String
-  secureUrl  String
-  format     String?
-  bytes      Int?
-  width      Int?
-  height     Int?
-  source     JobPhotoSource @default(LIBRARY)
+  publicId  String
+  url       String
+  secureUrl String
+  format    String?
+  bytes     Int?
+  width     Int?
+  height    Int?
+  source    JobPhotoSource @default(LIBRARY)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
