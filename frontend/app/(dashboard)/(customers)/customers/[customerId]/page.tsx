@@ -252,7 +252,7 @@ function CustomerDetailInner() {
         <div className="mt-4 flex flex-col gap-y-2">
           {/* {customer.email && ( */}
           <div className="flex items-center justify-between">
-            <p className="text-p text-neutral-800">{customer.email}billyflowers@gmail.com</p>
+            <p className="text-p text-neutral-800">{customer.email}</p>
             <div className="p-2 rounded-full w-fit bg-neutral-300/50">
               <HiInbox className="size-6 text-neutral-600" />
             </div>
