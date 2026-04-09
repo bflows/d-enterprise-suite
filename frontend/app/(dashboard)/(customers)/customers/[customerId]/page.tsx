@@ -17,6 +17,7 @@ import type { AxiosError } from "axios";
 import { HiChatBubbleBottomCenterText, HiInbox, HiPhone } from "react-icons/hi2";
 import CustomerAddress from "@/components/customers/CustomerAddress";
 import CustomerNotes from "@/components/customers/CustomerNotes";
+import JobHistory from "@/components/customers/JobHistory";
 
 function displayName(c: Pick<CustomerDetail, "firstName" | "lastName">) {
   return [c.firstName, c.lastName].filter(Boolean).join(" ") || "—";
@@ -269,25 +270,6 @@ function CustomerDetailInner() {
             </div>
           </div>
         </div>
-
-
-        {/* <dl className="mt-6">
-          <DetailRow label="Email" value={customer.email} />
-          <DetailRow label="Address" value={customer.address} />
-          <DetailRow label="Address line 2" value={customer.address2} />
-          <DetailRow label="City" value={customer.city} />
-          <DetailRow label="ZIP" value={customer.zipCode} />
-          <DetailRow label="Company name" value={customer.companyName} />
-          <DetailRow label="Lead source" value={customer.leadSource} />
-          {customer.notes ? (
-            <div className="py-2 border-b border-neutral-200 last:border-b-0">
-              <dt className="text-neutral-500 text-sm">Notes</dt>
-              <dd className="text-neutral-900 text-p mt-1 whitespace-pre-wrap wrap-break-word">
-                {customer.notes}
-              </dd>
-            </div>
-          ) : null}
-        </dl> */}
       </div>
       {/*  */}
       <CustomerAddress
@@ -304,6 +286,7 @@ function CustomerDetailInner() {
           setCustomer((prev) => (prev ? { ...prev, ...updated } : null))
         }
       />
+      <JobHistory companyId={companyId} customerId={customer.id} />
     </div>
   );
 }
