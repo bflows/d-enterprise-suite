@@ -235,7 +235,7 @@ export default function Calendar({ jobs }: CalendarProps) {
       </div>
 
       {/* Week view (mobile): days stacked vertically, jobs under each day */}
-      <div className="md:hidden space-y-4">
+      <div className="md:hidden space-y-2">
         {weekDays.map((d) => {
           const key = toDateKey(d);
           const dayJobs = jobsByDate.get(key) ?? [];
