@@ -283,13 +283,13 @@ export default function NewJobModal({
 
   const canSubmit = Boolean(
     companyId &&
-      selectedCustomer &&
-      selectedTechnician &&
-      startDate &&
-      startTime &&
-      effectiveEndDate >= startDate &&
-      (effectiveEndDate === startDate ? effectiveEndTime > startTime : true) &&
-      !submitting
+    selectedCustomer &&
+    selectedTechnician &&
+    startDate &&
+    startTime &&
+    effectiveEndDate >= startDate &&
+    (effectiveEndDate === startDate ? effectiveEndTime > startTime : true) &&
+    !submitting
   );
 
   if (!isOpen) return null;
@@ -314,7 +314,7 @@ export default function NewJobModal({
         )}
         {/* Customer search & select */}
         <div className="relative">
-          <label className="block text-small text-neutral-800 mb-1">
+          <label className="text-p text-neutral-600">
             Customer
           </label>
           {selectedCustomer ? (
@@ -322,7 +322,7 @@ export default function NewJobModal({
               <span className="text-p text-neutral-800">
                 {displayCustomer(selectedCustomer)}
                 {selectedCustomer.address && (
-                  <span className="text-neutral-500 text-small block truncate">
+                  <span className="text-neutral-600 text-small block truncate">
                     {selectedCustomer.address}
                   </span>
                 )}
@@ -348,8 +348,8 @@ export default function NewJobModal({
                   setCustomerDropdownOpen(true);
                 }}
                 onFocus={() => setCustomerDropdownOpen(true)}
-                placeholder="Search customers..."
-                className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Name or phone"
+                className="w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
               />
               {customerDropdownOpen && (
                 <>
@@ -358,37 +358,41 @@ export default function NewJobModal({
                     aria-hidden="true"
                     onClick={() => setCustomerDropdownOpen(false)}
                   />
-                  <div className="absolute z-50 mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-50 mt-1 w-full rounded-lg border shadow-lg max-h-48 overflow-y-auto border-neutral-300 bg-neutral-50">
                     {customerLoading ? (
-                      <p className="px-3 py-2 text-small text-neutral-500">
+                      <p className="px-3 py-2 text-p text-neutral-600">
                         Searching...
                       </p>
                     ) : customerResults.length === 0 ? (
-                      <p className="px-3 py-2 text-small text-neutral-500">
+                      <p className="px-3 py-2 text-small text-neutral-400">
                         {customerSearch.trim()
                           ? "No customers found."
                           : "Type to search customers."}
                       </p>
                     ) : (
-                      customerResults.map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          className="w-full text-left px-3 py-2 text-p hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-none"
-                          onClick={() => {
-                            setSelectedCustomer(c);
-                            setCustomerSearch("");
-                            setCustomerDropdownOpen(false);
-                          }}
-                        >
-                          {displayCustomer(c)}
-                          {c.address && (
-                            <span className="text-neutral-500 text-small block truncate">
-                              {c.address}
+                      <div className="flex flex-col gap-y-1 py-3 px-2">
+                        {customerResults.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            className="text-left px-3 py-2 rounded-lg border bg-neutral-100 border-neutral-300 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-none"
+                            onClick={() => {
+                              setSelectedCustomer(c);
+                              setCustomerSearch("");
+                              setCustomerDropdownOpen(false);
+                            }}
+                          >
+                            <span className="text-p text-neutral-800">
+                              {displayCustomer(c)}
                             </span>
-                          )}
-                        </button>
-                      ))
+                            {c.address && (
+                              <span className="text-neutral-600 text-small block truncate">
+                                {c.address}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </>
@@ -716,11 +720,10 @@ export default function NewJobModal({
                                 if (alreadyAdded) return;
                                 setSelectedServiceItems((prev) => [...prev, item]);
                               }}
-                              className={`w-full text-left px-3 py-2 rounded border text-p ${
-                                alreadyAdded
-                                  ? "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed"
-                                  : "border-transparent hover:bg-neutral-200 hover:border-neutral-300"
-                              }`}
+                              className={`w-full text-left px-3 py-2 rounded border text-p ${alreadyAdded
+                                ? "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed"
+                                : "border-transparent hover:bg-neutral-200 hover:border-neutral-300"
+                                }`}
                             >
                               <span className="font-medium">{item.title}</span>
                               {item.price != null && (
