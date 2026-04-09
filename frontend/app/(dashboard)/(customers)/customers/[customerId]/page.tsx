@@ -250,14 +250,14 @@ function CustomerDetailInner() {
       <div className="rounded-lg p-4 border border-neutral-300 bg-neutral-50 sm:p-6">
         <h1 className="text-h4 font-bold text-neutral-900">{name}</h1>
         <div className="mt-4 flex flex-col gap-y-2">
-          {/* {customer.email && ( */}
-          <div className="flex items-center justify-between">
-            <p className="text-p text-neutral-800">{customer.email}</p>
-            <div className="p-2 rounded-full w-fit bg-neutral-300/50">
-              <HiInbox className="size-6 text-neutral-600" />
+          {customer.email && (
+            <div className="flex items-center justify-between">
+              <p className="text-p text-neutral-800">{customer.email}</p>
+              <div className="p-2 rounded-full w-fit bg-neutral-300/50">
+                <HiInbox className="size-6 text-neutral-600" />
+              </div>
             </div>
-          </div>
-          {/* )}  */}
+          )}
           <div className="flex items-center justify-between">
             <p className="text-p text-neutral-800">{customer.phone}</p>
             <div className="flex gap-x-1">
