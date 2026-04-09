@@ -68,7 +68,7 @@ export default function SchedulePage() {
         <button
           type="button"
           onClick={() => setNewJobModalOpen(true)}
-          className="bg-primary text-neutral-200 text-p font-bold py-3 px-4 rounded-lg flex items-center gap-x-2 cursor-pointer transition-colors hover:bg-primary/90 hover:text-neutral-50"
+          className="hidden text-p font-bold py-3 px-4 rounded-lg items-center gap-x-2 cursor-pointer transition-colors bg-primary text-neutral-200 hover:bg-primary/90 hover:text-neutral-50 sm:flex"
         >
           <LuPlus className="size-6" />
           New Job
