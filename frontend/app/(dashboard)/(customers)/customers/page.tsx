@@ -11,10 +11,7 @@ export const metadata: Metadata = {
 export default function CustomersPage() {
   return (
     <RequireRole allowedRoles={[ROLE_SLUGS.ADMIN, ROLE_SLUGS.DISPATCHER, ROLE_SLUGS.TECHNICIAN]}>
-      <div>
-        <h1 className="text-neutral-900 text-h4 font-bold">Customers</h1>
-        <CustomersTable />
-      </div>
+      <CustomersTable />
     </RequireRole>
   );
 }
