@@ -108,11 +108,6 @@ export function resolveMobileNavbarLeft(pathname: string): MobileNavbarLeftSlot 
 export const SCHEDULE_NEW_JOB_HREF = "/schedule?newJob=1" as const;
 
 const MOBILE_NAVBAR_RIGHT_BY_EXACT_PATH: Record<string, MobileNavbarRightSlot> = {
-  "/dashboard": {
-    kind: "newJob",
-    href: SCHEDULE_NEW_JOB_HREF,
-    ariaLabel: "Create new job",
-  },
   "/schedule": {
     kind: "newJob",
     href: SCHEDULE_NEW_JOB_HREF,
