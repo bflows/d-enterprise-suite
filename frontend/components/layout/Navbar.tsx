@@ -101,6 +101,17 @@ export default function Navbar() {
             >
               <HiPlus className="size-8" />
             </Link>
+          ) : right.kind === "newCustomer" ? (
+            <button
+              type="button"
+              aria-label={right.ariaLabel}
+              className={iconButtonClass}
+              onClick={() => {
+                router.push(`${pathname}?action=newCustomer`);
+              }}
+            >
+              <HiPlus className="size-8" />
+            </button>
           ) : overflowItems.length > 0 ? (
             <ActionMenu
               align="right"

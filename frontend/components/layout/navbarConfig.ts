@@ -10,7 +10,8 @@ export type MobileNavbarLeftSlot =
 
 export type MobileNavbarRightSlot =
   | { kind: "overflow" }
-  | { kind: "newJob"; href: string; ariaLabel: string };
+  | { kind: "newJob"; href: string; ariaLabel: string }
+  | { kind: "newCustomer"; ariaLabel: string };
 
 export type OverflowMenuItemDescriptor = {
   label: string;
@@ -112,6 +113,10 @@ const MOBILE_NAVBAR_RIGHT_BY_EXACT_PATH: Record<string, MobileNavbarRightSlot> =
     kind: "newJob",
     href: SCHEDULE_NEW_JOB_HREF,
     ariaLabel: "Create new job",
+  },
+  "/customers": {
+    kind: "newCustomer",
+    ariaLabel: "Create new customer",
   },
 };
 
