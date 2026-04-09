@@ -65,6 +65,10 @@ function filterJobsCurrentWeek(jobs: Job[]): Job[] {
     .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
 }
 
+function isScheduledToday(jobDate: string): boolean {
+  return jobDate === toDateKey(new Date());
+}
+
 type TechnicianJobsListProps = {
   user: AuthenticatedUser;
   companyId: string;
@@ -132,11 +136,16 @@ function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
           {jobs.map((job) => {
             const slug = jobSlug(job.title ?? job.customerName, job.id);
             const dateLabel = dateFmt.format(new Date(job.date + "T12:00:00"));
+            const today = isScheduledToday(job.date);
             return (
               <li key={job.id}>
                 <Link
                   href={`/job/${slug}`}
-                  className="block rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 transition-colors hover:border-primary hover:bg-neutral-100"
+                  className={`block rounded-lg border px-4 py-3 transition-all duration-300 ease-in-out ring-transparent ring-2 ${
+                    today
+                      ? "border-primary bg-neutral-50 ring-primary hover:bg-neutral-100"
+                      : "border-neutral-300 bg-neutral-50 hover:bg-neutral-100 hover:ring-primary"
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-small text-neutral-600">{dateLabel}</p>
