@@ -48,7 +48,7 @@ function CustomerCard({
           onOpenDetails(customer);
         }
       }}
-      className="bg-neutral-50 border border-neutral-400 rounded-lg p-4 shadow-sm cursor-pointer hover:border-primary/50 transition-colors"
+      className="rounded-lg p-4 cursor-pointer transition-colors bg-neutral-50 border border-neutral-300 hover:border-primary"
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-neutral-900 font-semibold text-p">{name}</h3>
@@ -197,7 +197,7 @@ export default function CustomersTable() {
   }, [customerToDelete, companyId, loadWithSearch, searchQuery]);
 
   return (
-    <div className="bg-neutral-50 border border-neutral-400 overflow-hidden rounded-lg py-4 px-4 md:px-6 md:py-8 lg:px-10">
+    <div className="overflow-hidden rounded-lg py-4 px-4 border bg-neutral-50 border-neutral-300 md:px-6 md:py-8 lg:px-10">
       <div>
         <h1 className="text-h4 font-bold text-neutral-900">Customers</h1>
         <div className="flex justify-between mt-6">
