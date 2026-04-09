@@ -470,8 +470,12 @@ export const listJobs = async (req: Request, res: Response) => {
       });
     }
 
+    const customerIdRaw = req.query.customerId;
+    const customerId =
+      typeof customerIdRaw === "string" && customerIdRaw.trim() ? customerIdRaw.trim() : undefined;
+
     const jobs = await prisma.job.findMany({
-      where: { companyId },
+      where: customerId ? { companyId, customerId } : { companyId },
       include: {
         customer: true,
         technician: { include: { user: true } },
