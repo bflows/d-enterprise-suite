@@ -19,6 +19,7 @@ import {
 } from "@/lib/api/service";
 import { getAvailableTechniciansForWindow } from "@/lib/api/availability";
 import { createJob, mapApiJobToJob } from "@/lib/api/jobs";
+import { HiChevronLeft } from "react-icons/hi2";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -306,7 +307,7 @@ export default function NewJobModal({
         disabled: !canSubmit,
       }}
     >
-      <div className="space-y-4">
+      <div>
         {submitError && (
           <p className="text-p text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
             {submitError}
@@ -358,9 +359,9 @@ export default function NewJobModal({
                     aria-hidden="true"
                     onClick={() => setCustomerDropdownOpen(false)}
                   />
-                  <div className="absolute z-50 mt-1 w-full rounded-lg border shadow-lg max-h-48 overflow-y-auto border-neutral-300 bg-neutral-50">
+                  <div className="absolute z-50 mt-1 w-full rounded-lg border shadow-lg max-h-48 overflow-y-auto border-neutral-300 bg-neutral-100">
                     {customerLoading ? (
-                      <p className="px-3 py-2 text-p text-neutral-600">
+                      <p className="px-3 py-2 text-small text-neutral-400">
                         Searching...
                       </p>
                     ) : customerResults.length === 0 ? (
@@ -375,7 +376,7 @@ export default function NewJobModal({
                           <button
                             key={c.id}
                             type="button"
-                            className="text-left px-3 py-2 rounded-lg border bg-neutral-100 border-neutral-300 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-none"
+                            className="text-left px-3 py-2 rounded-lg border bg-neutral-50 border-neutral-300 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-none"
                             onClick={() => {
                               setSelectedCustomer(c);
                               setCustomerSearch("");
@@ -402,20 +403,20 @@ export default function NewJobModal({
         </div>
 
         {/* Start / End date */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-small text-neutral-800 mb-1">
+            <label className="block text-p text-neutral-600">
               Start date
             </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
-            <label className="block text-small text-neutral-800 mb-1">
+            <label className="block text-p text-neutral-600">
               End date
             </label>
             <input
@@ -423,48 +424,47 @@ export default function NewJobModal({
               value={endDate}
               min={startDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
 
         {/* Start / End time */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="mt-2 grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-small text-neutral-800 mb-1">
+            <label className="block text-p text-neutral-600">
               Start time
             </label>
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
-            <label className="block text-small text-neutral-800 mb-1">
+            <label className="block text-p text-neutral-600">
               End time
             </label>
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
 
         {/* Technician search & select (only available for chosen window) */}
-        <div className="relative">
-          <label className="block text-small text-neutral-800 mb-1">
+        <div className="relative mt-4">
+          <label className="block text-p text-neutral-600">
             Technician
           </label>
-          <p className="text-xs text-neutral-500 mb-1">
-            Select start/end date and time first. Only technicians whose schedule
-            matches the selected window and who are not already booked are listed.
+          <p className="text-small text-neutral-600">
+            Select start/end date and time first.
           </p>
           {selectedTechnician ? (
-            <div className="flex items-center justify-between rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2">
+            <div className="flex items-center justify-between rounded-lg border px-3 py-2 border-neutral-300 bg-neutral-50">
               <span className="text-p text-neutral-900">
                 {displayEmployee(selectedTechnician)}
               </span>
@@ -490,7 +490,7 @@ export default function NewJobModal({
                 }}
                 onFocus={() => setTechnicianDropdownOpen(true)}
                 placeholder="Search technicians..."
-                className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="mt-2 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
               />
               {technicianDropdownOpen && (
                 <>
@@ -501,32 +501,34 @@ export default function NewJobModal({
                   />
                   <div className="absolute z-50 mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 shadow-lg max-h-48 overflow-y-auto">
                     {technicianLoading ? (
-                      <p className="px-3 py-2 text-small text-neutral-500">
-                        Loading...
+                      <p className="px-3 py-2 text-small text-neutral-600">
+                        Searching...
                       </p>
                     ) : availableTechnicians.length === 0 ? (
-                      <p className="px-3 py-2 text-small text-neutral-500">
+                      <p className="px-3 py-2 text-small text-neutral-400">
                         {allTechnicians.length === 0
                           ? startDate && effectiveEndDate && startTime && effectiveEndTime
-                            ? "No technicians have availability for this date/time, or try a different search."
+                            ? "No technicians have availability for this date/time, try a different search."
                             : "Select start/end date and time to see available technicians."
                           : "No technicians available for this date/time (already booked)."}
                       </p>
                     ) : (
-                      availableTechnicians.map((emp) => (
-                        <button
-                          key={emp.id}
-                          type="button"
-                          className="w-full text-left px-3 py-2 text-p hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-none"
-                          onClick={() => {
-                            setSelectedTechnician(emp);
-                            setTechnicianSearch("");
-                            setTechnicianDropdownOpen(false);
-                          }}
-                        >
-                          {displayEmployee(emp)}
-                        </button>
-                      ))
+                      <div className="py-3 px-2 flex flex-col gap-y-1 bg-neutral-100">
+                        {availableTechnicians.map((emp) => (
+                          <button
+                            key={emp.id}
+                            type="button"
+                            className="w-full text-left px-3 py-2 text-p rounded-lg border bg-neutral-50 border-neutral-300 text-neutral-800 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-none"
+                            onClick={() => {
+                              setSelectedTechnician(emp);
+                              setTechnicianSearch("");
+                              setTechnicianDropdownOpen(false);
+                            }}
+                          >
+                            {displayEmployee(emp)}
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </>
@@ -536,15 +538,12 @@ export default function NewJobModal({
         </div>
 
         {/* Services: Service Book → Category → ServiceItem */}
-        <div>
-          <label className="block text-small text-neutral-800 mb-1">
+        <div className="mt-4">
+          <label className="block text-p text-neutral-600">
             Services
           </label>
-          <p className="text-xs text-neutral-500 mb-2">
-            Add services from your Service Book. These will be saved with the job.
-          </p>
           {selectedServiceItems.length > 0 && (
-            <ul className="mb-2 space-y-1">
+            <ul className="mt-1 flex flex-col gap-y-1">
               {selectedServiceItems.map((item) => (
                 <li
                   key={item.id}
@@ -578,12 +577,12 @@ export default function NewJobModal({
             <button
               type="button"
               onClick={() => setServicesPickerView("books")}
-              className="rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-p text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="mt-1 rounded-lg border px-3 py-2 text-p bg-neutral-50 text-neutral-600 border-neutral-300 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              Add from Service Book
+              Open Service Books
             </button>
           ) : (
-            <div className="rounded-lg border border-neutral-400 bg-neutral-50 p-3 space-y-3">
+            <div className="mt-2 rounded-lg border p-3 space-y-3 border-neutral-300 bg-neutral-50">
               {servicesPickerView === "books" && (
                 <>
                   <div className="flex items-center justify-between">
@@ -593,19 +592,19 @@ export default function NewJobModal({
                     <button
                       type="button"
                       onClick={() => setServicesPickerView(null)}
-                      className="text-small text-neutral-500 hover:underline"
+                      className="text-small text-neutral-600 hover:underline"
                     >
                       Close
                     </button>
                   </div>
                   {serviceBooksLoading ? (
-                    <p className="text-small text-neutral-500">Loading...</p>
+                    <p className="text-small text-neutral-400">Loading...</p>
                   ) : serviceBooks.length === 0 ? (
-                    <p className="text-small text-neutral-500">
+                    <p className="text-small text-neutral-400">
                       No service books found.
                     </p>
                   ) : (
-                    <ul className="space-y-1 max-h-40 overflow-y-auto">
+                    <ul className="flex flex-col gap-y-1 max-h-40 overflow-y-auto">
                       {serviceBooks.map((book) => (
                         <li key={book.id}>
                           <button
@@ -615,7 +614,7 @@ export default function NewJobModal({
                               setSelectedCategory(null);
                               setServicesPickerView("categories");
                             }}
-                            className="w-full text-left px-3 py-2 rounded border border-transparent hover:bg-neutral-200 hover:border-neutral-300 text-p"
+                            className="w-full text-left px-3 py-2 rounded-lg border bg-neutral-100 border-neutral-300 text-neutral-600 hover:bg-neutral-200 hover:border-primary text-p"
                           >
                             {book.name ?? "Unnamed Service Book"}
                           </button>
@@ -635,9 +634,12 @@ export default function NewJobModal({
                         setSelectedCategory(null);
                         setServicesPickerView("books");
                       }}
-                      className="text-small text-neutral-500 hover:underline"
+                      className="flex items-center gap-x-2 text-neutral-600 hover:underline"
                     >
-                      ← Back to Service Books
+                      <div>
+                        <HiChevronLeft className="size-4" />
+                      </div>
+                      <span className="text-small">Service Books</span>
                     </button>
                     <button
                       type="button"
@@ -648,14 +650,14 @@ export default function NewJobModal({
                     </button>
                   </div>
                   <p className="text-small text-neutral-800">
-                    {selectedServiceBook.name ?? "Unnamed"} – Select category
+                    {selectedServiceBook.name ?? "Unnamed"}
                   </p>
                   {(selectedServiceBook.catories?.length ?? 0) === 0 ? (
-                    <p className="text-small text-neutral-500">
+                    <p className="text-small text-neutral-400">
                       No categories in this book.
                     </p>
                   ) : (
-                    <ul className="space-y-1 max-h-40 overflow-y-auto">
+                    <ul className="flex flex-col gap-y-1 max-h-40 overflow-y-auto">
                       {selectedServiceBook.catories!.map((cat) => (
                         <li key={cat.id}>
                           <button
@@ -664,7 +666,7 @@ export default function NewJobModal({
                               setSelectedCategory(cat);
                               setServicesPickerView("items");
                             }}
-                            className="w-full text-left px-3 py-2 rounded border border-transparent hover:bg-neutral-200 hover:border-neutral-300 text-p"
+                            className="w-full text-left px-3 py-2 rounded-lg border bg-neutral-100 border-neutral-300 text-neutral-600 hover:bg-neutral-200 hover:border-primary text-p"
                           >
                             {cat.name}
                           </button>
@@ -684,29 +686,32 @@ export default function NewJobModal({
                         setCategoryServiceItems([]);
                         setServicesPickerView("categories");
                       }}
-                      className="text-small text-neutral-500 hover:underline"
+                      className="flex items-center gap-x-2 text-neutral-600 hover:underline"
                     >
-                      ← Back to Categories
+                      <div>
+                        <HiChevronLeft className="size-4" />
+                      </div>
+                      <span className="text-small">Categories</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setServicesPickerView(null)}
-                      className="text-small text-neutral-500 hover:underline"
+                      className="text-small text-neutral-600 hover:underline"
                     >
                       Close
                     </button>
                   </div>
                   <p className="text-small text-neutral-800">
-                    {selectedCategory.name} – Click to add service
+                    {selectedCategory.name}
                   </p>
                   {categoryItemsLoading ? (
-                    <p className="text-small text-neutral-500">Loading...</p>
+                    <p className="text-small text-neutral-400">Loading...</p>
                   ) : categoryServiceItems.length === 0 ? (
-                    <p className="text-small text-neutral-500">
+                    <p className="text-small text-neutral-400">
                       No service items in this category.
                     </p>
                   ) : (
-                    <ul className="space-y-1 max-h-48 overflow-y-auto">
+                    <ul className="flex flex-col gap-y-1 max-h-48 overflow-y-auto">
                       {categoryServiceItems.map((item) => {
                         const alreadyAdded = selectedServiceItems.some(
                           (s) => s.id === item.id
@@ -720,19 +725,21 @@ export default function NewJobModal({
                                 if (alreadyAdded) return;
                                 setSelectedServiceItems((prev) => [...prev, item]);
                               }}
-                              className={`w-full text-left px-3 py-2 rounded border text-p ${alreadyAdded
-                                ? "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed"
-                                : "border-transparent hover:bg-neutral-200 hover:border-neutral-300"
+                              className={`w-full text-left px-3 py-2 rounded-lg border flex items-center justify-between ${alreadyAdded
+                                ? "bg-neutral-100/50 text-neutral-600/50 border-neutral-300/50 cursor-not-allowed"
+                                : "group bg-neutral-100 text-neutral-600 border-neutral-300 hover:bg-primary hover:text-neutral-50"
                                 }`}
                             >
-                              <span className="font-medium">{item.title}</span>
-                              {item.price != null && (
-                                <span className="text-neutral-500 text-small ml-2">
-                                  ${item.price.toFixed(2)}
-                                </span>
-                              )}
+                              <div className="">
+                                <span className="text-p font-bold">{item.title}</span>
+                                {item.price != null && (
+                                  <span className="text-small ml-2 group-hover:text-neutral-50">
+                                    ${item.price.toFixed(2)}
+                                  </span>
+                                )}
+                              </div>
                               {alreadyAdded && (
-                                <span className="text-small ml-2">(added)</span>
+                                <span className="text-small ml-4">(added)</span>
                               )}
                             </button>
                           </li>
@@ -746,13 +753,13 @@ export default function NewJobModal({
           )}
         </div>
 
-        <div className="flex flex-col">
-          <label htmlFor="notes" className="text-neutral-700 text-small">Notes</label>
+        <div className="mt-4 flex flex-col">
+          <label htmlFor="notes" className="text-neutral-600 text-p">Notes</label>
           <textarea
             id="notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="bg-neutral-50 rounded-lg py-2 px-4 mt-1 border border-neutral-400"
+            className="mt-1 rounded-lg py-2 px-3 border text-neutral-800 bg-neutral-50 border-neutral-300 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
       </div>
