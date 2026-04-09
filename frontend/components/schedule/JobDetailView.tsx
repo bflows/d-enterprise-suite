@@ -1,6 +1,7 @@
 "use client";
 
 import type { Job } from "@/lib/calendar/types";
+import { formatTimeLabel } from "@/lib/calendar/types";
 
 export interface JobDetailViewProps {
   job: Job;
@@ -8,6 +9,9 @@ export interface JobDetailViewProps {
 
 /** Read-only job details (shared by JobDetailModal and the job detail page). */
 export default function JobDetailView({ job }: JobDetailViewProps) {
+  const startTimeLabel = formatTimeLabel(job.startTime);
+  const endTimeLabel = job.endTime ? formatTimeLabel(job.endTime) : undefined;
+
   return (
     <div className="space-y-4">
       <div className="flex gap-4 flex-wrap">
@@ -18,8 +22,8 @@ export default function JobDetailView({ job }: JobDetailViewProps) {
         <div>
           <p className="text-small text-neutral-500">Time</p>
           <p className="text-p text-neutral-900">
-            {job.startTime}
-            {job.endTime ? ` – ${job.endTime}` : ""}
+            {startTimeLabel}
+            {job.endTime ? ` – ${endTimeLabel}` : ""}
           </p>
         </div>
         <div>

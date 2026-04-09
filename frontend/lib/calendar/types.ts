@@ -91,6 +91,19 @@ export function formatWeekRange(dates: Date[]): string {
   return `${first.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${last.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
 }
 
+/** Formats 24-hour `HH:mm` to `h:mma` (e.g. `14:00` -> `2:00pm`). */
+export function formatTimeLabel(time: string): string {
+  const match = time.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return time;
+  const hours = Number(match[1]);
+  const minutes = match[2];
+  if (!Number.isInteger(hours) || hours < 0 || hours > 23) return time;
+
+  const period = hours >= 12 ? "pm" : "am";
+  const hour12 = hours % 12 || 12;
+  return `${hour12}:${minutes}${period}`;
+}
+
 /** Returns true if a job overlaps the given window for the given technician (if technicianId provided). */
 export function jobOverlapsWindow(
   job: Job,

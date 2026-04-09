@@ -1,6 +1,7 @@
 "use client";
 
 import type { Job } from "@/lib/calendar/types";
+import { formatTimeLabel } from "@/lib/calendar/types";
 
 export interface JobCardProps {
   job: Job;
@@ -17,9 +18,11 @@ const statusColors: Record<Job["status"], string> = {
 
 export default function JobCard({ job, onClick }: JobCardProps) {
   const statusClass = statusColors[job.status] ?? statusColors.scheduled;
+  const startTimeLabel = formatTimeLabel(job.startTime);
+  const endTimeLabel = job.endTime ? formatTimeLabel(job.endTime) : undefined;
   const timeLabel = job.endTime
-    ? `${job.startTime} – ${job.endTime}`
-    : job.startTime;
+    ? `${startTimeLabel} - ${endTimeLabel}`
+    : startTimeLabel;
   const displayTitle = job.title?.trim() || job.customerName || "Untitled job";
 
   return (
