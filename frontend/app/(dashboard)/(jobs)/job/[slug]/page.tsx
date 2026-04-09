@@ -30,6 +30,7 @@ import JobSchedule from "@/components/jobs/JobSchedule";
 import JobLineItems from "@/components/jobs/JobLineItems";
 import JobAttachments from "@/components/jobs/JobAttachments";
 import JobNotes from "@/components/jobs/JobNotes";
+import JobActivity from "@/components/jobs/JobActivity";
 
 export default function JobDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -248,6 +249,7 @@ export default function JobDetailPage() {
       <JobLineItems job={job} />
       <JobAttachments jobId={job.id} />
       <JobNotes jobId={job.id} notes={job.notes} onSaved={(updated) => setJob(updated)} />
+      <JobActivity />
 
       {/* <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
         <h1 className="text-h5 font-bold text-neutral-900 mb-6">
