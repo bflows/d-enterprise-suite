@@ -197,7 +197,7 @@ export default function CustomersTable() {
   }, [customerToDelete, companyId, loadWithSearch, searchQuery]);
 
   return (
-    <div className="bg-neutral-50 border border-neutral-400 overflow-hidden rounded-lg py-4 px-4 sm:px-6 md:px-10 mt-8">
+    <div className="bg-neutral-50 border border-neutral-400 overflow-hidden rounded-lg py-4 px-4 md:px-6 md:py-8 lg:px-10">
       <div>
         <h1 className="text-h4 font-bold text-neutral-900">Customers</h1>
         <div className="flex justify-between mt-6">
