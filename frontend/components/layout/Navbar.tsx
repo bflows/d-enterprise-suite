@@ -64,7 +64,15 @@ export default function Navbar() {
           {left.kind === "back" ? (
             <button
               type="button"
-              onClick={() => router.push(left.href)}
+              onClick={() => {
+                // Prefer a true history "back" (customer → job → back to customer).
+                // Fallback to the configured href when there's no prior history (direct deep-link).
+                if (typeof window !== "undefined" && window.history.length > 1) {
+                  router.back();
+                } else {
+                  router.push(left.href);
+                }
+              }}
               aria-label={left.ariaLabel}
               className={backButtonClass}
             >
