@@ -16,6 +16,7 @@ import { LuArrowLeft } from "react-icons/lu";
 import type { AxiosError } from "axios";
 import { HiChatBubbleBottomCenterText, HiInbox, HiPhone } from "react-icons/hi2";
 import CustomerAddress from "@/components/customers/CustomerAddress";
+import CustomerNotes from "@/components/customers/CustomerNotes";
 
 function displayName(c: Pick<CustomerDetail, "firstName" | "lastName">) {
   return [c.firstName, c.lastName].filter(Boolean).join(" ") || "—";
@@ -294,6 +295,14 @@ function CustomerDetailInner() {
         address2={customer.address2}
         city={customer.city}
         zipCode={customer.zipCode}
+      />
+      <CustomerNotes
+        customerId={customer.id}
+        companyId={companyId}
+        notes={customer.notes}
+        onSaved={(updated) =>
+          setCustomer((prev) => (prev ? { ...prev, ...updated } : null))
+        }
       />
     </div>
   );
