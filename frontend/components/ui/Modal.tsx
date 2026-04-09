@@ -44,7 +44,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center md:p-4"
       aria-modal="true"
       role="dialog"
       aria-labelledby="modal-title"
@@ -57,11 +57,11 @@ export default function Modal({
       />
       {/* Panel */}
       <div
-      className="relative z-10 flex w-full max-w-lg h-screen flex-col sm:border border-neutral-400 bg-neutral-200 sm:max-h-[90vh] sm:rounded-lg"
+      className="relative z-10 flex w-full h-screen flex-col md:max-h-[90vh] md:rounded-lg md:max-w-lg"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky Header */}
-        <div className="flex shrink-0 items-center justify-between px-6 py-4 h-16 text-neutral-50 bg-primary sm:rounded-t-lg sm:border-b">
+        <div className="flex shrink-0 items-center justify-between px-6 py-4 h-16 text-neutral-50 bg-primary md:rounded-t-lg">
           <h2 id="modal-title" className="text-lg font-bold text-neutral-50">
             {title}
           </h2>
@@ -77,7 +77,7 @@ export default function Modal({
           )}
         </div>
         {/* Scrollable Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4 bg-neutral-200">
           {children}
         </div>
         {/* Sticky Footer */}
