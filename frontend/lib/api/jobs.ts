@@ -224,8 +224,12 @@ export async function updateJob(
   return data;
 }
 
-export async function listJobs(): Promise<Job[]> {
-  const { data } = await apiClient.get<ListJobsResponse>("/api/jobs");
+export async function listJobs(options?: { customerId?: string }): Promise<Job[]> {
+  const params =
+    options?.customerId && options.customerId.trim()
+      ? { customerId: options.customerId.trim() }
+      : undefined;
+  const { data } = await apiClient.get<ListJobsResponse>("/api/jobs", { params });
   return data.jobs.map(mapApiJobToJob);
 }
 
