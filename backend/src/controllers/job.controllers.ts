@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import type { UploadApiResponse } from "cloudinary";
-import type { JobPhotoSource, JobStatusType } from "../../generated/prisma/client";
+import type { JobActivityType, JobPhotoSource, JobStatusType } from "../../generated/prisma/client";
 import { prisma } from "../lib/prisma";
 import { cloudinary } from "../lib/cloudinary";
 
@@ -226,6 +226,7 @@ export const createJob = async (
         data: {
           jobId: job.id,
           companyId,
+          type: "JOB_CREATED" as JobActivityType,
           logName,
           userId: actorUserId,
         },

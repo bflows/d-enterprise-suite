@@ -244,6 +244,7 @@ model JobActivity {
   id        String  @id @default(cuid())
   jobId     String
   companyId String
+  type      JobActivityType @default(JOB_CREATED)
   logName   String
   userId    String?
 
@@ -256,6 +257,14 @@ model JobActivity {
   @@index([jobId])
   @@index([userId])
   @@index([createdAt])
+}
+
+enum JobActivityType {
+  JOB_CREATED
+  JOB_UPDATED
+  JOB_STATUS_UPDATED
+  JOB_NOTE_UPDATED
+  JOB_ATTACHMENT_ADDED
 }
 
 enum JobPhotoSource {
