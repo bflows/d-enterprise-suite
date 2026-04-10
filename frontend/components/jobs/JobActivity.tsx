@@ -18,6 +18,7 @@ import ActivityCard from "./ActivityCard";
 interface JobActivityProps {
   companyId?: string;
   jobId: string;
+  refreshSignal?: number;
 }
 
 const ACTIVITY_ICON_MAP: Record<JobActivityType, IconType> = {
@@ -35,7 +36,7 @@ function formatActor(activity: JobActivityRow): string {
   return fullName || activity.user?.email || "System";
 }
 
-export default function JobActivity({ companyId, jobId }: JobActivityProps) {
+export default function JobActivity({ companyId, jobId, refreshSignal = 0 }: JobActivityProps) {
   const [activities, setActivities] = useState<JobActivityRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +74,7 @@ export default function JobActivity({ companyId, jobId }: JobActivityProps) {
     return () => {
       cancelled = true;
     };
-  }, [companyId, jobId]);
+  }, [companyId, jobId, refreshSignal]);
 
   const sortedActivities = useMemo(
     () =>

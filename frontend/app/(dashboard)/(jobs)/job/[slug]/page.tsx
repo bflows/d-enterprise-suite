@@ -57,6 +57,7 @@ export default function JobDetailPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
+  const [activityRefreshSignal, setActivityRefreshSignal] = useState(0);
 
   useEffect(() => {
     if (isTechnician) {
@@ -187,6 +188,7 @@ export default function JobDetailPage() {
       try {
         const res = await updateJobStatus(job.id, apiStatus);
         setJob(mapApiJobToJob(res.job));
+        setActivityRefreshSignal((value) => value + 1);
       } catch (err: unknown) {
         const message =
           err && typeof err === "object" && "response" in err
@@ -249,7 +251,11 @@ export default function JobDetailPage() {
       <JobLineItems job={job} />
       <JobAttachments jobId={job.id} />
       <JobNotes jobId={job.id} notes={job.notes} onSaved={(updated) => setJob(updated)} />
-      <JobActivity companyId={companyId ?? undefined} jobId={job.id} />
+      <JobActivity
+        companyId={companyId ?? undefined}
+        jobId={job.id}
+        refreshSignal={activityRefreshSignal}
+      />
 
       {/* <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
         <h1 className="text-h5 font-bold text-neutral-900 mb-6">
