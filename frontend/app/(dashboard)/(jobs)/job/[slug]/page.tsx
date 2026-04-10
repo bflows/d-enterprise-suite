@@ -146,7 +146,7 @@ export default function JobDetailPage() {
         const res = await updateJob(updated.id, {
           title: updated.title ?? null,
           startDate: updated.date,
-          endDate: updated.date,
+          endDate: updated.endDate ?? updated.date,
           startTime: updated.startTime,
           endTime: updated.endTime || updated.startTime,
           notes: updated.notes ?? null,

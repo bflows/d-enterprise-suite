@@ -8,7 +8,9 @@ export type JobStatus =
 export interface Job {
   id: string;
   title?: string;
-  date: string; // YYYY-MM-DD
+  date: string; // YYYY-MM-DD (start)
+  /** Last day of the job window (YYYY-MM-DD). Omitted means same as `date`. */
+  endDate?: string;
   startTime: string; // HH:mm
   endTime?: string;
   status: JobStatus;
@@ -115,8 +117,9 @@ export function jobOverlapsWindow(
 ): boolean {
   if (technicianId != null && job.technicianId !== technicianId) return false;
   const jobStart = new Date(`${job.date}T${job.startTime}`).getTime();
+  const jobEndDate = job.endDate ?? job.date;
   const jobEnd = new Date(
-    `${job.date}T${job.endTime ?? job.startTime}`
+    `${jobEndDate}T${job.endTime ?? job.startTime}`
   ).getTime();
   const start = new Date(`${windowStartDate}T${windowStartTime}`).getTime();
   const end = new Date(`${windowEndDate}T${windowEndTime}`).getTime();

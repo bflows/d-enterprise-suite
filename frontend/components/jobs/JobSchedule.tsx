@@ -39,6 +39,11 @@ function formatTimeParts(time: string | undefined): { time: string; period: "AM"
 export default function JobSchedule({ job }: JobScheduleProps) {
   const technicianInitials = getTechnicianInitials(job.technicianName);
   const formattedDate = scheduleDateFmt.format(new Date(`${job.date}T12:00:00`));
+  const endDateKey = job.endDate ?? job.date;
+  const scheduleDateLabel =
+    endDateKey !== job.date
+      ? `${formattedDate} - ${scheduleDateFmt.format(new Date(`${endDateKey}T12:00:00`))}`
+      : formattedDate;
   const startTime = formatTimeParts(job.startTime);
   const endTime = formatTimeParts(job.endTime);
 
@@ -61,7 +66,7 @@ export default function JobSchedule({ job }: JobScheduleProps) {
         <p className="text-p text-neutral-800">{job.technicianName}</p>
       </div>
 
-      <p className="mt-4 text-p text-neutral-800">{formattedDate}</p>
+      <p className="mt-4 text-p text-neutral-800">{scheduleDateLabel}</p>
       <div className="mt-2 flex items-center justify-between bg-primary py-4 px-6 rounded-lg">
         <div className="flex flex-col items-end">
           <p className="text-h6 font-bold text-neutral-100">{startTime.time}</p>

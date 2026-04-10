@@ -171,6 +171,7 @@ export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
     id: apiJob.id,
     title: apiJob.title ?? undefined,
     date: toDateKey(apiJob.startDate),
+    endDate: toDateKey(apiJob.endDate),
     startTime: toTimeKey(apiJob.startTime),
     endTime: toTimeKey(apiJob.endTime),
     status,
