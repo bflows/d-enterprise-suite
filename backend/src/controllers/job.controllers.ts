@@ -565,6 +565,13 @@ export const updateJobStatus = async (
       });
     }
 
+    if (status === "COMPLETED" && (!companyIdFromBody || !userIdFromBody || !resolvedJobId)) {
+      return res.status(400).json({
+        success: false,
+        message: "companyId, userId, and jobId are required when status is COMPLETED.",
+      });
+    }
+
     const existing = await prisma.job.findFirst({
       where: { id: resolvedJobId, companyId },
       select: { id: true },
@@ -608,6 +615,18 @@ export const updateJobStatus = async (
             userId: userIdFromBody ?? sessionUserId ?? null,
             type: "JOB_STATUS_UPDATED",
             logName: "Job: On site",
+          },
+        });
+      }
+
+      if (status === "COMPLETED") {
+        await tx.jobActivity.create({
+          data: {
+            companyId: companyIdFromBody!,
+            jobId: resolvedJobId,
+            userId: userIdFromBody!,
+            type: "JOB_STATUS_UPDATED",
+            logName: "Job: Finished",
           },
         });
       }
