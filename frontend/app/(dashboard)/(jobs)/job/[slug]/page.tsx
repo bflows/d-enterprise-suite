@@ -2,10 +2,10 @@
 
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
-import { selectCurrentCompanyId, selectHasRole } from "@/features/auth/authSlice";
+import { selectCurrentCompanyId, selectHasRole, selectUser } from "@/features/auth/authSlice";
 import {
   fetchActiveTimeCard,
   selectIsClockedInTechnician,
@@ -39,6 +39,7 @@ export default function JobDetailPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
+  const user = useSelector(selectUser);
   const isTechnician = useSelector((state: RootState) =>
     selectHasRole(state, ROLE_SLUGS.TECHNICIAN)
   );
@@ -58,6 +59,7 @@ export default function JobDetailPage() {
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
   const [activityRefreshSignal, setActivityRefreshSignal] = useState(0);
+  const activityRefreshTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (isTechnician) {
@@ -116,6 +118,25 @@ export default function JobDetailPage() {
     const q = next.toString();
     router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
   }, [searchParams, job, router, pathname]);
+
+  useEffect(() => {
+    return () => {
+      if (activityRefreshTimeoutRef.current != null) {
+        window.clearTimeout(activityRefreshTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const triggerActivityRefresh = useCallback(() => {
+    setActivityRefreshSignal((value) => value + 1);
+
+    if (activityRefreshTimeoutRef.current != null) {
+      window.clearTimeout(activityRefreshTimeoutRef.current);
+    }
+    activityRefreshTimeoutRef.current = window.setTimeout(() => {
+      setActivityRefreshSignal((value) => value + 1);
+    }, 500);
+  }, []);
 
   const handleSave = useCallback(
     async (updated: Job) => {
@@ -182,13 +203,13 @@ export default function JobDetailPage() {
 
   const handleProgressStatus = useCallback(
     async (apiStatus: ApiJobStatus) => {
-      if (!job) return;
+      if (!job || !companyId || !user?.id) return;
       setProgressError(null);
       setProgressLoading(true);
       try {
-        const res = await updateJobStatus(job.id, apiStatus);
+        const res = await updateJobStatus(job.id, apiStatus, companyId, user.id);
         setJob(mapApiJobToJob(res.job));
-        setActivityRefreshSignal((value) => value + 1);
+        triggerActivityRefresh();
       } catch (err: unknown) {
         const message =
           err && typeof err === "object" && "response" in err
@@ -199,7 +220,7 @@ export default function JobDetailPage() {
         setProgressLoading(false);
       }
     },
-    [job]
+    [companyId, job, triggerActivityRefresh, user?.id]
   );
 
   if (loading) {

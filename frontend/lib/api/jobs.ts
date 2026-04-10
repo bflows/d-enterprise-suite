@@ -269,10 +269,17 @@ export type ApiJobStatus =
   | "CANCELLED";
 
 export async function updateJobStatus(
-  id: string,
-  status: ApiJobStatus
+  jobId: string,
+  status: ApiJobStatus,
+  companyId: string,
+  userId: string
 ): Promise<UpdateJobResponse> {
-  const { data } = await apiClient.put<UpdateJobResponse>("/api/jobs/status", { id, status });
+  const { data } = await apiClient.put<UpdateJobResponse>("/api/jobs/status", {
+    jobId,
+    status,
+    companyId,
+    userId,
+  });
   return data;
 }
 
