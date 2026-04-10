@@ -1,5 +1,12 @@
 import { apiClient } from "@/lib/api/client";
 
+export type JobActivityType =
+  | "JOB_CREATED"
+  | "JOB_UPDATED"
+  | "JOB_STATUS_UPDATED"
+  | "JOB_NOTE_UPDATED"
+  | "JOB_ATTACHMENT_ADDED";
+
 export interface JobActivityUser {
   id: string;
   firstName: string | null;
@@ -11,6 +18,7 @@ export interface JobActivityRow {
   id: string;
   jobId: string;
   companyId: string;
+  type: JobActivityType;
   logName: string;
   userId: string | null;
   createdAt: string;
