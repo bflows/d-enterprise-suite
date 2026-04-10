@@ -46,22 +46,15 @@ function formatJobStartTime(time: string): string {
   return `${hours12}:${minutes} ${meridiem}`;
 }
 
-/** Monday 00:00–Sunday (inclusive) of the current week, local time. `job.date` is YYYY-MM-DD. */
-function mondayOfCurrentWeek(d: Date): Date {
-  const local = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const day = local.getDay(); // 0 Sun … 6 Sat
-  const daysFromMonday = day === 0 ? 6 : day - 1;
-  local.setDate(local.getDate() - daysFromMonday);
-  return local;
-}
-
-function filterJobsCurrentWeek(jobs: Job[]): Job[] {
-  const monday = mondayOfCurrentWeek(new Date());
-  const start = toDateKey(monday);
-  const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
-  const end = toDateKey(sunday);
+/** Today through the next 7 days (inclusive of today), local time. `job.date` is YYYY-MM-DD. */
+function filterJobsNext7Days(jobs: Job[]): Job[] {
+  const today = new Date();
+  const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 6);
+  const start = toDateKey(startDate);
+  const end = toDateKey(endDate);
   return jobs
-    .filter((j) => j.date >= start && j.date <= end)
+    .filter((j) => j.date >= start && j.date <= end && j.status !== "completed")
     .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
 }
 
@@ -85,7 +78,7 @@ function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
     void listTechnicianJobs(user.id, companyId)
       .then((list) => {
         if (!cancelled) {
-          setJobs(filterJobsCurrentWeek(list));
+          setJobs(filterJobsNext7Days(list));
           setError(null);
         }
       })
@@ -128,7 +121,7 @@ function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
       )}
       {empty && (
         <p className="mt-4 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-8 text-center text-neutral-600">
-          No jobs scheduled for you this week.
+          No jobs scheduled for you in the next 7 days.
         </p>
       )}
       {jobs !== null && jobs.length > 0 && (
