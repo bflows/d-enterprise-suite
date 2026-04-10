@@ -327,7 +327,7 @@ export default function NewJobModal({
             </h2>
           </div>
           {selectedCustomer ? (
-            <div className="mt-2 flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2">
+            <div className="mt-4 flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2">
               <span className="text-p text-neutral-800">
                 {displayCustomer(selectedCustomer)}
                 {selectedCustomer.address && (
@@ -372,7 +372,7 @@ export default function NewJobModal({
                     aria-hidden="true"
                     onClick={() => setCustomerDropdownOpen(false)}
                   />
-                  <div className="px-3 py-3 absolute z-50 mt-1 w-full rounded-lg border shadow-lg max-h-64 overflow-y-auto border-neutral-300 bg-neutral-50">
+                  <div className="px-3 py-3 absolute z-50 mt-2 w-full rounded-lg border shadow-lg max-h-64 overflow-y-auto border-neutral-300 bg-neutral-50">
                     <button
                       type="button"
                       onClick={() => {
