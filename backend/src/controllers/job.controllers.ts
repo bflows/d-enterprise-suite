@@ -192,7 +192,8 @@ export const createJob = async (
         : "SCHEDULED";
 
     const actorUserId = req.user?.id ?? null;
-    const logName = `Job created${title ? `: ${title}` : ""}`;
+    const startDateLabel = `${startDate.getMonth() + 1}/${startDate.getDate()}`;
+    const logName = `Job: Scheduled ${startDateLabel}`;
     const { job, log } = await prisma.$transaction(async (tx) => {
       const job = await tx.job.create({
         data: {
