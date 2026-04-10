@@ -12,11 +12,10 @@ function queryString(v: unknown): string {
 
 function buildPostalLine(parts: {
   address: string;
-  address2: string;
   city: string;
   zipCode: string;
 }): string | null {
-  const line = [parts.address, parts.address2, parts.city, parts.zipCode]
+  const line = [parts.address, parts.city, parts.zipCode]
     .map((p) => p.trim())
     .filter(Boolean)
     .join(", ");
@@ -76,11 +75,10 @@ export async function getStreetViewForAddress(req: Request, res: Response): Prom
   }
 
   const address = queryString(req.query.address);
-  const address2 = queryString(req.query.address2);
   const city = queryString(req.query.city);
   const zipCode = queryString(req.query.zipCode);
 
-  const postalLine = buildPostalLine({ address, address2, city, zipCode });
+  const postalLine = buildPostalLine({ address, city, zipCode });
   if (!postalLine) {
     res.status(400).json({
       success: false,

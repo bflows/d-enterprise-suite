@@ -46,10 +46,9 @@ export default function JobCustomer({ job }: JobCustomerProps) {
       <div className="mt-4">
         {jobAddressLine ? (
           <JobStreetView
-            key={`${job.address ?? ""}|${job.address2 ?? ""}|${job.city ?? ""}|${job.zipCode ?? ""}`}
+            key={`${job.address ?? ""}|${job.city ?? ""}|${job.zipCode ?? ""}`}
             labelAddress={jobAddressLine}
             street={job.address}
-            address2={job.address2}
             city={job.city}
             zipCode={job.zipCode}
           />

@@ -8,7 +8,6 @@ export interface JobStreetViewProps {
   /** Display / alt text */
   labelAddress: string;
   street?: string;
-  address2?: string;
   city?: string;
   zipCode?: string;
 }
@@ -16,7 +15,6 @@ export interface JobStreetViewProps {
 export default function JobStreetView({
   labelAddress,
   street,
-  address2,
   city,
   zipCode,
 }: JobStreetViewProps) {
@@ -31,7 +29,6 @@ export default function JobStreetView({
 
     const params: Record<string, string> = {};
     if (street?.trim()) params.address = street.trim();
-    if (address2?.trim()) params.address2 = address2.trim();
     if (city?.trim()) params.city = city.trim();
     if (zipCode?.trim()) params.zipCode = zipCode.trim();
 
@@ -59,7 +56,7 @@ export default function JobStreetView({
       cancelled = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [street, address2, city, zipCode]);
+  }, [street, city, zipCode]);
 
   if (loadState === "config") {
     return (
