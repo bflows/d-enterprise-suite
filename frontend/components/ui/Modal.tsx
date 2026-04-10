@@ -81,7 +81,7 @@ export default function Modal({
           {children}
         </div>
         {/* Sticky Footer */}
-        <div className={`flex shrink-0 items-center gap-3 px-6 py-4 rounded-b-lg border-t border-neutral-400 bg-neutral-50 ${footerStartContent ? 'justify-between' : 'justify-end'}`}>
+        <div className={`flex shrink-0 items-center gap-3 px-6 py-4 border-t border-neutral-400 bg-neutral-50 md:rounded-b-lg ${footerStartContent ? 'justify-between' : 'justify-end'}`}>
           {footerStartContent ?? (!hideCancelButton && (
             <button
               type="button"
