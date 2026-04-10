@@ -5,8 +5,13 @@ import {
   HiCalendar,
   HiCheckCircle,
   HiClipboardDocumentList,
+  HiClock,
+  HiCurrencyDollar,
+  HiMapPin,
   HiPencilSquare,
   HiPhoto,
+  HiTruck,
+  HiXCircle,
 } from "react-icons/hi2";
 import {
   listJobActivities,
@@ -28,6 +33,52 @@ const ACTIVITY_ICON_MAP: Record<JobActivityType, IconType> = {
   JOB_NOTE_UPDATED: HiPencilSquare,
   JOB_ATTACHMENT_ADDED: HiPhoto,
 };
+
+const STATUS_ICON_MAP: Record<string, IconType> = {
+  SCHEDULED: HiCalendar,
+  EN_ROUTE: HiTruck,
+  ON_SITE: HiMapPin,
+  COMPLETED: HiCheckCircle,
+  INVOICED: HiCurrencyDollar,
+  PAID: HiCurrencyDollar,
+  CANCELLED: HiXCircle,
+};
+
+function normalizeJobStatus(value?: string | null): string | null {
+  if (!value) return null;
+  const normalized = value.trim().toUpperCase().replace(/[\s-]+/g, "_");
+  return normalized || null;
+}
+
+function getJobStatusFromActivity(activity: JobActivityRow): string | null {
+  const explicitStatus = normalizeJobStatus(activity.status);
+  if (explicitStatus) {
+    return explicitStatus;
+  }
+
+  // Fallback for existing logs that only include prose text in logName.
+  const raw = activity.logName.trim().toLowerCase();
+  if (!raw) return null;
+  if (raw.includes("on my way")) return "EN_ROUTE";
+  if (raw.includes("on site")) return "ON_SITE";
+  if (raw.includes("finished") || raw.includes("complete")) return "COMPLETED";
+  if (raw.includes("cancel")) return "CANCELLED";
+  if (raw.includes("paid")) return "PAID";
+  if (raw.includes("invoice")) return "INVOICED";
+  if (raw.includes("schedule")) return "SCHEDULED";
+  return null;
+}
+
+function getActivityIcon(activity: JobActivityRow): IconType {
+  if (activity.type === "JOB_STATUS_UPDATED") {
+    const status = getJobStatusFromActivity(activity);
+    if (status && STATUS_ICON_MAP[status]) {
+      return STATUS_ICON_MAP[status];
+    }
+    return HiClock;
+  }
+  return ACTIVITY_ICON_MAP[activity.type] ?? HiCalendar;
+}
 
 function formatActor(activity: JobActivityRow): string {
   const firstName = activity.user?.firstName?.trim();
@@ -111,7 +162,7 @@ export default function JobActivity({ companyId, jobId, refreshSignal = 0 }: Job
                 key={activity.id}
                 title={activity.logName}
                 actor={formatActor(activity)}
-                icon={ACTIVITY_ICON_MAP[activity.type] ?? HiCalendar}
+                icon={getActivityIcon(activity)}
                 time={createdAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                 date={createdAt.toLocaleDateString([], {
                   weekday: "long",

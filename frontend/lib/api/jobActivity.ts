@@ -19,6 +19,8 @@ export interface JobActivityRow {
   jobId: string;
   companyId: string;
   type: JobActivityType;
+  /** Optional explicit status when activity type is JOB_STATUS_UPDATED. */
+  status?: string | null;
   logName: string;
   userId: string | null;
   createdAt: string;
