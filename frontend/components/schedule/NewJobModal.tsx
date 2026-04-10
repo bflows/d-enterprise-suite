@@ -350,7 +350,7 @@ export default function NewJobModal({
           ) : (
             <>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center cursor-default">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center cursor-default">
                   <HiSearch className="size-5 text-neutral-600" />
                 </div>
                 <input
@@ -361,8 +361,8 @@ export default function NewJobModal({
                     setCustomerDropdownOpen(true);
                   }}
                   onFocus={() => setCustomerDropdownOpen(true)}
-                  placeholder="Name or phone"
-                  className="mt-2 block w-full rounded-lg border pl-10 pr-3 py-2 text-p bg-neutral-50 border-neutral-300 text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Search name or phone"
+                  className="mt-4 block w-full rounded-lg border pl-12 pr-4 py-4 text-p bg-neutral-50 border-neutral-300 text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               {customerDropdownOpen && (
