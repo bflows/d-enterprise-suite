@@ -69,7 +69,7 @@ export default function Modal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-1 -mr-2 cursor-pointer text-neutral-200 transition-colors hover:bg-neutral-200 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              className="rounded-lg p-1 -mr-2 cursor-pointer text-neutral-200 transition-colors hover:bg-neutral-50/10 hover:text-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               aria-label="Close"
             >
               <HiXMark className="size-8" />
@@ -81,12 +81,12 @@ export default function Modal({
           {children}
         </div>
         {/* Sticky Footer */}
-        <div className={`flex shrink-0 items-center gap-3 px-6 py-4 border-t border-neutral-400 bg-neutral-50 md:rounded-b-lg ${footerStartContent ? 'justify-between' : 'justify-end'}`}>
+        <div className={`flex shrink-0 items-center gap-3 px-6 py-4 border-t border-neutral-300 bg-neutral-50 md:rounded-b-lg ${footerStartContent ? 'justify-between' : 'justify-end'}`}>
           {footerStartContent ?? (!hideCancelButton && (
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-4 py-2 cursor-pointer border border-neutral-400 bg-neutral-50 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              className="rounded-lg px-4 py-2 cursor-pointer border transition-colors duration-300 ease-in-out border-neutral-300 bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
               {cancelLabel}
             </button>
@@ -96,7 +96,7 @@ export default function Modal({
               type="button"
               onClick={(e) => { primaryAction.onClick(e); }}
               disabled={primaryAction.disabled}
-              className="rounded-lg bg-primary px-4 py-2 cursor-pointer text-neutral-200 transition-colors hover:bg-primary/90 hover:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              className="rounded-lg px-4 py-2 cursor-pointer transition-colors duration-300 ease-in-out bg-primary/90 text-neutral-200 hover:bg-primary hover:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
               {primaryAction.label}
             </button>
