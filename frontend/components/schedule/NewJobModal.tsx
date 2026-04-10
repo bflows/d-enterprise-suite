@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
@@ -19,7 +20,8 @@ import {
 } from "@/lib/api/service";
 import { getAvailableTechniciansForWindow } from "@/lib/api/availability";
 import { createJob, mapApiJobToJob } from "@/lib/api/jobs";
-import { HiChevronLeft } from "react-icons/hi2";
+import { HiChevronLeft, HiPlus, HiUser } from "react-icons/hi2";
+import { HiSearch } from "react-icons/hi";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -45,6 +47,7 @@ export default function NewJobModal({
   onSave,
   existingJobs,
 }: NewJobModalProps) {
+  const router = useRouter();
   const companyId = useSelector((state: RootState) =>
     selectCurrentCompanyId(state)
   );
@@ -315,9 +318,14 @@ export default function NewJobModal({
         )}
         {/* Customer search & select */}
         <div className="relative">
-          <label className="text-p text-neutral-600">
-            Customer
-          </label>
+          <div className="flex items-center gap-x-2">
+            <div>
+              <HiUser className="size-6 text-neutral-800" />
+            </div>
+            <h2 className="text-h6 font-bold text-neutral-800">
+              Customer
+            </h2>
+          </div>
           {selectedCustomer ? (
             <div className="flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2">
               <span className="text-p text-neutral-800">
@@ -341,17 +349,22 @@ export default function NewJobModal({
             </div>
           ) : (
             <>
-              <input
-                type="text"
-                value={customerSearch}
-                onChange={(e) => {
-                  setCustomerSearch(e.target.value);
-                  setCustomerDropdownOpen(true);
-                }}
-                onFocus={() => setCustomerDropdownOpen(true)}
-                placeholder="Name or phone"
-                className="w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center cursor-default">
+                  <HiSearch className="size-5 text-neutral-600" />
+                </div>
+                <input
+                  type="text"
+                  value={customerSearch}
+                  onChange={(e) => {
+                    setCustomerSearch(e.target.value);
+                    setCustomerDropdownOpen(true);
+                  }}
+                  onFocus={() => setCustomerDropdownOpen(true)}
+                  placeholder="Name or phone"
+                  className="mt-2 block w-full rounded-lg border pl-10 pr-3 py-2 text-p bg-neutral-50 border-neutral-300 text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
               {customerDropdownOpen && (
                 <>
                   <div
@@ -359,36 +372,50 @@ export default function NewJobModal({
                     aria-hidden="true"
                     onClick={() => setCustomerDropdownOpen(false)}
                   />
-                  <div className="absolute z-50 mt-1 w-full rounded-lg border shadow-lg max-h-48 overflow-y-auto border-neutral-300 bg-neutral-100">
+                  <div className="px-3 py-3 absolute z-50 mt-1 w-full rounded-lg border shadow-lg max-h-64 overflow-y-auto border-neutral-300 bg-neutral-50">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomerDropdownOpen(false);
+                        onClose();
+                        router.push("/customers?action=newCustomer");
+                      }}
+                      className="py-2 px-3 w-full rounded-2xl flex items-center gap-x-2 cursor-pointer bg-primary/90 text-neutral-100 hover:bg-primary hover:text-neutral-50"
+                    >
+                      <div>
+                        <HiPlus className="size-6" />
+                      </div>
+                      <span className="text-p font-bold">Create Customer</span>
+                    </button>
                     {customerLoading ? (
-                      <p className="px-3 py-2 text-small text-neutral-400">
+                      <p className="mt-2 text-small text-neutral-400">
                         Searching...
                       </p>
                     ) : customerResults.length === 0 ? (
-                      <p className="px-3 py-2 text-small text-neutral-400">
+                      <p className="mt-2 text-small text-neutral-400">
                         {customerSearch.trim()
                           ? "No customers found."
                           : "Type to search customers."}
                       </p>
                     ) : (
-                      <div className="flex flex-col gap-y-1 py-3 px-2">
+                      <div className="mt-2 flex flex-col gap-y-1">
                         {customerResults.map((c) => (
                           <button
                             key={c.id}
                             type="button"
-                            className="text-left px-3 py-2 rounded-lg border bg-neutral-50 border-neutral-300 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-none"
+                            className="text-left px-4 py-2 flex items-center justify-between gap-x-2 rounded-lg cursor-pointer transition-colors duration-300 ease-in-out group hover:bg-neutral-200 hover:border-transparent focus:outline-none"
                             onClick={() => {
                               setSelectedCustomer(c);
                               setCustomerSearch("");
                               setCustomerDropdownOpen(false);
                             }}
                           >
-                            <span className="text-p text-neutral-800">
+                            <span className="text-p font-bold text-neutral-600 transition-colors duration-300 ease-in-out group-hover:text-neutral-80">
                               {displayCustomer(c)}
                             </span>
                             {c.address && (
-                              <span className="text-neutral-600 text-small block truncate">
-                                {c.address}
+                              <span className="text-neutral-600 text-small block truncate transition-colors duration-300 ease-in-out group-hover:text-neutral-800">
+                                {c.phone}
                               </span>
                             )}
                           </button>
