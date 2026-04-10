@@ -191,37 +191,53 @@ export const createJob = async (
         ? STATUS_MAP[statusFromBody]
         : "SCHEDULED";
 
-    const job = await prisma.job.create({
-      data: {
-        companyId,
-        customerId,
-        technicianId,
-        title,
-        notes: notes ?? null,
-        leadSource: leadSource ?? null,
-        status,
-        startDate,
-        endDate,
-        startTime,
-        endTime,
-        ...(serviceItemIds &&
-          serviceItemIds.length > 0 && {
-            services: {
-              connect: serviceItemIds.map((id) => ({ id })),
-            },
-          }),
-      },
-      include: {
-        customer: true,
-        technician: { include: { user: true } },
-        services: true,
-      },
+    const actorUserId = req.user?.id ?? null;
+    const logName = `Job created${title ? `: ${title}` : ""}`;
+    const { job, log } = await prisma.$transaction(async (tx) => {
+      const job = await tx.job.create({
+        data: {
+          companyId,
+          customerId,
+          technicianId,
+          title,
+          notes: notes ?? null,
+          leadSource: leadSource ?? null,
+          status,
+          startDate,
+          endDate,
+          startTime,
+          endTime,
+          ...(serviceItemIds &&
+            serviceItemIds.length > 0 && {
+              services: {
+                connect: serviceItemIds.map((id) => ({ id })),
+              },
+            }),
+        },
+        include: {
+          customer: true,
+          technician: { include: { user: true } },
+          services: true,
+        },
+      });
+
+      const log = await tx.jobActivity.create({
+        data: {
+          jobId: job.id,
+          companyId,
+          logName,
+          userId: actorUserId,
+        },
+      });
+
+      return { job, log };
     });
 
     return res.status(201).json({
       success: true,
       message: "Job created successfully",
       job,
+      log
     });
   } catch (error) {
     console.error("Create job error:", error);
