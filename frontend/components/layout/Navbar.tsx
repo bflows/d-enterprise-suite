@@ -117,7 +117,7 @@ export default function Navbar() {
               align="right"
               triggerLabel="Open menu"
               items={overflowItems}
-              trigger={<HiEllipsisVertical className="size-8 -mr-2 text-neutral-100" aria-hidden />}
+              trigger={<HiEllipsisVertical className="size-8 -mr-1 text-neutral-100" aria-hidden />}
             />
           ) : (
             <span className="block size-10" aria-hidden />
