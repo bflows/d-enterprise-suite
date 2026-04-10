@@ -319,7 +319,7 @@ export default function NewJobModal({
             Customer
           </label>
           {selectedCustomer ? (
-            <div className="flex items-center justify-between rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2">
+            <div className="flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2">
               <span className="text-p text-neutral-800">
                 {displayCustomer(selectedCustomer)}
                 {selectedCustomer.address && (
