@@ -80,7 +80,7 @@ export default function SchedulePage() {
       )}
 
       {displayLoading ? (
-        <p className="text-neutral-600 text-p">Loading schedule…</p>
+        <p className="text-neutral-600 text-p">Loading schedule...</p>
       ) : (
         <Calendar
           companyId={companyId ?? undefined}
