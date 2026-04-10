@@ -26,6 +26,18 @@ const TYPE_OPTIONS: { value: ServiceItemType; label: string }[] = [
   { value: "SERVICE", label: "Service" },
 ];
 
+function formatDuration(duration: number): string {
+  if (!Number.isFinite(duration) || duration < 0) return "0m";
+
+  const totalMinutes = Math.floor(duration);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours === 0) return `${minutes}m`;
+  if (minutes === 0) return `${hours}hr`;
+  return `${hours}hr ${minutes}m`;
+}
+
 export default function ServiceCategoryPage() {
   const params = useParams();
   const slug = typeof params?.slug === "string" ? params.slug : "";
@@ -289,7 +301,7 @@ export default function ServiceCategoryPage() {
                         {item.description || "—"}
                       </td>
                       <td className="px-4 py-3 text-neutral-700">${item.price}</td>
-                      <td className="px-4 py-3 text-neutral-700">{item.duration}</td>
+                      <td className="px-4 py-3 text-neutral-700">{formatDuration(item.duration)}</td>
                       <td className="px-4 py-3 text-neutral-700">{item.unit}</td>
                       <td className="px-4 py-3">
                         <ActionMenu
@@ -318,12 +330,20 @@ export default function ServiceCategoryPage() {
               serviceItems.map((item) => (
                 <li
                   key={item.id}
-                  className="flex items-center gap-x-2 rounded-lg px-4 border text-neutral-600 border-neutral-400 bg-neutral-50 transition-colors hover:border-primary hover:bg-neutral-100 hover:text-neutral-800"
+                  className="flex items-start gap-x-2 rounded-lg p-4 border border-neutral-300 bg-neutral-50 transition-colors hover:border-primary"
                 >
-                  <div className="min-w-0 flex-1 py-4">
-                    <p className="font-semibold text-neutral-900 truncate">{item.title}</p>
-                    <p className="text-sm text-neutral-600 mt-0.5">
-                      ${item.price} · {item.duration} · {item.unit} · {item.type}
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-h6 font-bold text-neutral-900 truncate">
+                      {item.title} ({formatDuration(item.duration)})
+                    </h2>
+                    <p className="text-p text-neutral-800 mt-2">
+                      {item.description}
+                    </p>
+                    <p className="text-p text-neutral-800 mt-2">
+                      ${item.price}
+                    </p>
+                    <p className="mt-2 py-1 px-3 rounded-full text-sm w-fit bg-neutral-200 text-neutral-600">
+                      {item.type}
                     </p>
                   </div>
                   <ActionMenu
@@ -555,7 +575,7 @@ export default function ServiceCategoryPage() {
               <p><strong className="text-neutral-800">Description:</strong><br />{viewingItem.description}</p>
             ) : null}
             <p><strong className="text-neutral-800">Price:</strong> ${viewingItem.price}</p>
-            <p><strong className="text-neutral-800">Duration:</strong> {viewingItem.duration}</p>
+            <p><strong className="text-neutral-800">Duration:</strong> {formatDuration(viewingItem.duration)}</p>
             <p><strong className="text-neutral-800">Unit:</strong> {viewingItem.unit}</p>
           </div>
         )}
