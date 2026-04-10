@@ -20,7 +20,10 @@ interface UpdateJobBody {
 }
 
 interface UpdateJobStatusBody {
-  id: string;
+  id?: string;
+  jobId?: string;
+  companyId?: string;
+  userId?: string;
   status: JobStatusType;
 }
 
@@ -529,15 +532,30 @@ export const updateJobStatus = async (
       });
     }
 
-    const userId = req.user?.id;
-    const { id, status } = req.body;
+    const { id, jobId, status, companyId: companyIdFromBody, userId: userIdFromBody } = req.body;
+    const resolvedJobId = jobId ?? id;
+    const sessionUserId = req.user?.id;
 
-    if (!id) {
+    if (!resolvedJobId) {
       return res.status(400).json({
         success: false,
         message: "Job id is required.",
       });
     }
+    if (companyIdFromBody && companyIdFromBody !== companyId) {
+      return res.status(403).json({
+        success: false,
+        message: "companyId must match the signed-in company.",
+      });
+    }
+
+    if (userIdFromBody && sessionUserId && userIdFromBody !== sessionUserId) {
+      return res.status(403).json({
+        success: false,
+        message: "userId must match the signed-in user.",
+      });
+    }
+
 
     if (!status || !ALLOWED_JOB_STATUSES.includes(status)) {
       return res.status(400).json({
@@ -548,7 +566,7 @@ export const updateJobStatus = async (
     }
 
     const existing = await prisma.job.findFirst({
-      where: { id, companyId },
+      where: { id: resolvedJobId, companyId },
       select: { id: true },
     });
 
@@ -561,7 +579,7 @@ export const updateJobStatus = async (
 
     const job = await prisma.$transaction(async (tx) => {
       const updatedJob = await tx.job.update({
-        where: { id },
+        where: { id: resolvedJobId },
         data: { status },
         include: {
           customer: true,
@@ -574,10 +592,22 @@ export const updateJobStatus = async (
         await tx.jobActivity.create({
           data: {
             companyId,
-            jobId: id,
-            userId: userId ?? null,
+            jobId: resolvedJobId,
+            userId: userIdFromBody ?? sessionUserId ?? null,
             type: "JOB_STATUS_UPDATED",
             logName: "Job: On my way",
+          },
+        });
+      }
+
+      if (status === "ON_SITE") {
+        await tx.jobActivity.create({
+          data: {
+            companyId: companyIdFromBody ?? companyId,
+            jobId: resolvedJobId,
+            userId: userIdFromBody ?? sessionUserId ?? null,
+            type: "JOB_STATUS_UPDATED",
+            logName: "Job: On site",
           },
         });
       }
