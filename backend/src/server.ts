@@ -11,6 +11,7 @@ import technicianAvailabilityRoutes from './routes/availability.routes';
 import jobRoutes from './routes/job.routes';
 import mapsRoutes from './routes/maps.routes';
 import timeCardRoutes from './routes/timeCard.routes';
+import jobActivityRoutes from './routes/jobActivity.routes';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use('/api/availability', technicianAvailabilityRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/maps', mapsRoutes);
 app.use('/api/time-cards', timeCardRoutes);
+app.use('/api/job-activity', jobActivityRoutes);
 
 const startServer = async () => {
   try {
