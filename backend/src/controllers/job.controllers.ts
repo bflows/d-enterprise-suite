@@ -514,7 +514,7 @@ export const listJobs = async (req: Request, res: Response) => {
 
 /**
  * Update only the status of a job.
- * Expects job id in route params and status in body.
+ * Expects job id and status in request body (no route params).
  */
 export const updateJobStatus = async (
   req: Request<{}, {}, UpdateJobStatusBody>,
@@ -529,6 +529,7 @@ export const updateJobStatus = async (
       });
     }
 
+    const userId = req.user?.id;
     const { id, status } = req.body;
 
     if (!id) {
@@ -558,14 +559,30 @@ export const updateJobStatus = async (
       });
     }
 
-    const job = await prisma.job.update({
-      where: { id },
-      data: { status },
-      include: {
-        customer: true,
-        technician: { include: { user: true } },
-        services: true,
-      },
+    const job = await prisma.$transaction(async (tx) => {
+      const updatedJob = await tx.job.update({
+        where: { id },
+        data: { status },
+        include: {
+          customer: true,
+          technician: { include: { user: true } },
+          services: true,
+        },
+      });
+
+      if (status === "EN_ROUTE") {
+        await tx.jobActivity.create({
+          data: {
+            companyId,
+            jobId: id,
+            userId: userId ?? null,
+            type: "JOB_STATUS_UPDATED",
+            logName: "Job: On my way",
+          },
+        });
+      }
+
+      return updatedJob;
     });
 
     return res.status(200).json({
