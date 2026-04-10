@@ -249,7 +249,7 @@ export default function JobDetailPage() {
       <JobLineItems job={job} />
       <JobAttachments jobId={job.id} />
       <JobNotes jobId={job.id} notes={job.notes} onSaved={(updated) => setJob(updated)} />
-      <JobActivity />
+      <JobActivity companyId={companyId ?? undefined} jobId={job.id} />
 
       {/* <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
         <h1 className="text-h5 font-bold text-neutral-900 mb-6">
