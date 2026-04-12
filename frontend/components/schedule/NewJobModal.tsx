@@ -526,7 +526,7 @@ export default function NewJobModal({
                     aria-hidden="true"
                     onClick={() => setTechnicianDropdownOpen(false)}
                   />
-                  <div className="absolute z-50 mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-50 mt-1 w-full rounded-lg border border-neutral-300 bg-neutral-50 shadow-lg max-h-48 overflow-y-auto">
                     {technicianLoading ? (
                       <p className="px-3 py-2 text-small text-neutral-600">
                         Searching...
@@ -540,12 +540,12 @@ export default function NewJobModal({
                           : "No technicians available for this date/time (already booked)."}
                       </p>
                     ) : (
-                      <div className="py-3 px-2 flex flex-col gap-y-1 bg-neutral-100">
+                      <div className="py-3 px-2 flex flex-col gap-y-1">
                         {availableTechnicians.map((emp) => (
                           <button
                             key={emp.id}
                             type="button"
-                            className="w-full text-left px-3 py-2 text-p rounded-lg border bg-neutral-50 border-neutral-300 text-neutral-800 hover:bg-neutral-200 focus:bg-neutral-200 focus:outline-none"
+                            className="w-full text-left px-3 py-2 text-p rounded-lg text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
                             onClick={() => {
                               setSelectedTechnician(emp);
                               setTechnicianSearch("");
