@@ -32,23 +32,21 @@ export default function JobCard({ job, onClick }: JobCardProps) {
         e.stopPropagation();
         onClick();
       }}
-      className={`
-        w-full text-left rounded-md border px-2 py-1.5 text-small transition-colors
-        hover:ring-2 hover:ring-primary/50 focus:outline-none focus:ring-2 focus:ring-primary
-        ${statusClass}
-      `}
+      className={`text-left rounded-lg px-3 py-2 w-full transition-colors cursor-pointer hover:ring-2 hover:ring-primary/50 focus:outline-none focus:ring-2 focus:ring-primary ${statusClass}`}
     >
-      <span className="font-semibold block truncate" title={displayTitle}>
+      <span className="font-bold text-p block truncate" title={displayTitle}>
         {displayTitle}
       </span>
-      <span className="text-neutral-600 block truncate" title={timeLabel}>
-        {timeLabel}
-      </span>
-      {job.customerName && (
-        <span className="text-neutral-500 block truncate" title={job.customerName}>
-          {job.customerName}
+      <div className="flex items-center justify-between mt-2 md:justify-start gap-x-2 md:mt-0 md:flex-col md:items-start">
+        <span className="text-p font-bold md:mt-2 block truncate text-neutral-600" title={timeLabel}>
+          {timeLabel}
         </span>
-      )}
+        {job.customerName && (
+          <span className="text-small block truncate text-neutral-600" title={job.customerName}>
+            {job.customerName}
+          </span>
+        )}
+      </div>
     </button>
   );
 }
