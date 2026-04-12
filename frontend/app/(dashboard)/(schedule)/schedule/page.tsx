@@ -10,6 +10,7 @@ import type { Job } from "@/lib/calendar/types";
 import Calendar from "@/components/schedule/Calendar";
 import NewJobModal from "@/components/schedule/NewJobModal";
 import { listJobs } from "@/lib/api/jobs";
+import { HiCalendar } from "react-icons/hi2";
 
 export default function SchedulePage() {
   const router = useRouter();
@@ -62,9 +63,14 @@ export default function SchedulePage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-neutral-900 text-h4 font-bold">Schedule</h1>
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-x-2">
+          <div>
+            <HiCalendar className="size-6 text-neutral-900" />
+          </div>
+          <h1 className="text-h5 font-bold text-neutral-900">Schedule</h1>
+        </div>
         <button
           type="button"
           onClick={() => setNewJobModalOpen(true)}
@@ -76,7 +82,7 @@ export default function SchedulePage() {
       </div>
 
       {jobsError && (
-        <p className="text-secondary text-p">{jobsError}</p>
+        <p className="text-secondary text-p mt-4">{jobsError}</p>
       )}
 
       {displayLoading ? (
