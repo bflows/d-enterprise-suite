@@ -151,9 +151,8 @@ export default function Calendar({ jobs }: CalendarProps) {
       >
         <div className="shrink-0 flex items-center justify-between px-2 py-1 border-b border-neutral-200 bg-neutral-100/80">
           <span
-            className={`text-small font-semibold ${
-              isToday ? "text-primary" : "text-neutral-700"
-            }`}
+            className={`text-small font-semibold ${isToday ? "text-primary" : "text-neutral-700"
+              }`}
           >
             {d.getDate()}
           </span>
@@ -168,53 +167,51 @@ export default function Calendar({ jobs }: CalendarProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col mt-6">
       {/* Header: nav + title */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={goPrev}
-            className="md:hidden p-2 rounded-lg cursor-pointer border border-neutral-400 bg-neutral-50 text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Previous week"
-          >
-            <LuChevronLeft className="size-5" />
-          </button>
-          <button
-            type="button"
-            onClick={goPrevMonth}
-            className="hidden md:flex p-2 rounded-lg cursor-pointer border border-neutral-400 bg-neutral-50 text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Previous month"
-          >
-            <LuChevronLeft className="size-5" />
-          </button>
+      <div className="flex items-center justify-between md:justify-start w-full">
+        <button
+          type="button"
+          onClick={goPrev}
+          className="md:hidden p-2 rounded-full cursor-pointer border border-neutral-300 bg-neutral-50 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-label="Previous week"
+        >
+          <LuChevronLeft className="size-5" />
+        </button>
+        <button
+          type="button"
+          onClick={goPrevMonth}
+          className="hidden md:flex p-2 rounded-full cursor-pointer border border-neutral-300 bg-neutral-50 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-label="Previous month"
+        >
+          <LuChevronLeft className="size-5" />
+        </button>
 
-          <h2 className="text-h6 flex justify-center font-bold text-neutral-900 min-w-50 text-center md:text-left">
-            <span className="md:hidden">{formatWeekRange(weekDays)}</span>
-            <span className="hidden md:inline">{formatMonthYear(viewDate)}</span>
-          </h2>
+        <h2 className="text-h6 flex justify-center font-bold text-neutral-900 min-w-50 text-center md:text-left">
+          <span className="md:hidden">{formatWeekRange(weekDays)}</span>
+          <span className="hidden md:inline">{formatMonthYear(viewDate)}</span>
+        </h2>
 
-          <button
-            type="button"
-            onClick={goNext}
-            className="md:hidden p-2 rounded-lg cursor-pointer border border-neutral-400 bg-neutral-50 text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Next week"
-          >
-            <LuChevronRight className="size-5" />
-          </button>
-          <button
-            type="button"
-            onClick={goNextMonth}
-            className="hidden md:flex p-2 rounded-lg cursor-pointer border border-neutral-400 bg-neutral-50 text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Next month"
-          >
-            <LuChevronRight className="size-5" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={goNext}
+          className="md:hidden p-2 rounded-full cursor-pointer border border-neutral-300 bg-neutral-50 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-label="Next week"
+        >
+          <LuChevronRight className="size-5" />
+        </button>
+        <button
+          type="button"
+          onClick={goNextMonth}
+          className="hidden md:flex p-2 rounded-full cursor-pointer border border-neutral-300 bg-neutral-50 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-label="Next month"
+        >
+          <LuChevronRight className="size-5" />
+        </button>
       </div>
 
       {/* Weekday labels (month view only) */}
-      <div className="hidden md:grid grid-cols-7 gap-1 md:gap-2">
+      <div className="hidden mt-4 grid-cols-7 gap-1 md:grid md:gap-2">
         {WEEKDAY_LABELS.map((label) => (
           <div
             key={label}
@@ -235,12 +232,12 @@ export default function Calendar({ jobs }: CalendarProps) {
       </div>
 
       {/* Week view (mobile): days stacked vertically, jobs under each day */}
-      <div className="md:hidden space-y-2">
+      <div className="md:hidden mt-4 flex flex-col gap-y-2">
         {weekDays.map((d) => {
           const key = toDateKey(d);
           const dayJobs = jobsByDate.get(key) ?? [];
-          const currentMonth = viewDate.getMonth();
-          const isCurrentMonth = d.getMonth() === currentMonth;
+          // const currentMonth = viewDate.getMonth();
+          // const isCurrentMonth = d.getMonth() === currentMonth;
           const isToday =
             d.getDate() === new Date().getDate() &&
             d.getMonth() === new Date().getMonth() &&
@@ -255,27 +252,27 @@ export default function Calendar({ jobs }: CalendarProps) {
               key={key}
               data-date={key}
               className={`
-                rounded-lg border overflow-hidden
-                ${!isCurrentMonth ? "opacity-60" : ""}
-                ${isToday ? "border-primary ring-2 ring-primary/30" : "border-neutral-300 bg-neutral-50"}
+                rounded-lg ring-2 overflow-hidden
+                
+                ${isToday ? "bg-neutral-50 ring-primary" : "ring-neutral-300 bg-neutral-50"}
               `}
             >
               <div
                 className={`
-                  px-3 py-2 border-b font-semibold text-small
-                  ${isToday ? "bg-primary/15 text-primary border-primary/30" : "bg-neutral-100/80 border-neutral-200 text-neutral-800"}
+                  px-3 py-2 border-b font-bold text-small
+                  ${isToday ? "bg-primary/10 text-primary border-primary/10" : "bg-neutral-100 border-neutral-200 text-neutral-600"}
                 `}
               >
                 {dayLabel}
                 {dayJobs.length > 0 && (
-                  <span className="ml-2 text-neutral-500 font-normal">
+                  <span className="ml-2 text-neutral-400 text-small">
                     ({dayJobs.length} job{dayJobs.length !== 1 ? "s" : ""})
                   </span>
                 )}
               </div>
-              <div className="p-2 space-y-2 min-h-12">
+              <div className="flex flex-col gap-y-1 px-3 py-2">
                 {dayJobs.length === 0 ? (
-                  <p className="text-small text-neutral-500 italic py-2">No jobs scheduled</p>
+                  <p className="text-small text-neutral-400">No jobs scheduled</p>
                 ) : (
                   dayJobs.map((job) => (
                     <JobCard key={job.id} job={job} onClick={() => handleJobClick(job)} />
