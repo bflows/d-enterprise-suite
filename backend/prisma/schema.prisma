@@ -184,6 +184,7 @@ model ServiceItem {
 
   title       String
   description String
+  /// Unit price in integer USD cents (Stripe `unit_amount` / invoice line amounts).
   price       Int
   duration    Int
   unit        Int?

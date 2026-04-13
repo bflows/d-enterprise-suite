@@ -62,6 +62,7 @@ async function ensureStripeCustomer(
   return created.id;
 }
 
+/** `price` is per-unit integer USD cents (ServiceItem.price); Stripe invoice line total in cents. */
 function lineAmountCents(price: number, quantity: number): number {
   return Math.round(price * quantity);
 }

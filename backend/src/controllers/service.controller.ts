@@ -349,7 +349,7 @@ export const createServiceItem = async (req: Request, res: Response) => {
     if (!Number.isInteger(priceInt) || priceInt < 0) {
       return res.status(400).json({
         success: false,
-        message: "price must be a non-negative integer"
+        message: "price must be a non-negative integer (USD cents)"
       });
     }
 
@@ -477,7 +477,7 @@ export const updateServiceItem = async (req: Request, res: Response) => {
     if (!Number.isInteger(priceInt) || priceInt < 0) {
       return res.status(400).json({
         success: false,
-        message: "price must be a non-negative integer"
+        message: "price must be a non-negative integer (USD cents)"
       });
     }
 
