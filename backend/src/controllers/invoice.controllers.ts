@@ -181,10 +181,20 @@ export const createJobInvoice = async (
       return;
     }
 
+    const customerEmail = job.customer.email?.trim();
+    if (!customerEmail) {
+      res.status(400).json({
+        success: false,
+        message: "Customer email is required so Stripe can email the invoice.",
+      });
+      return;
+    }
+
     const currency = getDefaultInvoiceCurrency();
     const daysUntilDue = getInvoiceDaysUntilDue();
 
     const stripeCustomerId = await ensureStripeCustomer(stripe, job.customer);
+    await stripe.customers.update(stripeCustomerId, { email: customerEmail });
 
     const draft = await stripe.invoices.create(
       {
@@ -226,18 +236,32 @@ export const createJobInvoice = async (
       { idempotencyKey: `invoice-finalize-${job.id}` }
     );
 
+    let sent: Stripe.Invoice;
+    try {
+      sent = await stripe.invoices.sendInvoice(
+        finalized.id,
+        {},
+        { idempotencyKey: `invoice-send-${job.id}` }
+      );
+    } catch (sendErr) {
+      await stripe.invoices.voidInvoice(finalized.id).catch((voidErr) => {
+        console.error("Void invoice after failed send:", voidErr);
+      });
+      throw sendErr;
+    }
+
     await prisma.job.update({
       where: { id: job.id },
       data: {
-        stripeInvoiceId: finalized.id,
+        stripeInvoiceId: sent.id,
         status: "INVOICED",
       },
     });
 
     res.status(201).json({
       success: true,
-      message: "Invoice created for this job.",
-      invoice: serializeInvoice(finalized),
+      message: "Invoice created and emailed to the customer (Stripe hosted invoice).",
+      invoice: serializeInvoice(sent),
       jobId: job.id,
     });
   } catch (error) {
