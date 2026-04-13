@@ -3,6 +3,8 @@ import type { UploadApiResponse } from "cloudinary";
 import type { JobActivityType, JobPhotoSource, JobStatusType } from "../../generated/prisma/client";
 import { prisma } from "../lib/prisma";
 import { cloudinary } from "../lib/cloudinary";
+import { getStripe } from "../lib/stripe";
+import { syncJobsInvoiceStatusesFromStripe } from "../lib/stripeInvoiceJobSync";
 
 /** Request body for updating a job. Only provided fields are updated. */
 interface UpdateJobBody {
@@ -13,7 +15,17 @@ interface UpdateJobBody {
   startTime?: string; // HH:mm
   endTime?: string;
   notes?: string | null;
-  status?: "scheduled" | "en_route" | "in_progress" | "completed" | "cancelled";
+  status?:
+    | "scheduled"
+    | "en_route"
+    | "in_progress"
+    | "completed"
+    | "invoiced"
+    | "paid"
+    | "void"
+    | "uncollectible"
+    | "overdue"
+    | "cancelled";
   technicianId?: string;
   /** IDs of service items to attach to this job. Replaces existing services when provided. */
   serviceItemIds?: string[];
@@ -78,6 +90,11 @@ const STATUS_MAP: Record<string, JobStatusType> = {
   in_progress: "ON_SITE",
   completed: "COMPLETED",
   cancelled: "CANCELLED",
+  invoiced: "INVOICED",
+  paid: "PAID",
+  void: "VOID",
+  uncollectible: "UNCOLLECTIBLE",
+  overdue: "OVERDUE",
 };
 
 const ALLOWED_JOB_STATUSES: JobStatusType[] = [
@@ -87,6 +104,9 @@ const ALLOWED_JOB_STATUSES: JobStatusType[] = [
   "COMPLETED",
   "INVOICED",
   "PAID",
+  "VOID",
+  "UNCOLLECTIBLE",
+  "OVERDUE",
   "CANCELLED",
 ];
 
@@ -458,7 +478,7 @@ export const listTechnicianJobs = async (
       });
     }
 
-    const jobs = await prisma.job.findMany({
+    let jobs = await prisma.job.findMany({
       where: { companyId, technicianId: employee.id },
       include: {
         customer: true,
@@ -467,6 +487,20 @@ export const listTechnicianJobs = async (
       },
       orderBy: [{ startDate: "asc" }, { startTime: "asc" }],
     });
+
+    const stripe = getStripe();
+    if (stripe && jobs.some((j) => j.stripeInvoiceId)) {
+      await syncJobsInvoiceStatusesFromStripe(stripe, jobs);
+      jobs = await prisma.job.findMany({
+        where: { companyId, technicianId: employee.id },
+        include: {
+          customer: true,
+          technician: { include: { user: true } },
+          services: true,
+        },
+        orderBy: [{ startDate: "asc" }, { startTime: "asc" }],
+      });
+    }
 
     return res.status(200).json({ jobs });
   } catch (error) {
@@ -495,7 +529,7 @@ export const listJobs = async (req: Request, res: Response) => {
     const customerId =
       typeof customerIdRaw === "string" && customerIdRaw.trim() ? customerIdRaw.trim() : undefined;
 
-    const jobs = await prisma.job.findMany({
+    let jobs = await prisma.job.findMany({
       where: customerId ? { companyId, customerId } : { companyId },
       include: {
         customer: true,
@@ -504,6 +538,20 @@ export const listJobs = async (req: Request, res: Response) => {
       },
       orderBy: [{ startDate: "asc" }, { startTime: "asc" }],
     });
+
+    const stripe = getStripe();
+    if (stripe && jobs.some((j) => j.stripeInvoiceId)) {
+      await syncJobsInvoiceStatusesFromStripe(stripe, jobs);
+      jobs = await prisma.job.findMany({
+        where: customerId ? { companyId, customerId } : { companyId },
+        include: {
+          customer: true,
+          technician: { include: { user: true } },
+          services: true,
+        },
+        orderBy: [{ startDate: "asc" }, { startTime: "asc" }],
+      });
+    }
 
     return res.status(200).json({ jobs });
   } catch (error) {
@@ -561,7 +609,7 @@ export const updateJobStatus = async (
       return res.status(400).json({
         success: false,
         message:
-          "Invalid status. Allowed values: SCHEDULED, EN_ROUTE, ON_SITE, COMPLETED, INVOICED, PAID, CANCELLED.",
+          "Invalid status. Allowed values: SCHEDULED, EN_ROUTE, ON_SITE, COMPLETED, INVOICED, PAID, VOID, UNCOLLECTIBLE, OVERDUE, CANCELLED.",
       });
     }
 

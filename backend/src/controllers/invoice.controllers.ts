@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import type { JobActivityType } from "../../generated/prisma/client";
 import { prisma } from "../lib/prisma";
 import { getDefaultInvoiceCurrency, getInvoiceDaysUntilDue, getStripe } from "../lib/stripe";
+import { syncJobStatusFromStripeInvoice } from "../lib/stripeInvoiceJobSync";
 
 interface JobInvoiceBody {
   jobId: string;
@@ -163,6 +164,7 @@ export const createJobInvoice = async (
 
     if (job.stripeInvoiceId) {
       const existing = await stripe.invoices.retrieve(job.stripeInvoiceId);
+      await syncJobStatusFromStripeInvoice(existing);
       res.status(200).json({
         success: true,
         message: "Invoice already exists for this job.",
@@ -373,6 +375,7 @@ export const getJobInvoice = async (req: Request, res: Response): Promise<void> 
     }
 
     const inv = await stripe.invoices.retrieve(job.stripeInvoiceId);
+    await syncJobStatusFromStripeInvoice(inv);
     res.status(200).json({
       success: true,
       invoice: serializeInvoice(inv),

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -13,6 +13,7 @@ import mapsRoutes from './routes/maps.routes';
 import timeCardRoutes from './routes/timeCard.routes';
 import jobActivityRoutes from './routes/jobActivity.routes';
 import invoiceRoutes from './routes/invoice.routes';
+import { handleStripeWebhook } from './controllers/stripe.webhook.controllers';
 
 dotenv.config();
 
@@ -26,6 +27,16 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Stripe webhooks require the raw body for signature verification (must run before express.json()).
+app.post(
+  '/api/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  (req: Request, res: Response, next) => {
+    void Promise.resolve(handleStripeWebhook(req, res)).catch(next);
+  }
+);
+
 app.use(express.json());
 app.use(cookieParser());
 

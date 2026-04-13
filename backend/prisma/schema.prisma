@@ -208,6 +208,12 @@ enum JobStatusType {
   COMPLETED
   INVOICED
   PAID
+  /// Matches Stripe invoice `void`
+  VOID
+  /// Matches Stripe invoice `uncollectible`
+  UNCOLLECTIBLE
+  /// Stripe invoice `open` with `due_date` in the past
+  OVERDUE
   CANCELLED
 }
 
