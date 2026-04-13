@@ -5,7 +5,8 @@ export type JobActivityType =
   | "JOB_UPDATED"
   | "JOB_STATUS_UPDATED"
   | "JOB_NOTE_UPDATED"
-  | "JOB_ATTACHMENT_ADDED";
+  | "JOB_ATTACHMENT_ADDED"
+  | "JOB_INVOICE_SENT";
 
 export interface JobActivityUser {
   id: string;

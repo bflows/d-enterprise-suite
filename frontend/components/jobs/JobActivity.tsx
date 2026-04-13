@@ -32,6 +32,7 @@ const ACTIVITY_ICON_MAP: Record<JobActivityType, IconType> = {
   JOB_STATUS_UPDATED: HiCheckCircle,
   JOB_NOTE_UPDATED: HiPencilSquare,
   JOB_ATTACHMENT_ADDED: HiPhoto,
+  JOB_INVOICE_SENT: HiCurrencyDollar,
 };
 
 const STATUS_ICON_MAP: Record<string, IconType> = {
@@ -85,6 +86,44 @@ function formatActor(activity: JobActivityRow): string {
   const lastName = activity.user?.lastName?.trim();
   const fullName = [firstName, lastName].filter(Boolean).join(" ");
   return fullName || activity.user?.email || "System";
+}
+
+/**
+ * Display-only: Stripe invoice numbers look like PREFIX-0008; show the numeric suffix
+ * without leading zeros (does not change stored logName).
+ */
+function formatInvoiceSentLogName(logName: string): string {
+  const trimmed = logName.trim();
+  const withInvoice = trimmed.match(/^Invoice\s+#(.+)\s+sent$/i);
+  const hashOnly = trimmed.match(/^#(.+)\s+sent$/i);
+  const invoicePart = withInvoice?.[1]?.trim() ?? hashOnly?.[1]?.trim();
+  if (!invoicePart) {
+    return logName;
+  }
+
+  const segments = invoicePart.split("-");
+  let numericStr: string | undefined;
+  if (segments.length >= 2 && /^\d+$/.test(segments[1])) {
+    numericStr = segments[1];
+  } else if (segments.length === 1 && /^\d+$/.test(segments[0])) {
+    numericStr = segments[0];
+  }
+  if (numericStr === undefined) {
+    return logName;
+  }
+
+  const n = parseInt(numericStr, 10);
+  if (withInvoice) {
+    return `Invoice #${n} sent`;
+  }
+  return `#${n} sent`;
+}
+
+function formatActivityTitle(activity: JobActivityRow): string {
+  if (activity.type === "JOB_INVOICE_SENT") {
+    return formatInvoiceSentLogName(activity.logName);
+  }
+  return activity.logName;
 }
 
 export default function JobActivity({ companyId, jobId, refreshSignal = 0 }: JobActivityProps) {
@@ -160,7 +199,7 @@ export default function JobActivity({ companyId, jobId, refreshSignal = 0 }: Job
             return (
               <ActivityCard
                 key={activity.id}
-                title={activity.logName}
+                title={formatActivityTitle(activity)}
                 actor={formatActor(activity)}
                 icon={getActivityIcon(activity)}
                 time={createdAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
