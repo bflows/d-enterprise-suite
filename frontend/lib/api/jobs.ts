@@ -83,7 +83,14 @@ export interface UpdateJobBody {
   startTime?: string;
   endTime?: string;
   notes?: string | null;
-  status?: "scheduled" | "en_route" | "in_progress" | "completed" | "cancelled";
+  status?:
+    | "scheduled"
+    | "en_route"
+    | "in_progress"
+    | "completed"
+    | "invoiced"
+    | "paid"
+    | "cancelled";
   technicianId?: string;
   /** Replace job's services with these service item IDs. */
   serviceItemIds?: string[];
@@ -150,8 +157,8 @@ const STATUS_MAP: Record<string, JobStatus> = {
   ON_SITE: "in_progress",
   COMPLETED: "completed",
   CANCELLED: "cancelled",
-  INVOICED: "completed",
-  PAID: "completed",
+  INVOICED: "invoiced",
+  PAID: "paid",
 };
 
 /** Map API job to frontend Job type for calendar/schedule. */

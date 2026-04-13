@@ -13,6 +13,8 @@ const statusColors: Record<Job["status"], string> = {
   en_route: "bg-sky-500/15 text-sky-900 border-sky-500/30",
   in_progress: "bg-amber-500/15 text-amber-800 border-amber-500/30",
   completed: "bg-green-500/15 text-green-800 border-green-500/30",
+  invoiced: "bg-violet-500/15 text-violet-900 border-violet-500/30",
+  paid: "bg-emerald-600/15 text-emerald-900 border-emerald-600/30",
   cancelled: "bg-neutral-200 text-neutral-500 border-neutral-300",
 };
 

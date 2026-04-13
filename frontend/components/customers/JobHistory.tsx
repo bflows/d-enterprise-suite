@@ -21,6 +21,8 @@ function formatJobStatus(status: Job["status"]): string {
     en_route: "En route",
     in_progress: "In progress",
     completed: "Completed",
+    invoiced: "Invoiced",
+    paid: "Paid",
     cancelled: "Cancelled",
   };
   return labels[status] ?? status;

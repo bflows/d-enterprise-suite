@@ -5,7 +5,12 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
-import { selectCurrentCompanyId, selectHasRole, selectUser } from "@/features/auth/authSlice";
+import {
+  selectCurrentCompanyId,
+  selectHasAnyRole,
+  selectHasRole,
+  selectUser,
+} from "@/features/auth/authSlice";
 import {
   fetchActiveTimeCard,
   selectIsClockedInTechnician,
@@ -19,6 +24,7 @@ import {
   updateJobStatus,
   type ApiJobStatus,
 } from "@/lib/api/jobs";
+import { createJobInvoice } from "@/lib/api/invoices";
 import { parseJobSlug } from "@/lib/utils/slug";
 import JobDetailModal from "@/components/schedule/JobDetailModal";
 import Modal from "@/components/ui/Modal";
@@ -43,6 +49,9 @@ export default function JobDetailPage() {
   const isTechnician = useSelector((state: RootState) =>
     selectHasRole(state, ROLE_SLUGS.TECHNICIAN)
   );
+  const canCreateInvoice = useSelector((state: RootState) =>
+    selectHasAnyRole(state, [ROLE_SLUGS.ADMIN, ROLE_SLUGS.DISPATCHER, ROLE_SLUGS.TECHNICIAN])
+  );
   const technicianClockedIn = useSelector(selectIsClockedInTechnician);
   const slug = typeof params?.slug === "string" ? params.slug : "";
   const jobId = parseJobSlug(slug);
@@ -58,8 +67,12 @@ export default function JobDetailPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const [activityRefreshSignal, setActivityRefreshSignal] = useState(0);
   const activityRefreshTimeoutRef = useRef<number | null>(null);
+  /** Only false after unmount — not when `searchParams` changes (avoids stale "cancelled" after `router.replace`). */
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     if (isTechnician) {
@@ -120,7 +133,9 @@ export default function JobDetailPage() {
   }, [searchParams, job, router, pathname]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       if (activityRefreshTimeoutRef.current != null) {
         window.clearTimeout(activityRefreshTimeoutRef.current);
       }
@@ -137,6 +152,66 @@ export default function JobDetailPage() {
       setActivityRefreshSignal((value) => value + 1);
     }, 500);
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("action") !== "sendInvoice" || !job || !companyId) return;
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("action");
+    const q = next.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+
+    if (!job.customerId) {
+      setInvoiceError("This job has no customer; cannot create an invoice.");
+      return;
+    }
+
+    if (!canCreateInvoice) {
+      setInvoiceError("Only admins and dispatchers can create invoices.");
+      return;
+    }
+
+    const resolvedCustomerId = job.customerId;
+    const resolvedCompanyId = companyId;
+
+    setInvoiceLoading(true);
+    setInvoiceError(null);
+
+    void (async () => {
+      try {
+        await createJobInvoice({
+          jobId: job.id,
+          customerId: resolvedCustomerId,
+          companyId: resolvedCompanyId,
+        });
+        const refreshed = await getJobById(job.id);
+        if (!isMountedRef.current) return;
+        if (refreshed) {
+          setJob(refreshed);
+        }
+        triggerActivityRefresh();
+      } catch (err: unknown) {
+        const message =
+          err && typeof err === "object" && "response" in err
+            ? String((err as { response?: { data?: { message?: string } } }).response?.data?.message)
+            : "Could not create invoice.";
+        if (isMountedRef.current) {
+          setInvoiceError(message ?? "Could not create invoice.");
+        }
+      } finally {
+        // Always clear loading (searchParams/effect cleanup must not leave spinner stuck; Strict Mode safe).
+        setInvoiceLoading(false);
+      }
+    })();
+  }, [
+    searchParams,
+    job,
+    companyId,
+    canCreateInvoice,
+    router,
+    pathname,
+    triggerActivityRefresh,
+  ]);
 
   const handleSave = useCallback(
     async (updated: Job) => {
@@ -255,6 +330,24 @@ export default function JobDetailPage() {
       <h1 className="text-h4 font-bold font-neutral-900">
         {job.title}
       </h1>
+
+      {invoiceLoading && (
+        <p className="mt-2 flex items-center gap-2 text-p text-neutral-600" aria-live="polite">
+          <span
+            className="inline-block size-4 animate-spin rounded-full border-2 border-primary border-r-transparent"
+            aria-hidden
+          />
+          Creating invoice…
+        </p>
+      )}
+      {invoiceError && (
+        <p
+          className="mt-2 text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg"
+          role="alert"
+        >
+          {invoiceError}
+        </p>
+      )}
 
       {/* Progress section */}
       <JobProgress

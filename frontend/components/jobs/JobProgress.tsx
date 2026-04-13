@@ -24,6 +24,8 @@ function progressStatusLabel(status: JobStatus): string {
     en_route: "En route",
     in_progress: "On site",
     completed: "Completed",
+    invoiced: "Invoiced",
+    paid: "Paid",
     cancelled: "Cancelled",
   };
   return labels[status] ?? status;
@@ -44,7 +46,11 @@ export default function JobProgress({
   progressError,
   onUpdateStatus,
 }: JobProgressProps) {
-  const terminalProgress = status === "completed" || status === "cancelled";
+  const terminalProgress =
+    status === "completed" ||
+    status === "invoiced" ||
+    status === "paid" ||
+    status === "cancelled";
 
   const enrouteEnabled =
     isTechnician &&

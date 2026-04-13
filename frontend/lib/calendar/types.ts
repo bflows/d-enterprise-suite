@@ -3,6 +3,8 @@ export type JobStatus =
   | "en_route"
   | "in_progress"
   | "completed"
+  | "invoiced"
+  | "paid"
   | "cancelled";
 
 export interface Job {
