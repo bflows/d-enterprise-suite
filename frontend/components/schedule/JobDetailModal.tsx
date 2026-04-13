@@ -14,6 +14,7 @@ import {
   type ServiceBookCategoryItem,
   type ServiceItemListItem,
 } from "@/lib/api/service";
+import { formatUsdFromCents } from "@/lib/money";
 
 export interface JobDetailModalProps {
   companyId?: string;
@@ -386,7 +387,7 @@ export default function JobDetailModal({
                           <td className="py-2 px-3 text-neutral-900">{s.name ?? "—"}</td>
                           <td className="py-2 px-3 text-neutral-900">{s.quantity ?? "—"}</td>
                           <td className="py-2 px-3 text-neutral-900 text-right">
-                            ${Number(s.price ?? 0).toFixed(2)}
+                            {formatUsdFromCents(Number(s.price ?? 0))}
                           </td>
                           <td className="py-1 px-1">
                             <button
@@ -566,7 +567,7 @@ export default function JobDetailModal({
                                   <span className="font-medium">{item.title}</span>
                                   {item.price != null && (
                                     <span className="text-neutral-500 text-small ml-2">
-                                      ${item.price.toFixed(2)}
+                                      {formatUsdFromCents(item.price)}
                                     </span>
                                   )}
                                   {alreadyAdded && <span className="text-small ml-2">(added)</span>}

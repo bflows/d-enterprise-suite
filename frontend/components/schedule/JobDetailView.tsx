@@ -2,6 +2,7 @@
 
 import type { Job } from "@/lib/calendar/types";
 import { formatTimeLabel } from "@/lib/calendar/types";
+import { formatUsdFromCents } from "@/lib/money";
 
 export interface JobDetailViewProps {
   job: Job;
@@ -79,7 +80,7 @@ export default function JobDetailView({ job }: JobDetailViewProps) {
                       {s.quantity ?? (s as { unit?: number }).unit ?? "—"}
                     </td>
                     <td className="py-2 px-3 text-neutral-900 text-right">
-                      ${Number(s.price ?? 0).toFixed(2)}
+                      {formatUsdFromCents(Number(s.price ?? 0))}
                     </td>
                   </tr>
                 ))}

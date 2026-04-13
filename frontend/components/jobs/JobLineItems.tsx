@@ -1,19 +1,19 @@
 import type { Job } from "@/lib/calendar/types";
+import { formatUsdFromCents } from "@/lib/money";
 import { HiCurrencyDollar, HiHashtag, HiListBullet } from "react-icons/hi2";
 
 export interface JobLineItemsProps {
   job: Job;
-  /** Absolute discount amount to subtract from subtotal. */
+  /** Absolute discount in integer USD cents (same unit as line item prices). */
   discountAmount?: number;
-}
-
-function formatCurrency(value: number): string {
-  return `${value.toFixed(2)}`;
 }
 
 export default function JobLineItems({ job, discountAmount = 0 }: JobLineItemsProps) {
   const services = job.services ?? [];
-  const subtotal = services.reduce((acc, service) => acc + service.quantity * service.price, 0);
+  const subtotal = services.reduce(
+    (acc, service) => acc + service.quantity * service.price,
+    0
+  );
   const discount = Math.max(0, discountAmount);
   const total = Math.max(0, subtotal - discount);
 
@@ -52,7 +52,7 @@ export default function JobLineItems({ job, discountAmount = 0 }: JobLineItemsPr
                         <div>
                           <HiCurrencyDollar className="size-6 text-green-500" />
                         </div>
-                        <p className="text-small text-green-500">{formatCurrency(lineTotal)}</p>
+                        <p className="text-small text-green-500">{formatUsdFromCents(lineTotal)}</p>
                       </div>
                     </div>
                   </div>
@@ -64,18 +64,18 @@ export default function JobLineItems({ job, discountAmount = 0 }: JobLineItemsPr
           <div className="mt-6 border-t border-neutral-200 pt-2">
             <div className="flex items-center justify-between text-p text-neutral-700">
               <span>Subtotal</span>
-              <span>${formatCurrency(subtotal)}</span>
+              <span>{formatUsdFromCents(subtotal)}</span>
             </div>
             <hr className="pt-2 mt-2 border-t border-neutral-200" />
             {discount > 0 ? (
               <div className="flex items-center justify-between text-p text-neutral-700">
                 <span>Discount</span>
-                <span>-${formatCurrency(discount)}</span>
+                <span>-{formatUsdFromCents(discount)}</span>
               </div>
             ) : null}
             <div className="flex items-center justify-between text-p font-bold text-neutral-900">
               <span>Total</span>
-              <span>${formatCurrency(total)}</span>
+              <span>{formatUsdFromCents(total)}</span>
             </div>
           </div>
         </>

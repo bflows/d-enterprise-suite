@@ -20,6 +20,7 @@ import {
 } from "@/lib/api/service";
 import { getAvailableTechniciansForWindow } from "@/lib/api/availability";
 import { createJob, mapApiJobToJob } from "@/lib/api/jobs";
+import { formatUsdFromCents } from "@/lib/money";
 import { HiChevronLeft, HiPlus, HiUser } from "react-icons/hi2";
 import { HiSearch } from "react-icons/hi";
 
@@ -580,7 +581,7 @@ export default function NewJobModal({
                     {item.title}
                     {item.price != null && (
                       <span className="text-neutral-500 text-small ml-2">
-                        ${item.price.toFixed(2)}
+                        {formatUsdFromCents(item.price)}
                       </span>
                     )}
                   </span>
@@ -761,7 +762,7 @@ export default function NewJobModal({
                                 <span className="text-p font-bold">{item.title}</span>
                                 {item.price != null && (
                                   <span className="text-small ml-2 group-hover:text-neutral-50">
-                                    ${item.price.toFixed(2)}
+                                    {formatUsdFromCents(item.price)}
                                   </span>
                                 )}
                               </div>

@@ -141,6 +141,7 @@ export interface CreateServiceItemPayload {
   type: ServiceItemType;
   title: string;
   description: string;
+  /** Integer USD cents (Stripe-compatible). */
   price: number;
   duration: number;
   unit: number;
@@ -155,6 +156,7 @@ export interface CreateServiceItemResponse {
     type: ServiceItemType;
     title: string;
     description: string;
+    /** Integer USD cents. */
     price: number;
     duration: number;
     unit: number;
@@ -177,6 +179,7 @@ export interface ServiceItemListItem {
   type: ServiceItemType;
   title: string;
   description: string;
+  /** Integer USD cents. */
   price: number;
   duration: number;
   unit: number;
@@ -206,6 +209,7 @@ export interface UpdateServiceItemPayload {
   type: ServiceItemType;
   title: string;
   description: string;
+  /** Integer USD cents. */
   price: number;
   duration: number;
   unit: number;

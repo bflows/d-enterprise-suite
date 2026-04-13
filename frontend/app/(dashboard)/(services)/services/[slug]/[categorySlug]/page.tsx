@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import { getServiceBooks, createServiceItem, getServiceItemsByCategory, updateServiceItem, deleteServiceItem, type ServiceBookItem, type ServiceItemType, type ServiceItemListItem } from "@/lib/api/service";
+import { formatUsdFromCents, wholeDollarsToCents } from "@/lib/money";
 import { slugify } from "@/lib/utils/slug";
 import { LuPlus, LuEllipsisVertical, LuExternalLink, LuPencil, LuTrash2, LuMoveLeft } from "react-icons/lu";
 import Modal from "@/components/ui/Modal";
@@ -156,7 +157,7 @@ export default function ServiceCategoryPage() {
           setEditType(item.type);
           setEditTitle(item.title);
           setEditDescription(item.description ?? "");
-          setEditPrice(String(item.price));
+          setEditPrice(String(Math.round(item.price / 100)));
           setEditDuration(String(item.duration));
           setEditUnit(String(item.unit));
           setEditError(null);
@@ -300,7 +301,7 @@ export default function ServiceCategoryPage() {
                       <td className="max-w-50 truncate px-4 py-3 text-neutral-600" title={item.description}>
                         {item.description || "—"}
                       </td>
-                      <td className="px-4 py-3 text-neutral-700">${item.price}</td>
+                      <td className="px-4 py-3 text-neutral-700">{formatUsdFromCents(item.price)}</td>
                       <td className="px-4 py-3 text-neutral-700">{formatDuration(item.duration)}</td>
                       <td className="px-4 py-3 text-neutral-700">{item.unit}</td>
                       <td className="px-4 py-3">
@@ -340,7 +341,7 @@ export default function ServiceCategoryPage() {
                       {item.description}
                     </p>
                     <p className="text-p text-neutral-800 mt-2">
-                      ${item.price}
+                      {formatUsdFromCents(item.price)}
                     </p>
                     <p className="mt-2 py-1 px-3 rounded-full text-sm w-fit bg-neutral-200 text-neutral-600">
                       {item.type}
@@ -394,7 +395,7 @@ export default function ServiceCategoryPage() {
                 type: formType,
                 title: formTitle.trim(),
                 description: formDescription.trim(),
-                price: priceInt,
+                price: wholeDollarsToCents(priceInt),
                 duration: durationInt,
                 unit: unitNum,
               });
@@ -440,7 +441,7 @@ export default function ServiceCategoryPage() {
                 type: formType,
                 title: formTitle.trim(),
                 description: formDescription.trim(),
-                price: priceInt,
+                price: wholeDollarsToCents(priceInt),
                 duration: durationInt,
                 unit: unitNum,
               });
@@ -514,7 +515,7 @@ export default function ServiceCategoryPage() {
           </div>
           <div>
             <label htmlFor="service-price" className="block text-sm font-medium text-neutral-800 mb-1">
-              Price
+              Price (USD, whole dollars)
             </label>
             <input
               id="service-price"
@@ -574,7 +575,7 @@ export default function ServiceCategoryPage() {
             {viewingItem.description ? (
               <p><strong className="text-neutral-800">Description:</strong><br />{viewingItem.description}</p>
             ) : null}
-            <p><strong className="text-neutral-800">Price:</strong> ${viewingItem.price}</p>
+            <p><strong className="text-neutral-800">Price:</strong> {formatUsdFromCents(viewingItem.price)}</p>
             <p><strong className="text-neutral-800">Duration:</strong> {formatDuration(viewingItem.duration)}</p>
             <p><strong className="text-neutral-800">Unit:</strong> {viewingItem.unit}</p>
           </div>
@@ -613,7 +614,7 @@ export default function ServiceCategoryPage() {
                 type: editType,
                 title: editTitle.trim(),
                 description: editDescription.trim(),
-                price: priceInt,
+                price: wholeDollarsToCents(priceInt),
                 duration: durationInt,
                 unit: unitNum,
               });
@@ -652,7 +653,7 @@ export default function ServiceCategoryPage() {
                 type: editType,
                 title: editTitle.trim(),
                 description: editDescription.trim(),
-                price: priceInt,
+                price: wholeDollarsToCents(priceInt),
                 duration: durationInt,
                 unit: unitNum,
               });
@@ -709,7 +710,7 @@ export default function ServiceCategoryPage() {
             />
           </div>
           <div>
-            <label htmlFor="edit-service-price" className="block text-sm font-medium text-neutral-800 mb-1">Price</label>
+            <label htmlFor="edit-service-price" className="block text-sm font-medium text-neutral-800 mb-1">Price (USD, whole dollars)</label>
             <input
               id="edit-service-price"
               type="number"

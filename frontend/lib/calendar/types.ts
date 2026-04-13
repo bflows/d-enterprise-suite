@@ -32,7 +32,14 @@ export interface Job {
   /** IDs of service items (from Service Book) to attach to this job when saving. */
   serviceItemIds?: string[];
   /** Services attached to this job (populated when job is loaded from API). */
-  services?: { id: string; name: string; description?: string; quantity: number; price: number }[];
+  services?: {
+    id: string;
+    name: string;
+    description?: string;
+    quantity: number;
+    /** Per-unit price in integer USD cents (matches ServiceItem.price). */
+    price: number;
+  }[];
 }
 
 export function isSameDay(dateStr: string, d: Date): boolean {
