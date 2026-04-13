@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import type Stripe from "stripe";
+import type { JobActivityType } from "../../generated/prisma/client";
 import { prisma } from "../lib/prisma";
 import { getDefaultInvoiceCurrency, getInvoiceDaysUntilDue, getStripe } from "../lib/stripe";
 
@@ -260,12 +261,27 @@ export const createJobInvoice = async (
       throw sendErr;
     }
 
-    await prisma.job.update({
-      where: { id: job.id },
-      data: {
-        stripeInvoiceId: sent.id,
-        status: "INVOICED",
-      },
+    const invoiceLabel = sent.number?.trim() || sent.id;
+    const actorUserId = req.user?.id ?? null;
+
+    await prisma.$transaction(async (tx) => {
+      await tx.job.update({
+        where: { id: job.id },
+        data: {
+          stripeInvoiceId: sent.id,
+          status: "INVOICED",
+        },
+      });
+
+      await tx.jobActivity.create({
+        data: {
+          jobId: job.id,
+          companyId,
+          type: "JOB_INVOICE_SENT" as JobActivityType,
+          logName: `Invoice #${invoiceLabel} sent`,
+          userId: actorUserId,
+        },
+      });
     });
 
     res.status(201).json({

@@ -271,6 +271,7 @@ enum JobActivityType {
   JOB_STATUS_UPDATED
   JOB_NOTE_UPDATED
   JOB_ATTACHMENT_ADDED
+  JOB_INVOICE_SENT
 }
 
 enum JobPhotoSource {
