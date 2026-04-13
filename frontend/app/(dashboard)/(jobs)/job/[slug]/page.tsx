@@ -37,6 +37,7 @@ import JobLineItems from "@/components/jobs/JobLineItems";
 import JobAttachments from "@/components/jobs/JobAttachments";
 import JobNotes from "@/components/jobs/JobNotes";
 import JobActivity from "@/components/jobs/JobActivity";
+import { useJobNavbarActions } from "@/components/layout/JobNavbarActionsContext";
 
 export default function JobDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -52,6 +53,7 @@ export default function JobDetailPage() {
   const canCreateInvoice = useSelector((state: RootState) =>
     selectHasAnyRole(state, [ROLE_SLUGS.ADMIN, ROLE_SLUGS.DISPATCHER, ROLE_SLUGS.TECHNICIAN])
   );
+  const { setJobInvoiceDisabled } = useJobNavbarActions();
   const technicianClockedIn = useSelector(selectIsClockedInTechnician);
   const slug = typeof params?.slug === "string" ? params.slug : "";
   const jobId = parseJobSlug(slug);
@@ -167,7 +169,12 @@ export default function JobDetailPage() {
     }
 
     if (!canCreateInvoice) {
-      setInvoiceError("Only admins and dispatchers can create invoices.");
+      setInvoiceError("Only admins, dispatchers, and technicians can create invoices.");
+      return;
+    }
+
+    if (job.status !== "completed") {
+      setInvoiceError("Invoices can only be created when the job status is completed.");
       return;
     }
 
@@ -212,6 +219,21 @@ export default function JobDetailPage() {
     pathname,
     triggerActivityRefresh,
   ]);
+
+  useEffect(() => {
+    if (!job) {
+      setJobInvoiceDisabled(true);
+      return;
+    }
+    const disabled = !canCreateInvoice || job.status !== "completed";
+    setJobInvoiceDisabled(disabled);
+  }, [job, canCreateInvoice, setJobInvoiceDisabled]);
+
+  useEffect(() => {
+    return () => {
+      setJobInvoiceDisabled(true);
+    };
+  }, [setJobInvoiceDisabled]);
 
   const handleSave = useCallback(
     async (updated: Job) => {

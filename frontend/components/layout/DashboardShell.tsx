@@ -19,6 +19,7 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import MobileNav from "./MobileNav";
 import { MobileNavMenuProvider } from "./MobileNavMenu";
+import { JobNavbarActionsProvider } from "./JobNavbarActionsContext";
 
 export default function DashboardShell({
   children,
@@ -47,16 +48,18 @@ export default function DashboardShell({
   return (
     <RequireAuth>
       <MobileNavMenuProvider>
-        <div className="bg-neutral-200 flex flex-col sm:flex-row h-screen overflow-hidden">
-          <Navbar />
-          <Sidebar />
-          <main className="flex-1 min-h-0 overflow-y-auto">
-            <div className="max-w-7xl min-h-full mx-auto px-6 py-6">
-              {children}
-            </div>
-          </main>
-          <MobileNav />
-        </div>
+        <JobNavbarActionsProvider>
+          <div className="bg-neutral-200 flex flex-col sm:flex-row h-screen overflow-hidden">
+            <Navbar />
+            <Sidebar />
+            <main className="flex-1 min-h-0 overflow-y-auto">
+              <div className="max-w-7xl min-h-full mx-auto px-6 py-6">
+                {children}
+              </div>
+            </main>
+            <MobileNav />
+          </div>
+        </JobNavbarActionsProvider>
       </MobileNavMenuProvider>
     </RequireAuth>
   );

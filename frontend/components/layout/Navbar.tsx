@@ -19,6 +19,7 @@ import {
   HiCreditCard,
 } from "react-icons/hi2";
 import ActionMenu, { type ActionMenuItem } from "@/components/ui/ActionMenu";
+import { useJobNavbarActions } from "./JobNavbarActionsContext";
 
 const backButtonClass =
   "flex items-center justify-center -ml-2 p-1 rounded-md cursor-pointer text-neutral-100 hover:bg-white/10";
@@ -30,6 +31,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { openMenu } = useMobileNavMenu();
+  const { jobInvoiceDisabled } = useJobNavbarActions();
   const left = resolveMobileNavbarLeft(pathname);
   const right = resolveMobileNavbarRight(pathname);
 
@@ -47,10 +49,14 @@ export default function Navbar() {
       return { label: d.label, icon, href: d.href, iconClassName: "size-6" };
     }
 
+    const disabled =
+      d.action === "sendInvoice" && jobInvoiceDisabled ? true : undefined;
+
     return {
       label: d.label,
       icon,
       iconClassName: "size-6",
+      disabled,
       onClick: () => {
         router.push(`${pathname}?action=${encodeURIComponent(d.action)}`);
       },
