@@ -178,6 +178,11 @@ export default function JobDetailPage() {
       return;
     }
 
+    if (!job.customerEmail?.trim()) {
+      setInvoiceError("Add a customer email on this job before sending an invoice (Stripe emails the hosted invoice).");
+      return;
+    }
+
     const resolvedCustomerId = job.customerId;
     const resolvedCompanyId = companyId;
 
