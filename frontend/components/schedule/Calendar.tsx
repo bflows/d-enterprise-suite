@@ -270,7 +270,7 @@ export default function Calendar({ jobs }: CalendarProps) {
                   </span>
                 )}
               </div>
-              <div className="flex flex-col gap-y-1 px-3 py-2">
+              <div className="flex flex-col gap-y-1 px-2 py-2">
                 {dayJobs.length === 0 ? (
                   <p className="text-small text-neutral-400">No jobs scheduled</p>
                 ) : (
