@@ -90,6 +90,9 @@ export interface UpdateJobBody {
     | "completed"
     | "invoiced"
     | "paid"
+    | "void"
+    | "uncollectible"
+    | "overdue"
     | "cancelled";
   technicianId?: string;
   /** Replace job's services with these service item IDs. */
@@ -159,6 +162,9 @@ const STATUS_MAP: Record<string, JobStatus> = {
   CANCELLED: "cancelled",
   INVOICED: "invoiced",
   PAID: "paid",
+  VOID: "void",
+  UNCOLLECTIBLE: "uncollectible",
+  OVERDUE: "overdue",
 };
 
 /** Map API job to frontend Job type for calendar/schedule. */
@@ -274,6 +280,9 @@ export type ApiJobStatus =
   | "COMPLETED"
   | "INVOICED"
   | "PAID"
+  | "VOID"
+  | "UNCOLLECTIBLE"
+  | "OVERDUE"
   | "CANCELLED";
 
 export async function updateJobStatus(

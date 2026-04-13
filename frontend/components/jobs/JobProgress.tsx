@@ -26,6 +26,9 @@ function progressStatusLabel(status: JobStatus): string {
     completed: "Completed",
     invoiced: "Invoiced",
     paid: "Paid",
+    void: "Void",
+    uncollectible: "Uncollectible",
+    overdue: "Overdue",
     cancelled: "Cancelled",
   };
   return labels[status] ?? status;
@@ -50,6 +53,9 @@ export default function JobProgress({
     status === "completed" ||
     status === "invoiced" ||
     status === "paid" ||
+    status === "void" ||
+    status === "uncollectible" ||
+    status === "overdue" ||
     status === "cancelled";
 
   const enrouteEnabled =

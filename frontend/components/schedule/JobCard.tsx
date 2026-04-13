@@ -15,6 +15,9 @@ const statusColors: Record<Job["status"], string> = {
   completed: "bg-green-500/15 text-green-800 border-green-500/30",
   invoiced: "bg-violet-500/15 text-violet-900 border-violet-500/30",
   paid: "bg-emerald-600/15 text-emerald-900 border-emerald-600/30",
+  void: "bg-neutral-200 text-neutral-600 border-neutral-300",
+  uncollectible: "bg-rose-500/15 text-rose-900 border-rose-500/30",
+  overdue: "bg-orange-500/15 text-orange-900 border-orange-500/30",
   cancelled: "bg-neutral-200 text-neutral-500 border-neutral-300",
 };
 

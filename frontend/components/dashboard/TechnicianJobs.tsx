@@ -26,6 +26,9 @@ function formatJobStatus(status: Job["status"]): string {
     completed: "Completed",
     invoiced: "Invoiced",
     paid: "Paid",
+    void: "Void",
+    uncollectible: "Uncollectible",
+    overdue: "Overdue",
     cancelled: "Cancelled",
   };
   return labels[status] ?? status;

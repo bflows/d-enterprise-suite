@@ -5,6 +5,9 @@ export type JobStatus =
   | "completed"
   | "invoiced"
   | "paid"
+  | "void"
+  | "uncollectible"
+  | "overdue"
   | "cancelled";
 
 export interface Job {
