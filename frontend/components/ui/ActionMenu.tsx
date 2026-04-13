@@ -120,7 +120,7 @@ export default function ActionMenu({
                     href={item.href}
                     role="menuitem"
                     onClick={() => setOpen(false)}
-                    className="flex w-full items-center gap-x-2 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out border border-neutral-300 bg-neutral-200 text-neutral-800 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex w-full items-center gap-x-3 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out bg-neutral-50 text-neutral-800 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <div>
                       {(() => {
@@ -144,7 +144,7 @@ export default function ActionMenu({
                   role="menuitem"
                   onClick={() => handleItemClick(item)}
                   disabled={item.disabled || !item.onClick}
-                  className="flex w-full items-center gap-x-2 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out border border-neutral-300 bg-neutral-200 text-neutral-800 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full items-center gap-x-3 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out bg-neutral-50 text-neutral-800 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <div>
                     {(() => {
