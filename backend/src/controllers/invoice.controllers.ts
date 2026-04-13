@@ -67,6 +67,15 @@ function lineAmountCents(price: number, quantity: number): number {
   return Math.round(price * quantity);
 }
 
+/** Stripe invoice lines only expose one description string; include catalog copy when present. */
+function serviceItemInvoiceDescription(title: string, serviceDescription: string): string {
+  const t = title.trim();
+  const d = serviceDescription.trim();
+  if (!d) return t || "Line item";
+  if (!t) return d;
+  return `${t} - ${d}`;
+}
+
 function serializeInvoice(inv: Stripe.Invoice) {
   return {
     id: inv.id,
@@ -225,7 +234,7 @@ export const createJobInvoice = async (
           invoice: draft.id,
           amount,
           currency,
-          description: s.title,
+          description: serviceItemInvoiceDescription(s.title, s.description),
         },
         { idempotencyKey: `invoice-item-${draft.id}-${s.id}` }
       );
