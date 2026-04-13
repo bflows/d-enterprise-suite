@@ -127,6 +127,8 @@ model Customer {
   lastName    String
   email       String?
   phone       String
+  /// Stripe Customer id (cus_…); set when first invoice is created for this customer.
+  stripeCustomerId String? @unique
   leadSource  String?
   address     String
   address2    String?
@@ -213,6 +215,9 @@ model Job {
   companyId    String
   customerId   String
   technicianId String
+
+  /// Stripe Invoice id (in_…); at most one invoice per job.
+  stripeInvoiceId String? @unique
 
   title      String?
   notes      String?

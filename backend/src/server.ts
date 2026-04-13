@@ -12,6 +12,7 @@ import jobRoutes from './routes/job.routes';
 import mapsRoutes from './routes/maps.routes';
 import timeCardRoutes from './routes/timeCard.routes';
 import jobActivityRoutes from './routes/jobActivity.routes';
+import invoiceRoutes from './routes/invoice.routes';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/maps', mapsRoutes);
 app.use('/api/time-cards', timeCardRoutes);
 app.use('/api/job-activity', jobActivityRoutes);
+app.use('/api/invoices', invoiceRoutes);
 
 const startServer = async () => {
   try {
