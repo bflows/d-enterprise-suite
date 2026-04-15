@@ -62,6 +62,7 @@ model Company {
   timeCards     TimeCard[]
   jobPhotos     JobPhoto[]
   jobActivities JobActivity[]
+  invoices      Invoice[]
 
   @@index([id])
 }
@@ -206,13 +207,15 @@ enum JobStatusType {
   EN_ROUTE
   ON_SITE
   COMPLETED
+  CANCELLED
+}
+
+/// Billing / payment state for the job’s invoice (separate from field `Job.status`).
+enum InvoiceStatusType {
   INVOICED
   PAID
-  /// Matches Stripe invoice `void`
   VOID
-  /// Matches Stripe invoice `uncollectible`
-  UNCOLLECTIBLE
-  /// Stripe invoice `open` with `due_date` in the past
+  UNCOLLECTABLE
   OVERDUE
   CANCELLED
 }
@@ -222,9 +225,6 @@ model Job {
   companyId    String
   customerId   String
   technicianId String
-
-  /// Stripe Invoice id (in_…); at most one invoice per job.
-  stripeInvoiceId String? @unique
 
   title      String?
   notes      String?
@@ -245,11 +245,29 @@ model Job {
   services   ServiceItem[]
   photos     JobPhoto[]
   activities JobActivity[]
+  invoice    Invoice?
 
   @@index([companyId])
   @@index([customerId])
   @@index([technicianId])
   @@index([startDate])
+}
+
+/// At most one invoice row per job; `stripeInvoiceId` is set when a Stripe invoice exists.
+model Invoice {
+  id              String            @id @default(cuid())
+  companyId       String
+  jobId           String            @unique
+  stripeInvoiceId String?           @unique
+  status          InvoiceStatusType @default(INVOICED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  job     Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
 }
 
 model JobActivity {

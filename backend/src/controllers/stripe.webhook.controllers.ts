@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type Stripe from "stripe";
 import { getStripe } from "../lib/stripe";
-import { syncJobStatusFromStripeInvoice } from "../lib/stripeInvoiceJobSync";
+import { syncInvoiceFromStripe } from "../lib/stripeInvoiceJobSync";
 
 const RELEVANT_EVENTS = new Set<Stripe.Event.Type>([
   "invoice.paid",
@@ -11,7 +11,7 @@ const RELEVANT_EVENTS = new Set<Stripe.Event.Type>([
 ]);
 
 /**
- * Stripe webhook: verify signature and sync job status from invoice events.
+ * Stripe webhook: verify signature and sync invoice status from Stripe invoice events.
  * Requires raw body (`express.raw`) and `STRIPE_SECRET_KEY`.
  */
 export const handleStripeWebhook = async (req: Request, res: Response): Promise<void> => {
@@ -60,10 +60,10 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
   }
 
   try {
-    await syncJobStatusFromStripeInvoice(inv);
+    await syncInvoiceFromStripe(inv);
   } catch (e) {
-    console.error("Stripe webhook job sync error:", e);
-    res.status(500).json({ success: false, message: "Failed to sync job from invoice." });
+    console.error("Stripe webhook invoice sync error:", e);
+    res.status(500).json({ success: false, message: "Failed to sync invoice from Stripe." });
     return;
   }
 

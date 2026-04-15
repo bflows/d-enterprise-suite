@@ -8,7 +8,7 @@ import {
   getStripe,
   getStripePublishableKey,
 } from "../lib/stripe";
-import { syncJobStatusFromStripeInvoice } from "../lib/stripeInvoiceJobSync";
+import { syncInvoiceFromStripe } from "../lib/stripeInvoiceJobSync";
 
 interface JobInvoiceBody {
   jobId: string;
@@ -109,7 +109,7 @@ function serializeInvoice(inv: Stripe.Invoice) {
 
 /**
  * POST body: jobId, customerId, companyId — creates a single finalized Stripe invoice for the job
- * (line items from attached services). Idempotent if the job already has stripeInvoiceId.
+ * (line items from attached services). Idempotent if the job already has an Invoice with stripeInvoiceId.
  */
 export const createJobInvoice = async (
   req: Request<{}, {}, JobInvoiceBody>,
@@ -157,6 +157,7 @@ export const createJobInvoice = async (
         customer: true,
         services: true,
         company: { select: { name: true } },
+        invoice: true,
       },
     });
 
@@ -176,9 +177,9 @@ export const createJobInvoice = async (
       return;
     }
 
-    if (job.stripeInvoiceId) {
-      const existing = await stripe.invoices.retrieve(job.stripeInvoiceId);
-      await syncJobStatusFromStripeInvoice(existing);
+    if (job.invoice?.stripeInvoiceId) {
+      const existing = await stripe.invoices.retrieve(job.invoice.stripeInvoiceId);
+      await syncInvoiceFromStripe(existing);
       res.status(200).json({
         success: true,
         message: "Invoice already exists for this job.",
@@ -281,9 +282,10 @@ export const createJobInvoice = async (
     const actorUserId = req.user?.id ?? null;
 
     await prisma.$transaction(async (tx) => {
-      await tx.job.update({
-        where: { id: job.id },
+      await tx.invoice.create({
         data: {
+          companyId: job.companyId,
+          jobId: job.id,
           stripeInvoiceId: sent.id,
           status: "INVOICED",
         },
@@ -369,7 +371,7 @@ export const getJobInvoice = async (req: Request, res: Response): Promise<void> 
 
     const job = await prisma.job.findFirst({
       where: { id: jobId, companyId, customerId },
-      select: { id: true, stripeInvoiceId: true },
+      select: { id: true, invoice: { select: { stripeInvoiceId: true } } },
     });
 
     if (!job) {
@@ -380,7 +382,8 @@ export const getJobInvoice = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    if (!job.stripeInvoiceId) {
+    const stripeInvoiceId = job.invoice?.stripeInvoiceId ?? null;
+    if (!stripeInvoiceId) {
       res.status(404).json({
         success: false,
         message: "No Stripe invoice has been created for this job yet.",
@@ -388,8 +391,8 @@ export const getJobInvoice = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const inv = await stripe.invoices.retrieve(job.stripeInvoiceId);
-    await syncJobStatusFromStripeInvoice(inv);
+    const inv = await stripe.invoices.retrieve(stripeInvoiceId);
+    await syncInvoiceFromStripe(inv);
     res.status(200).json({
       success: true,
       invoice: serializeInvoice(inv),
@@ -449,7 +452,7 @@ export const getInvoiceStripeConfig = async (req: Request, res: Response): Promi
 };
 
 /**
- * Mark the job's Stripe invoice paid out-of-band (cash or check). Syncs job to PAID.
+ * Mark the job's Stripe invoice paid out-of-band (cash or check). Syncs the Invoice row to PAID.
  */
 export const markJobInvoicePaidOutOfBand = async (
   req: Request<{}, {}, JobInvoicePayOutOfBandBody>,
@@ -493,7 +496,11 @@ export const markJobInvoicePaidOutOfBand = async (
 
     const job = await prisma.job.findFirst({
       where: { id: jobId, companyId, customerId },
-      select: { id: true, stripeInvoiceId: true, status: true },
+      select: {
+        id: true,
+        status: true,
+        invoice: { select: { stripeInvoiceId: true } },
+      },
     });
 
     if (!job) {
@@ -512,7 +519,8 @@ export const markJobInvoicePaidOutOfBand = async (
       return;
     }
 
-    if (!job.stripeInvoiceId) {
+    const stripeInvoiceId = job.invoice?.stripeInvoiceId ?? null;
+    if (!stripeInvoiceId) {
       res.status(400).json({
         success: false,
         message: "No invoice exists for this job yet. Send an invoice first.",
@@ -520,9 +528,9 @@ export const markJobInvoicePaidOutOfBand = async (
       return;
     }
 
-    const existing = await stripe.invoices.retrieve(job.stripeInvoiceId);
+    const existing = await stripe.invoices.retrieve(stripeInvoiceId);
     if (existing.status === "paid") {
-      await syncJobStatusFromStripeInvoice(existing);
+      await syncInvoiceFromStripe(existing);
       res.status(200).json({
         success: true,
         message: "Invoice is already paid.",
@@ -557,7 +565,7 @@ export const markJobInvoicePaidOutOfBand = async (
       { idempotencyKey: `invoice-oob-${existing.id}-${paidVia}` }
     );
 
-    await syncJobStatusFromStripeInvoice(paid);
+    await syncInvoiceFromStripe(paid);
 
     res.status(200).json({
       success: true,
@@ -628,7 +636,7 @@ export const payJobInvoiceWithCard = async (
 
     const job = await prisma.job.findFirst({
       where: { id: jobId, companyId, customerId },
-      include: { customer: true },
+      include: { customer: true, invoice: true },
     });
 
     if (!job) {
@@ -647,7 +655,8 @@ export const payJobInvoiceWithCard = async (
       return;
     }
 
-    if (!job.stripeInvoiceId) {
+    const stripeInvoiceId = job.invoice?.stripeInvoiceId ?? null;
+    if (!stripeInvoiceId) {
       res.status(400).json({
         success: false,
         message: "No invoice exists for this job yet. Send an invoice first.",
@@ -669,9 +678,9 @@ export const payJobInvoiceWithCard = async (
       await stripe.paymentMethods.attach(paymentMethodId.trim(), { customer: stripeCustomerId });
     }
 
-    const existing = await stripe.invoices.retrieve(job.stripeInvoiceId);
+    const existing = await stripe.invoices.retrieve(stripeInvoiceId);
     if (existing.status === "paid") {
-      await syncJobStatusFromStripeInvoice(existing);
+      await syncInvoiceFromStripe(existing);
       res.status(200).json({
         success: true,
         message: "Invoice is already paid.",
@@ -703,7 +712,7 @@ export const payJobInvoiceWithCard = async (
       { idempotencyKey: `invoice-card-${existing.id}-${paymentMethodId.trim()}` }
     );
 
-    await syncJobStatusFromStripeInvoice(paid);
+    await syncInvoiceFromStripe(paid);
 
     res.status(200).json({
       success: true,
