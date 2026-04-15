@@ -24,6 +24,8 @@ interface JobActivityProps {
   companyId?: string;
   jobId: string;
   refreshSignal?: number;
+  /** Used to rewrite legacy `Invoice paid (card)` activity lines to include an amount. */
+  invoicePaidCardFallbackCents?: number;
 }
 
 const ACTIVITY_ICON_MAP: Record<JobActivityType, IconType> = {
@@ -126,14 +128,52 @@ function formatInvoiceSentLogName(logName: string): string {
   return `#${n} sent`;
 }
 
-function formatActivityTitle(activity: JobActivityRow): string {
+function formatUsdFromCents(cents: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+}
+
+/** Legacy stored log before we wrote `Payment: $… (card)` from Stripe `amount_paid`. */
+const LEGACY_INVOICE_PAID_CARD = /^Invoice paid \(card\)((?:\s*—.*)?)$/;
+
+function formatPaidCardActivityTitle(
+  logName: string,
+  invoicePaidCardFallbackCents: number | undefined
+): string {
+  const legacy = logName.match(LEGACY_INVOICE_PAID_CARD);
+  if (!legacy) {
+    return logName;
+  }
+  const suffix = legacy[1] ?? "";
+  if (invoicePaidCardFallbackCents == null) {
+    return logName;
+  }
+  return `Payment: ${formatUsdFromCents(invoicePaidCardFallbackCents)} (card)${suffix}`;
+}
+
+function formatActivityTitle(
+  activity: JobActivityRow,
+  invoicePaidCardFallbackCents: number | undefined
+): string {
   if (activity.type === "JOB_INVOICE_SENT") {
     return formatInvoiceSentLogName(activity.logName);
+  }
+  if (activity.type === "JOB_STATUS_UPDATED") {
+    return formatPaidCardActivityTitle(activity.logName, invoicePaidCardFallbackCents);
   }
   return activity.logName;
 }
 
-export default function JobActivity({ companyId, jobId, refreshSignal = 0 }: JobActivityProps) {
+export default function JobActivity({
+  companyId,
+  jobId,
+  refreshSignal = 0,
+  invoicePaidCardFallbackCents,
+}: JobActivityProps) {
   const [activities, setActivities] = useState<JobActivityRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -206,7 +246,7 @@ export default function JobActivity({ companyId, jobId, refreshSignal = 0 }: Job
             return (
               <ActivityCard
                 key={activity.id}
-                title={formatActivityTitle(activity)}
+                title={formatActivityTitle(activity, invoicePaidCardFallbackCents)}
                 actor={formatActor(activity)}
                 icon={getActivityIcon(activity)}
                 time={createdAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}

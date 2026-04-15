@@ -2,7 +2,7 @@
 
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
 import {
@@ -156,6 +156,12 @@ export default function JobDetailPage() {
       setActivityRefreshSignal((value) => value + 1);
     }, 500);
   }, []);
+
+  const invoicePaidCardFallbackCents = useMemo(() => {
+    const services = job?.services;
+    if (!services?.length) return undefined;
+    return services.reduce((sum, s) => sum + s.price * s.quantity, 0);
+  }, [job?.services]);
 
   useEffect(() => {
     if (searchParams.get("action") !== "sendInvoice" || !job || !companyId) return;
@@ -373,19 +379,20 @@ export default function JobDetailPage() {
 
   return (
     <div className="flex flex-col">
+      <div className="flex items-center justify-between gap-x-2">
       <h1 className="text-h4 font-bold font-neutral-900">
         {job.title}
       </h1>
 
       {invoiceLoading && (
-        <p className="mt-2 flex items-center gap-2 text-p text-neutral-600" aria-live="polite">
+        <p className="flex items-center gap-2" aria-live="polite">
           <span
-            className="inline-block size-4 animate-spin rounded-full border-2 border-primary border-r-transparent"
+            className="inline-block size-6 animate-spin rounded-full border-2 border-primary border-r-transparent"
             aria-hidden
-          />
-          Creating invoice…
+            />
         </p>
       )}
+      </div>
       {invoiceError && (
         <p
           className="mt-2 text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg"
@@ -415,6 +422,7 @@ export default function JobDetailPage() {
         companyId={companyId ?? undefined}
         jobId={job.id}
         refreshSignal={activityRefreshSignal}
+        invoicePaidCardFallbackCents={invoicePaidCardFallbackCents}
       />
 
       {/* <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4">
