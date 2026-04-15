@@ -3,12 +3,22 @@ export type JobStatus =
   | "en_route"
   | "in_progress"
   | "completed"
+  | "cancelled";
+
+/** Mirrors backend `InvoiceStatusType` (snake_case for UI). */
+export type InvoiceStatus =
   | "invoiced"
   | "paid"
   | "void"
-  | "uncollectible"
+  | "uncollectable"
   | "overdue"
   | "cancelled";
+
+export interface JobInvoiceSummary {
+  id: string;
+  status: InvoiceStatus;
+  stripeInvoiceId?: string | null;
+}
 
 export interface Job {
   id: string;
@@ -34,8 +44,10 @@ export interface Job {
   technicianName?: string;
   /** IDs of service items (from Service Book) to attach to this job when saving. */
   serviceItemIds?: string[];
-  /** Stripe invoice id (`in_…`) when an invoice has been created for this job. */
+  /** Derived from `invoice.stripeInvoiceId` when present (Stripe `in_…`). */
   stripeInvoiceId?: string | null;
+  /** Billing row for this job, when an invoice has been created. */
+  invoice?: JobInvoiceSummary | null;
   /** Services attached to this job (populated when job is loaded from API). */
   services?: {
     id: string;
@@ -45,6 +57,28 @@ export interface Job {
     /** Per-unit price in integer USD cents (matches ServiceItem.price). */
     price: number;
   }[];
+}
+
+export function formatInvoiceStatus(status: InvoiceStatus): string {
+  const labels: Record<InvoiceStatus, string> = {
+    invoiced: "Invoiced",
+    paid: "Paid",
+    void: "Void",
+    uncollectable: "Uncollectable",
+    overdue: "Overdue",
+    cancelled: "Cancelled",
+  };
+  return labels[status] ?? status;
+}
+
+export function isInvoiceTerminalForPayment(invoice: JobInvoiceSummary | null | undefined): boolean {
+  if (!invoice) return false;
+  return (
+    invoice.status === "paid" ||
+    invoice.status === "void" ||
+    invoice.status === "uncollectable" ||
+    invoice.status === "cancelled"
+  );
 }
 
 export function isSameDay(dateStr: string, d: Date): boolean {

@@ -15,7 +15,7 @@ import {
   fetchActiveTimeCard,
   selectIsClockedInTechnician,
 } from "@/features/timeCard/timeCardSlice";
-import type { Job } from "@/lib/calendar/types";
+import { isInvoiceTerminalForPayment, type Job } from "@/lib/calendar/types";
 import {
   getJobById,
   updateJob,
@@ -246,10 +246,7 @@ export default function JobDetailPage() {
     setJobInvoiceDisabled(disabled);
 
     const paidOrClosed =
-      job.status === "paid" ||
-      job.status === "void" ||
-      job.status === "uncollectible" ||
-      job.status === "cancelled";
+      job.status === "cancelled" || isInvoiceTerminalForPayment(job.invoice);
     const paymentDisabled =
       disabled || paidOrClosed || !job.stripeInvoiceId;
     setJobPaymentDisabled(paymentDisabled);

@@ -42,6 +42,10 @@ const STATUS_ICON_MAP: Record<string, IconType> = {
   COMPLETED: HiCheckCircle,
   INVOICED: HiCurrencyDollar,
   PAID: HiCurrencyDollar,
+  VOID: HiXCircle,
+  UNCOLLECTABLE: HiXCircle,
+  UNCOLLECTIBLE: HiXCircle,
+  OVERDUE: HiClock,
   CANCELLED: HiXCircle,
 };
 
@@ -65,6 +69,9 @@ function getJobStatusFromActivity(activity: JobActivityRow): string | null {
   if (raw.includes("finished") || raw.includes("complete")) return "COMPLETED";
   if (raw.includes("cancel")) return "CANCELLED";
   if (raw.includes("paid")) return "PAID";
+  if (raw.includes("void")) return "VOID";
+  if (raw.includes("uncollect")) return "UNCOLLECTABLE";
+  if (raw.includes("overdue")) return "OVERDUE";
   if (raw.includes("invoice")) return "INVOICED";
   if (raw.includes("schedule")) return "SCHEDULED";
   return null;

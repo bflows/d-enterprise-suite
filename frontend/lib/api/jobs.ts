@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/client";
-import type { Job, JobStatus } from "@/lib/calendar/types";
+import type { InvoiceStatus, Job, JobInvoiceSummary, JobStatus } from "@/lib/calendar/types";
 
 /** Request body for creating a job. */
 export interface CreateJobBody {
@@ -30,9 +30,13 @@ export interface ApiJobResponse {
   endDate: string;
   startTime: string;
   endTime: string;
-  /** Job status from DB: SCHEDULED | IN_PROGRESS | COMPLETED | CANCELLED */
+  /** Job status from DB: operational only (SCHEDULED | EN_ROUTE | ON_SITE | COMPLETED | CANCELLED). */
   status: string;
-  stripeInvoiceId?: string | null;
+  invoice?: {
+    id: string;
+    status: string;
+    stripeInvoiceId?: string | null;
+  } | null;
   customer: {
     id: string;
     firstName: string;
@@ -84,17 +88,7 @@ export interface UpdateJobBody {
   startTime?: string;
   endTime?: string;
   notes?: string | null;
-  status?:
-    | "scheduled"
-    | "en_route"
-    | "in_progress"
-    | "completed"
-    | "invoiced"
-    | "paid"
-    | "void"
-    | "uncollectible"
-    | "overdue"
-    | "cancelled";
+  status?: "scheduled" | "en_route" | "in_progress" | "completed" | "cancelled";
   technicianId?: string;
   /** Replace job's services with these service item IDs. */
   serviceItemIds?: string[];
@@ -161,11 +155,15 @@ const STATUS_MAP: Record<string, JobStatus> = {
   ON_SITE: "in_progress",
   COMPLETED: "completed",
   CANCELLED: "cancelled",
+};
+
+const INVOICE_STATUS_MAP: Record<string, InvoiceStatus> = {
   INVOICED: "invoiced",
   PAID: "paid",
   VOID: "void",
-  UNCOLLECTIBLE: "uncollectible",
+  UNCOLLECTABLE: "uncollectable",
   OVERDUE: "overdue",
+  CANCELLED: "cancelled",
 };
 
 /** Map API job to frontend Job type for calendar/schedule. */
@@ -181,9 +179,24 @@ export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
     .join(" ") || apiJob.technician.user.email;
   const status: JobStatus =
     apiJob.status && STATUS_MAP[apiJob.status] ? STATUS_MAP[apiJob.status]! : "scheduled";
+  let invoice: JobInvoiceSummary | null = null;
+  if (apiJob.invoice?.id) {
+    const invStatusRaw = apiJob.invoice.status;
+    const invStatus: InvoiceStatus =
+      invStatusRaw && INVOICE_STATUS_MAP[invStatusRaw]
+        ? INVOICE_STATUS_MAP[invStatusRaw]!
+        : "invoiced";
+    invoice = {
+      id: apiJob.invoice.id,
+      status: invStatus,
+      stripeInvoiceId: apiJob.invoice.stripeInvoiceId ?? undefined,
+    };
+  }
+  const stripeInvoiceId = invoice?.stripeInvoiceId ?? undefined;
   return {
     id: apiJob.id,
-    stripeInvoiceId: apiJob.stripeInvoiceId ?? undefined,
+    stripeInvoiceId,
+    invoice,
     title: apiJob.title ?? undefined,
     date: toDateKey(apiJob.startDate),
     endDate: toDateKey(apiJob.endDate),
@@ -280,11 +293,6 @@ export type ApiJobStatus =
   | "EN_ROUTE"
   | "ON_SITE"
   | "COMPLETED"
-  | "INVOICED"
-  | "PAID"
-  | "VOID"
-  | "UNCOLLECTIBLE"
-  | "OVERDUE"
   | "CANCELLED";
 
 export async function updateJobStatus(

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Job } from "@/lib/calendar/types";
-import { formatTimeLabel } from "@/lib/calendar/types";
+import { formatInvoiceStatus, formatTimeLabel } from "@/lib/calendar/types";
 
 export interface JobCardProps {
   job: Job;
@@ -13,16 +13,23 @@ const statusColors: Record<Job["status"], string> = {
   en_route: "bg-sky-500/15 text-sky-900 border-sky-500/30",
   in_progress: "bg-amber-500/15 text-amber-800 border-amber-500/30",
   completed: "bg-green-500/15 text-green-800 border-green-500/30",
-  invoiced: "bg-violet-500/15 text-violet-900 border-violet-500/30",
-  paid: "bg-emerald-600/15 text-emerald-900 border-emerald-600/30",
-  void: "bg-neutral-200 text-neutral-600 border-neutral-300",
-  uncollectible: "bg-rose-500/15 text-rose-900 border-rose-500/30",
-  overdue: "bg-orange-500/15 text-orange-900 border-orange-500/30",
   cancelled: "bg-neutral-200 text-neutral-500 border-neutral-300",
+};
+
+const invoiceAccentClass = (job: Job): string => {
+  const s = job.invoice?.status;
+  if (!s) return "";
+  if (s === "paid") return " ring-2 ring-emerald-500/40";
+  if (s === "overdue") return " ring-2 ring-orange-500/40";
+  if (s === "void" || s === "cancelled") return " opacity-90";
+  if (s === "uncollectable") return " ring-2 ring-rose-500/30";
+  if (s === "invoiced") return " ring-1 ring-violet-400/50";
+  return "";
 };
 
 export default function JobCard({ job, onClick }: JobCardProps) {
   const statusClass = statusColors[job.status] ?? statusColors.scheduled;
+  const accent = invoiceAccentClass(job);
   const startTimeLabel = formatTimeLabel(job.startTime);
   const endTimeLabel = job.endTime ? formatTimeLabel(job.endTime) : undefined;
   const timeLabel = job.endTime
@@ -37,7 +44,7 @@ export default function JobCard({ job, onClick }: JobCardProps) {
         e.stopPropagation();
         onClick();
       }}
-      className={`text-left rounded-lg px-3 py-2 w-full transition-colors cursor-pointer hover:ring-2 hover:ring-primary/50 focus:outline-none focus:ring-2 focus:ring-primary ${statusClass}`}
+      className={`text-left rounded-lg px-3 py-2 w-full transition-colors cursor-pointer hover:ring-2 hover:ring-primary/50 focus:outline-none focus:ring-2 focus:ring-primary border ${statusClass}${accent}`}
     >
       <span className="font-bold text-p block truncate" title={displayTitle}>
         {displayTitle}
@@ -52,6 +59,11 @@ export default function JobCard({ job, onClick }: JobCardProps) {
           </span>
         )}
       </div>
+      {job.invoice ? (
+        <p className="mt-2 text-small text-neutral-600 capitalize">
+          Invoice: {formatInvoiceStatus(job.invoice.status)}
+        </p>
+      ) : null}
     </button>
   );
 }

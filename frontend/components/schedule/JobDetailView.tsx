@@ -1,7 +1,7 @@
 "use client";
 
 import type { Job } from "@/lib/calendar/types";
-import { formatTimeLabel } from "@/lib/calendar/types";
+import { formatInvoiceStatus, formatTimeLabel } from "@/lib/calendar/types";
 import { formatUsdFromCents } from "@/lib/money";
 
 export interface JobDetailViewProps {
@@ -33,6 +33,14 @@ export default function JobDetailView({ job }: JobDetailViewProps) {
             {job.status.replace("_", " ")}
           </p>
         </div>
+        {job.invoice ? (
+          <div>
+            <p className="text-small text-neutral-500">Invoice</p>
+            <p className="text-p capitalize text-neutral-900">
+              {formatInvoiceStatus(job.invoice.status)}
+            </p>
+          </div>
+        ) : null}
         {(job.technicianName != null && job.technicianName !== "") || job.technicianId ? (
           <div>
             <p className="text-small text-neutral-500">Technician</p>

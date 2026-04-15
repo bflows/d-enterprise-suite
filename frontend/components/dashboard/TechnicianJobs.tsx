@@ -24,11 +24,6 @@ function formatJobStatus(status: Job["status"]): string {
     en_route: "En route",
     in_progress: "In progress",
     completed: "Completed",
-    invoiced: "Invoiced",
-    paid: "Paid",
-    void: "Void",
-    uncollectible: "Uncollectible",
-    overdue: "Overdue",
     cancelled: "Cancelled",
   };
   return labels[status] ?? status;
@@ -64,8 +59,7 @@ function filterJobsNext7Days(jobs: Job[]): Job[] {
         j.date >= start &&
         j.date <= end &&
         j.status !== "completed" &&
-        j.status !== "invoiced" &&
-        j.status !== "paid"
+        j.status !== "cancelled"
     )
     .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
 }

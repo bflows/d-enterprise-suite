@@ -6,7 +6,7 @@ import axios from "axios";
 import { HiCalendar, HiOutlineUser } from "react-icons/hi2";
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import { listJobs } from "@/lib/api/jobs";
-import type { Job } from "@/lib/calendar/types";
+import { formatInvoiceStatus, type Job } from "@/lib/calendar/types";
 import { jobSlug } from "@/lib/utils/slug";
 
 const dateFmt = new Intl.DateTimeFormat("en-US", {
@@ -21,11 +21,6 @@ function formatJobStatus(status: Job["status"]): string {
     en_route: "En route",
     in_progress: "In progress",
     completed: "Completed",
-    invoiced: "Invoiced",
-    paid: "Paid",
-    void: "Void",
-    uncollectible: "Uncollectible",
-    overdue: "Overdue",
     cancelled: "Cancelled",
   };
   return labels[status] ?? status;
@@ -168,6 +163,9 @@ export default function JobHistory({ companyId, customerId }: JobHistoryProps) {
                   </div>
                   <p className="mt-4 w-fit rounded-full px-3 py-1 text-small capitalize bg-neutral-200 text-neutral-600">
                     {formatJobStatus(job.status)}
+                    {job.invoice
+                      ? ` · ${formatInvoiceStatus(job.invoice.status)}`
+                      : ""}
                   </p>
                 </Link>
               </li>
