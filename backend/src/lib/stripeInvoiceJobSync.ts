@@ -49,6 +49,21 @@ export function invoiceStatusFromStripeInvoice(inv: Stripe.Invoice): InvoiceStat
   return null;
 }
 
+function formatUsdFromCents(cents: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+}
+
+function paidAmountCents(inv: Stripe.Invoice): number {
+  if (typeof inv.amount_paid === "number") return inv.amount_paid;
+  if (typeof inv.total === "number") return inv.total;
+  return 0;
+}
+
 /** Activity line when an invoice becomes PAID — uses invoice metadata set before `invoices.pay`. */
 function paidActivityLogNameFromInvoice(inv: Stripe.Invoice): string {
   const via = inv.metadata?.paidVia?.trim().toLowerCase();
@@ -60,9 +75,11 @@ function paidActivityLogNameFromInvoice(inv: Stripe.Invoice): string {
         : noteRaw
       : "";
   const suffix = note ? ` — ${note}` : "";
-  if (via === "cash") return `Invoice marked paid (cash)${suffix}`;
-  if (via === "check") return `Invoice marked paid (check)${suffix}`;
-  if (via === "card") return `Invoice paid (card)${suffix}`;
+  const cents = paidAmountCents(inv);
+  const amount = formatUsdFromCents(cents);
+  if (via === "cash") return `Payment: ${amount} (cash)${suffix}`;
+  if (via === "check") return `Payment: ${amount} (check)${suffix}`;
+  if (via === "card") return `Payment: ${amount} (card)${suffix}`;
   return "Invoice paid (Stripe)";
 }
 
