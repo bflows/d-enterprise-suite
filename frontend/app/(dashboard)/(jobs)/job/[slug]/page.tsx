@@ -25,6 +25,7 @@ import {
   type ApiJobStatus,
 } from "@/lib/api/jobs";
 import { createJobInvoice } from "@/lib/api/invoices";
+import JobPaymentModal from "@/components/jobs/JobPaymentModal";
 import { parseJobSlug } from "@/lib/utils/slug";
 import JobDetailModal from "@/components/schedule/JobDetailModal";
 import Modal from "@/components/ui/Modal";
@@ -53,7 +54,7 @@ export default function JobDetailPage() {
   const canCreateInvoice = useSelector((state: RootState) =>
     selectHasAnyRole(state, [ROLE_SLUGS.ADMIN, ROLE_SLUGS.DISPATCHER, ROLE_SLUGS.TECHNICIAN])
   );
-  const { setJobInvoiceDisabled } = useJobNavbarActions();
+  const { setJobInvoiceDisabled, setJobPaymentDisabled } = useJobNavbarActions();
   const technicianClockedIn = useSelector(selectIsClockedInTechnician);
   const slug = typeof params?.slug === "string" ? params.slug : "";
   const jobId = parseJobSlug(slug);
@@ -71,6 +72,7 @@ export default function JobDetailPage() {
   const [progressError, setProgressError] = useState<string | null>(null);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [activityRefreshSignal, setActivityRefreshSignal] = useState(0);
   const activityRefreshTimeoutRef = useRef<number | null>(null);
   /** Only false after unmount — not when `searchParams` changes (avoids stale "cancelled" after `router.replace`). */
@@ -221,19 +223,44 @@ export default function JobDetailPage() {
   ]);
 
   useEffect(() => {
+    if (searchParams.get("action") !== "requestPayment" || !job) return;
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("action");
+    const q = next.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+
+    if (!canCreateInvoice) {
+      return;
+    }
+    setPaymentModalOpen(true);
+  }, [searchParams, job, canCreateInvoice, router, pathname]);
+
+  useEffect(() => {
     if (!job) {
       setJobInvoiceDisabled(true);
+      setJobPaymentDisabled(true);
       return;
     }
     const disabled = !canCreateInvoice;
     setJobInvoiceDisabled(disabled);
-  }, [job, canCreateInvoice, setJobInvoiceDisabled]);
+
+    const paidOrClosed =
+      job.status === "paid" ||
+      job.status === "void" ||
+      job.status === "uncollectible" ||
+      job.status === "cancelled";
+    const paymentDisabled =
+      disabled || paidOrClosed || !job.stripeInvoiceId;
+    setJobPaymentDisabled(paymentDisabled);
+  }, [job, canCreateInvoice, setJobInvoiceDisabled, setJobPaymentDisabled]);
 
   useEffect(() => {
     return () => {
       setJobInvoiceDisabled(true);
+      setJobPaymentDisabled(true);
     };
-  }, [setJobInvoiceDisabled]);
+  }, [setJobInvoiceDisabled, setJobPaymentDisabled]);
 
   const handleSave = useCallback(
     async (updated: Job) => {
@@ -416,6 +443,20 @@ export default function JobDetailPage() {
         saveLoading={saveLoading}
         saveError={saveError}
       />
+
+      {companyId ? (
+        <JobPaymentModal
+          job={job}
+          companyId={companyId}
+          isOpen={paymentModalOpen}
+          onClose={() => setPaymentModalOpen(false)}
+          onCompleted={async () => {
+            const refreshed = await getJobById(job.id);
+            if (refreshed) setJob(refreshed);
+            triggerActivityRefresh();
+          }}
+        />
+      ) : null}
 
       <Modal
         isOpen={deleteConfirmOpen}

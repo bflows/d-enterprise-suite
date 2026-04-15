@@ -32,6 +32,7 @@ export interface ApiJobResponse {
   endTime: string;
   /** Job status from DB: SCHEDULED | IN_PROGRESS | COMPLETED | CANCELLED */
   status: string;
+  stripeInvoiceId?: string | null;
   customer: {
     id: string;
     firstName: string;
@@ -182,6 +183,7 @@ export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
     apiJob.status && STATUS_MAP[apiJob.status] ? STATUS_MAP[apiJob.status]! : "scheduled";
   return {
     id: apiJob.id,
+    stripeInvoiceId: apiJob.stripeInvoiceId ?? undefined,
     title: apiJob.title ?? undefined,
     date: toDateKey(apiJob.startDate),
     endDate: toDateKey(apiJob.endDate),

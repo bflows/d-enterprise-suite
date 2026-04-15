@@ -34,6 +34,8 @@ export interface Job {
   technicianName?: string;
   /** IDs of service items (from Service Book) to attach to this job when saving. */
   serviceItemIds?: string[];
+  /** Stripe invoice id (`in_…`) when an invoice has been created for this job. */
+  stripeInvoiceId?: string | null;
   /** Services attached to this job (populated when job is loaded from API). */
   services?: {
     id: string;

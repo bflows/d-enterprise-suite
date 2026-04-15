@@ -31,7 +31,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { openMenu } = useMobileNavMenu();
-  const { jobInvoiceDisabled } = useJobNavbarActions();
+  const { jobInvoiceDisabled, jobPaymentDisabled } = useJobNavbarActions();
   const left = resolveMobileNavbarLeft(pathname);
   const right = resolveMobileNavbarRight(pathname);
 
@@ -50,7 +50,11 @@ export default function Navbar() {
     }
 
     const disabled =
-      d.action === "sendInvoice" && jobInvoiceDisabled ? true : undefined;
+      d.action === "sendInvoice" && jobInvoiceDisabled
+        ? true
+        : d.action === "requestPayment" && jobPaymentDisabled
+          ? true
+          : undefined;
 
     return {
       label: d.label,
