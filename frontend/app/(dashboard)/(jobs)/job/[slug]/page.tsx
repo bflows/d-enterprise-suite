@@ -173,11 +173,6 @@ export default function JobDetailPage() {
       return;
     }
 
-    if (job.status !== "completed") {
-      setInvoiceError("Invoices can only be created when the job status is completed.");
-      return;
-    }
-
     if (!job.customerEmail?.trim()) {
       setInvoiceError("Add a customer email on this job before sending an invoice (Stripe emails the hosted invoice).");
       return;
@@ -230,7 +225,7 @@ export default function JobDetailPage() {
       setJobInvoiceDisabled(true);
       return;
     }
-    const disabled = !canCreateInvoice || job.status !== "completed";
+    const disabled = !canCreateInvoice;
     setJobInvoiceDisabled(disabled);
   }, [job, canCreateInvoice, setJobInvoiceDisabled]);
 
