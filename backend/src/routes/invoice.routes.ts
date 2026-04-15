@@ -1,6 +1,12 @@
 import express from "express";
 import { requireAuth, requireRole } from "../middleware/auth.middleware";
-import { createJobInvoice, getJobInvoice } from "../controllers/invoice.controllers";
+import {
+  createJobInvoice,
+  getInvoiceStripeConfig,
+  getJobInvoice,
+  markJobInvoicePaidOutOfBand,
+  payJobInvoiceWithCard,
+} from "../controllers/invoice.controllers";
 
 const router = express.Router();
 
@@ -15,6 +21,24 @@ router.get(
   requireAuth,
   requireRole("admin", "dispatcher", "technician"),
   getJobInvoice
+);
+router.get(
+  "/stripe-config",
+  requireAuth,
+  requireRole("admin", "dispatcher", "technician"),
+  getInvoiceStripeConfig
+);
+router.post(
+  "/job/mark-paid",
+  requireAuth,
+  requireRole("admin", "dispatcher", "technician"),
+  markJobInvoicePaidOutOfBand
+);
+router.post(
+  "/job/pay-card",
+  requireAuth,
+  requireRole("admin", "dispatcher", "technician"),
+  payJobInvoiceWithCard
 );
 
 export default router;

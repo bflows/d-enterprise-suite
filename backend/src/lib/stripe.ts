@@ -26,3 +26,9 @@ export function getInvoiceDaysUntilDue(): number {
   const n = raw ? parseInt(raw, 10) : 30;
   return Number.isFinite(n) && n >= 0 ? n : 30;
 }
+
+/** Publishable key for Stripe.js (card entry on the technician device). */
+export function getStripePublishableKey(): string | null {
+  const k = process.env.STRIPE_PUBLISH_KEY?.trim();
+  return k || null;
+}

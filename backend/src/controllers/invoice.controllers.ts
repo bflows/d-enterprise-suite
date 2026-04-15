@@ -2,13 +2,27 @@ import type { Request, Response } from "express";
 import type Stripe from "stripe";
 import type { JobActivityType } from "../../generated/prisma/client";
 import { prisma } from "../lib/prisma";
-import { getDefaultInvoiceCurrency, getInvoiceDaysUntilDue, getStripe } from "../lib/stripe";
+import {
+  getDefaultInvoiceCurrency,
+  getInvoiceDaysUntilDue,
+  getStripe,
+  getStripePublishableKey,
+} from "../lib/stripe";
 import { syncJobStatusFromStripeInvoice } from "../lib/stripeInvoiceJobSync";
 
 interface JobInvoiceBody {
   jobId: string;
   customerId: string;
   companyId: string;
+}
+
+interface JobInvoicePayOutOfBandBody extends JobInvoiceBody {
+  method: "cash" | "check";
+  note?: string;
+}
+
+interface JobInvoicePayCardBody extends JobInvoiceBody {
+  paymentMethodId: string;
 }
 
 function displayCustomerName(firstName: string, lastName: string, companyName: string | null): string {
@@ -383,6 +397,322 @@ export const getJobInvoice = async (req: Request, res: Response): Promise<void> 
     });
   } catch (error) {
     console.error("Get job invoice error:", error);
+    if (error && typeof error === "object" && "type" in error && "message" in error) {
+      const err = error as { type?: string; message?: string };
+      res.status(502).json({
+        success: false,
+        message: err.message ?? "Stripe request failed.",
+        stripeType: err.type,
+      });
+      return;
+    }
+    res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+
+const STRIPE_METADATA_MAX = 450;
+
+function clampMetadataValue(s: string | undefined): string {
+  const t = (s ?? "").trim();
+  if (!t) return "";
+  return t.length > STRIPE_METADATA_MAX ? t.slice(0, STRIPE_METADATA_MAX) : t;
+}
+
+/**
+ * Publishable key for Stripe.js (safe to expose to authenticated clients).
+ */
+export const getInvoiceStripeConfig = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const companyId = req.business?.id;
+    if (!companyId) {
+      res.status(400).json({
+        success: false,
+        message: "Company context is required.",
+      });
+      return;
+    }
+    const publishableKey = getStripePublishableKey();
+    res.status(200).json({
+      success: true,
+      publishableKey,
+    });
+  } catch (error) {
+    console.error("Stripe config error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+
+/**
+ * Mark the job's Stripe invoice paid out-of-band (cash or check). Syncs job to PAID.
+ */
+export const markJobInvoicePaidOutOfBand = async (
+  req: Request<{}, {}, JobInvoicePayOutOfBandBody>,
+  res: Response
+): Promise<void> => {
+  try {
+    const stripe = getStripe();
+    if (!stripe) {
+      res.status(503).json({
+        success: false,
+        message: "Stripe is not configured (STRIPE_SECRET_KEY).",
+      });
+      return;
+    }
+
+    const companyId = req.business?.id;
+    if (!companyId) {
+      res.status(400).json({
+        success: false,
+        message: "Company context is required.",
+      });
+      return;
+    }
+
+    const { jobId, customerId, companyId: companyIdBody, method, note } = req.body;
+    if (!jobId || !customerId || !companyIdBody || (method !== "cash" && method !== "check")) {
+      res.status(400).json({
+        success: false,
+        message: "jobId, customerId, companyId, and method (cash | check) are required.",
+      });
+      return;
+    }
+
+    if (companyIdBody !== companyId) {
+      res.status(403).json({
+        success: false,
+        message: "companyId must match the signed-in company.",
+      });
+      return;
+    }
+
+    const job = await prisma.job.findFirst({
+      where: { id: jobId, companyId, customerId },
+      select: { id: true, stripeInvoiceId: true, status: true },
+    });
+
+    if (!job) {
+      res.status(404).json({
+        success: false,
+        message: "Job not found for this company and customer.",
+      });
+      return;
+    }
+
+    if (job.status === "CANCELLED") {
+      res.status(400).json({
+        success: false,
+        message: "Cannot record payment for a cancelled job.",
+      });
+      return;
+    }
+
+    if (!job.stripeInvoiceId) {
+      res.status(400).json({
+        success: false,
+        message: "No invoice exists for this job yet. Send an invoice first.",
+      });
+      return;
+    }
+
+    const existing = await stripe.invoices.retrieve(job.stripeInvoiceId);
+    if (existing.status === "paid") {
+      await syncJobStatusFromStripeInvoice(existing);
+      res.status(200).json({
+        success: true,
+        message: "Invoice is already paid.",
+        invoice: serializeInvoice(existing),
+        jobId: job.id,
+      });
+      return;
+    }
+
+    if (existing.status !== "open") {
+      res.status(400).json({
+        success: false,
+        message: `Invoice cannot be marked paid (current status: ${existing.status ?? "unknown"}).`,
+      });
+      return;
+    }
+
+    const paidVia = method === "cash" ? "cash" : "check";
+    const paymentNote = clampMetadataValue(note);
+
+    await stripe.invoices.update(existing.id, {
+      metadata: {
+        ...existing.metadata,
+        paidVia,
+        paymentNote,
+      },
+    });
+
+    const paid = await stripe.invoices.pay(
+      existing.id,
+      { paid_out_of_band: true },
+      { idempotencyKey: `invoice-oob-${existing.id}-${paidVia}` }
+    );
+
+    await syncJobStatusFromStripeInvoice(paid);
+
+    res.status(200).json({
+      success: true,
+      message: `Invoice marked paid (${paidVia}).`,
+      invoice: serializeInvoice(paid),
+      jobId: job.id,
+    });
+  } catch (error) {
+    console.error("Mark invoice paid (out of band) error:", error);
+    if (error && typeof error === "object" && "type" in error && "message" in error) {
+      const err = error as { type?: string; message?: string };
+      res.status(502).json({
+        success: false,
+        message: err.message ?? "Stripe request failed.",
+        stripeType: err.type,
+      });
+      return;
+    }
+    res.status(500).json({
+      success: false,
+      message: "Internal server error. Please try again later.",
+    });
+  }
+};
+
+/**
+ * Pay the job's open Stripe invoice with a PaymentMethod created client-side (Stripe.js).
+ */
+export const payJobInvoiceWithCard = async (
+  req: Request<{}, {}, JobInvoicePayCardBody>,
+  res: Response
+): Promise<void> => {
+  try {
+    const stripe = getStripe();
+    if (!stripe) {
+      res.status(503).json({
+        success: false,
+        message: "Stripe is not configured (STRIPE_SECRET_KEY).",
+      });
+      return;
+    }
+
+    const companyId = req.business?.id;
+    if (!companyId) {
+      res.status(400).json({
+        success: false,
+        message: "Company context is required.",
+      });
+      return;
+    }
+
+    const { jobId, customerId, companyId: companyIdBody, paymentMethodId } = req.body;
+    if (!jobId || !customerId || !companyIdBody || !paymentMethodId?.trim()) {
+      res.status(400).json({
+        success: false,
+        message: "jobId, customerId, companyId, and paymentMethodId are required.",
+      });
+      return;
+    }
+
+    if (companyIdBody !== companyId) {
+      res.status(403).json({
+        success: false,
+        message: "companyId must match the signed-in company.",
+      });
+      return;
+    }
+
+    const job = await prisma.job.findFirst({
+      where: { id: jobId, companyId, customerId },
+      include: { customer: true },
+    });
+
+    if (!job) {
+      res.status(404).json({
+        success: false,
+        message: "Job not found for this company and customer.",
+      });
+      return;
+    }
+
+    if (job.status === "CANCELLED") {
+      res.status(400).json({
+        success: false,
+        message: "Cannot charge a cancelled job.",
+      });
+      return;
+    }
+
+    if (!job.stripeInvoiceId) {
+      res.status(400).json({
+        success: false,
+        message: "No invoice exists for this job yet. Send an invoice first.",
+      });
+      return;
+    }
+
+    const stripeCustomerId = await ensureStripeCustomer(stripe, job.customer);
+
+    const pm = await stripe.paymentMethods.retrieve(paymentMethodId.trim());
+    if (pm.customer && pm.customer !== stripeCustomerId) {
+      res.status(400).json({
+        success: false,
+        message: "This card is already attached to another customer.",
+      });
+      return;
+    }
+    if (!pm.customer) {
+      await stripe.paymentMethods.attach(paymentMethodId.trim(), { customer: stripeCustomerId });
+    }
+
+    const existing = await stripe.invoices.retrieve(job.stripeInvoiceId);
+    if (existing.status === "paid") {
+      await syncJobStatusFromStripeInvoice(existing);
+      res.status(200).json({
+        success: true,
+        message: "Invoice is already paid.",
+        invoice: serializeInvoice(existing),
+        jobId: job.id,
+      });
+      return;
+    }
+
+    if (existing.status !== "open") {
+      res.status(400).json({
+        success: false,
+        message: `Invoice cannot be paid with a card (current status: ${existing.status ?? "unknown"}).`,
+      });
+      return;
+    }
+
+    await stripe.invoices.update(existing.id, {
+      metadata: {
+        ...existing.metadata,
+        paidVia: "card",
+        paymentNote: "",
+      },
+    });
+
+    const paid = await stripe.invoices.pay(
+      existing.id,
+      { payment_method: paymentMethodId.trim() },
+      { idempotencyKey: `invoice-card-${existing.id}-${paymentMethodId.trim()}` }
+    );
+
+    await syncJobStatusFromStripeInvoice(paid);
+
+    res.status(200).json({
+      success: true,
+      message: "Invoice paid with card.",
+      invoice: serializeInvoice(paid),
+      jobId: job.id,
+    });
+  } catch (error) {
+    console.error("Pay invoice with card error:", error);
     if (error && typeof error === "object" && "type" in error && "message" in error) {
       const err = error as { type?: string; message?: string };
       res.status(502).json({

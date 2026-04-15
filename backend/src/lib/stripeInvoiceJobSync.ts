@@ -47,6 +47,23 @@ export function jobStatusFromStripeInvoice(inv: Stripe.Invoice): JobStatusType |
   return null;
 }
 
+/** Activity line when a job becomes PAID — uses invoice metadata set before `invoices.pay`. */
+function paidActivityLogNameFromInvoice(inv: Stripe.Invoice): string {
+  const via = inv.metadata?.paidVia?.trim().toLowerCase();
+  const noteRaw = inv.metadata?.paymentNote?.trim();
+  const note =
+    noteRaw && noteRaw.length > 0
+      ? noteRaw.length > 200
+        ? `${noteRaw.slice(0, 200)}…`
+        : noteRaw
+      : "";
+  const suffix = note ? ` — ${note}` : "";
+  if (via === "cash") return `Invoice marked paid (cash)${suffix}`;
+  if (via === "check") return `Invoice marked paid (check)${suffix}`;
+  if (via === "card") return `Invoice paid (card)${suffix}`;
+  return "Invoice paid (Stripe)";
+}
+
 function activityLogNameForStatus(status: JobStatusType): string {
   switch (status) {
     case "PAID":
@@ -117,6 +134,9 @@ export async function syncJobStatusFromStripeInvoice(
     return { updated: false, jobId: job.id, status: nextStatus };
   }
 
+  const logName =
+    nextStatus === "PAID" ? paidActivityLogNameFromInvoice(inv) : activityLogNameForStatus(nextStatus);
+
   await prisma.$transaction(async (tx) => {
     await tx.job.update({
       where: { id: job.id },
@@ -127,7 +147,7 @@ export async function syncJobStatusFromStripeInvoice(
         jobId: job.id,
         companyId: job.companyId,
         type: "JOB_STATUS_UPDATED" as JobActivityType,
-        logName: activityLogNameForStatus(nextStatus),
+        logName,
         userId: null,
       },
     });
