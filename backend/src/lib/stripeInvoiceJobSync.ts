@@ -106,29 +106,30 @@ function activityLogNameForInvoiceStatus(status: InvoiceStatusType): string {
  * Finds the invoice linked to this Stripe invoice (`metadata.jobId` or `stripeInvoiceId`).
  */
 async function findInvoiceForStripeInvoice(inv: Stripe.Invoice) {
+  const invoiceSelect = {
+    id: true,
+    jobId: true,
+    companyId: true,
+    status: true,
+    stripeInvoiceId: true,
+    job: {
+      select: {
+        technician: { select: { userId: true } },
+      },
+    },
+  } as const;
+
   const metaJobId = inv.metadata?.jobId?.trim();
   if (metaJobId) {
     const byMeta = await prisma.invoice.findFirst({
       where: { jobId: metaJobId, stripeInvoiceId: inv.id },
-      select: {
-        id: true,
-        jobId: true,
-        companyId: true,
-        status: true,
-        stripeInvoiceId: true,
-      },
+      select: invoiceSelect,
     });
     if (byMeta) return byMeta;
   }
   return prisma.invoice.findFirst({
     where: { stripeInvoiceId: inv.id },
-    select: {
-      id: true,
-      jobId: true,
-      companyId: true,
-      status: true,
-      stripeInvoiceId: true,
-    },
+    select: invoiceSelect,
   });
 }
 
@@ -156,6 +157,8 @@ export async function syncInvoiceFromStripe(
   const logName =
     nextStatus === "PAID" ? paidActivityLogNameFromInvoice(inv) : activityLogNameForInvoiceStatus(nextStatus);
 
+  const activityUserId = row.job?.technician?.userId ?? null;
+
   await prisma.$transaction(async (tx) => {
     await tx.invoice.update({
       where: { id: row.id },
@@ -167,7 +170,7 @@ export async function syncInvoiceFromStripe(
         companyId: row.companyId,
         type: "JOB_STATUS_UPDATED" as JobActivityType,
         logName,
-        userId: null,
+        userId: activityUserId,
       },
     });
   });
