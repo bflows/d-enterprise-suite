@@ -30,6 +30,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.4.0",
+    "@sendgrid/mail": "^8.1.6",
     "@types/multer": "^2.1.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",

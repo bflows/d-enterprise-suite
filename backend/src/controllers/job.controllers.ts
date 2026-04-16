@@ -5,6 +5,7 @@ import { prisma } from "../lib/prisma";
 import { cloudinary } from "../lib/cloudinary";
 import { getStripe } from "../lib/stripe";
 import { syncJobsInvoiceStatusesFromStripe } from "../lib/stripeInvoiceJobSync";
+import { sendJobScheduledConfirmationEmail } from "../services/jobConfirmationEmail";
 
 /** Request body for updating a job. Only provided fields are updated. */
 interface UpdateJobBody {
@@ -219,6 +220,7 @@ export const createJob = async (
             }),
         },
         include: {
+          company: { select: { name: true } },
           customer: true,
           technician: { include: { user: true } },
           services: true,
@@ -238,6 +240,12 @@ export const createJob = async (
 
       return { job, log };
     });
+
+    if (status === "SCHEDULED") {
+      void sendJobScheduledConfirmationEmail(job).catch((err) => {
+        console.error("Job confirmation email error:", err);
+      });
+    }
 
     return res.status(201).json({
       success: true,
