@@ -66,18 +66,34 @@ function buildServicesList(services: { title: string }[]): string {
   return services.map((s) => `<li>${escapeHtml(s.title)}</li>`).join("");
 }
 
-function buildHtml(job: JobConfirmationEmailPayload): string {
+type JobScheduleEmailKind = "confirmation" | "reschedule";
+
+function introLines(kind: JobScheduleEmailKind, companyName: string): { html: string; text: string } {
+  if (kind === "confirmation") {
+    return {
+      html: `<p>Your appointment with <strong>${escapeHtml(companyName)}</strong> is confirmed.</p>`,
+      text: `Your appointment with ${companyName} is confirmed.`,
+    };
+  }
+  return {
+    html: `<p>Your appointment with <strong>${escapeHtml(companyName)}</strong> has been rescheduled. Your updated visit details are below.</p>`,
+    text: `Your appointment with ${companyName} has been rescheduled. Your updated visit details are below.`,
+  };
+}
+
+function buildHtml(job: JobConfirmationEmailPayload, kind: JobScheduleEmailKind): string {
   const { dateLine, timeLine } = formatJobDateTime(job);
   const customerName = `${job.customer.firstName} ${job.customer.lastName}`.trim();
   const technicianName = `${job.technician.user.firstName} ${job.technician.user.lastName}`.trim();
   const servicesHtml = buildServicesList(job.services);
+  const { html: introHtml } = introLines(kind, job.company.name);
 
   return `
 <!DOCTYPE html>
 <html>
 <body style="font-family: system-ui, -apple-system, Segoe UI, sans-serif; line-height: 1.5; color: #111;">
   <p>Hi ${escapeHtml(customerName)},</p>
-  <p>Your appointment with <strong>${escapeHtml(job.company.name)}</strong> is confirmed.</p>
+  ${introHtml}
   <p><strong>When:</strong><br>${escapeHtml(dateLine)}<br>${escapeHtml(timeLine)}</p>
   <p><strong>Technician:</strong> ${escapeHtml(technicianName)}</p>
   <p><strong>Services:</strong></p>
@@ -88,7 +104,7 @@ function buildHtml(job: JobConfirmationEmailPayload): string {
 </html>`.trim();
 }
 
-function buildText(job: JobConfirmationEmailPayload): string {
+function buildText(job: JobConfirmationEmailPayload, kind: JobScheduleEmailKind): string {
   const { dateLine, timeLine } = formatJobDateTime(job);
   const customerName = `${job.customer.firstName} ${job.customer.lastName}`.trim();
   const technicianName = `${job.technician.user.firstName} ${job.technician.user.lastName}`.trim();
@@ -96,11 +112,12 @@ function buildText(job: JobConfirmationEmailPayload): string {
     job.services.length > 0
       ? job.services.map((s) => `- ${s.title}`).join("\n")
       : "- Services to be confirmed with your technician";
+  const { text: introText } = introLines(kind, job.company.name);
 
   return [
     `Hi ${customerName},`,
     "",
-    `Your appointment with ${job.company.name} is confirmed.`,
+    introText,
     "",
     `When: ${dateLine}`,
     timeLine,
@@ -117,41 +134,50 @@ function buildText(job: JobConfirmationEmailPayload): string {
   ].join("\n");
 }
 
-/**
- * Sends a job confirmation to the customer when a job is scheduled.
- * Heroku: set `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL` (verified sender), and optionally
- * `SENDGRID_FROM_NAME`, `APP_TIMEZONE` (IANA, e.g. America/Chicago), `SENDGRID_JOB_CONFIRMATION_TEMPLATE_ID`.
- * No-ops when SendGrid/from email is missing or the customer has no email.
- */
-export async function sendJobScheduledConfirmationEmail(job: JobConfirmationEmailPayload): Promise<void> {
+async function sendJobScheduleCustomerEmail(
+  job: JobConfirmationEmailPayload,
+  kind: JobScheduleEmailKind
+): Promise<void> {
   const to = job.customer.email?.trim();
   if (!to) {
     return;
   }
   if (!ensureSendGridConfigured()) {
-    console.warn("SendGrid: SENDGRID_API_KEY not set; skipping job confirmation email.");
+    console.warn("SendGrid: SENDGRID_API_KEY not set; skipping job customer email.");
     return;
   }
   const from = getSendGridFrom();
   if (!from) {
-    console.warn("SendGrid: SENDGRID_FROM_EMAIL not set; skipping job confirmation email.");
+    console.warn("SendGrid: SENDGRID_FROM_EMAIL not set; skipping job customer email.");
     return;
   }
 
-  const templateId = process.env.SENDGRID_JOB_CONFIRMATION_TEMPLATE_ID?.trim();
+  const confirmationTemplateId = process.env.SENDGRID_JOB_CONFIRMATION_TEMPLATE_ID?.trim();
+  const rescheduleTemplateId = process.env.SENDGRID_JOB_RESCHEDULE_TEMPLATE_ID?.trim();
+  const templateId =
+    kind === "reschedule"
+      ? rescheduleTemplateId || confirmationTemplateId
+      : confirmationTemplateId;
+
   const customerFirst = job.customer.firstName.trim();
   const { dateLine, timeLine } = formatJobDateTime(job);
   const technicianName = `${job.technician.user.firstName} ${job.technician.user.lastName}`.trim();
-  const subject = `Appointment confirmed — ${job.company.name}`;
+  const subject =
+    kind === "reschedule"
+      ? `Appointment rescheduled — ${job.company.name}`
+      : `Appointment confirmed — ${job.company.name}`;
 
   const replyTo = process.env.SENDGRID_REPLY_TO_EMAIL?.trim();
   const replyToField = replyTo ? { replyTo: { email: replyTo } as const } : {};
+
+  const category = kind === "reschedule" ? "job_reschedule" : "job_confirmation";
 
   if (templateId) {
     await sgMail.send({
       to,
       from,
       ...replyToField,
+      subject,
       templateId,
       dynamicTemplateData: {
         companyName: job.company.name,
@@ -162,8 +188,10 @@ export async function sendJobScheduledConfirmationEmail(job: JobConfirmationEmai
         services: job.services.map((s) => ({ title: s.title })),
         servicesText: job.services.map((s) => s.title).join(", ") || "TBD",
         jobId: job.id,
+        isReschedule: kind === "reschedule",
+        emailSubject: subject,
       },
-      categories: ["job_confirmation"],
+      categories: [category],
     });
     return;
   }
@@ -173,8 +201,27 @@ export async function sendJobScheduledConfirmationEmail(job: JobConfirmationEmai
     from,
     ...replyToField,
     subject,
-    text: buildText(job),
-    html: buildHtml(job),
-    categories: ["job_confirmation"],
+    text: buildText(job, kind),
+    html: buildHtml(job, kind),
+    categories: [category],
   });
+}
+
+/**
+ * Sends a job confirmation to the customer when a job is scheduled.
+ * Heroku: set `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL` (verified sender), and optionally
+ * `SENDGRID_FROM_NAME`, `APP_TIMEZONE` (IANA, e.g. America/Chicago), `SENDGRID_JOB_CONFIRMATION_TEMPLATE_ID`.
+ * For reschedules after an update, see `sendJobRescheduleReminderEmail` and optional `SENDGRID_JOB_RESCHEDULE_TEMPLATE_ID`.
+ * No-ops when SendGrid/from email is missing or the customer has no email.
+ */
+export async function sendJobScheduledConfirmationEmail(job: JobConfirmationEmailPayload): Promise<void> {
+  await sendJobScheduleCustomerEmail(job, "confirmation");
+}
+
+/**
+ * Same layout and dynamic fields as the appointment confirmation email, with reschedule wording and subject.
+ * Uses `SENDGRID_JOB_RESCHEDULE_TEMPLATE_ID` when set; otherwise falls back to the confirmation template or HTML body.
+ */
+export async function sendJobRescheduleReminderEmail(job: JobConfirmationEmailPayload): Promise<void> {
+  await sendJobScheduleCustomerEmail(job, "reschedule");
 }

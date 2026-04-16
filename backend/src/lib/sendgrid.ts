@@ -23,7 +23,7 @@ export function getSendGridFrom(): { email: string; name: string } | null {
   if (!email) {
     return null;
   }
-  const name = process.env.SENDGRID_FROM_NAME?.trim() || "Appointments";
+  const name = process.env.SENDGRID_FROM_NAME?.trim() || "Duct Daddy";
   return { email, name };
 }
 

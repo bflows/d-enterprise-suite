@@ -5,7 +5,11 @@ import { prisma } from "../lib/prisma";
 import { cloudinary } from "../lib/cloudinary";
 import { getStripe } from "../lib/stripe";
 import { syncJobsInvoiceStatusesFromStripe } from "../lib/stripeInvoiceJobSync";
-import { sendJobScheduledConfirmationEmail } from "../services/jobConfirmationEmail";
+import {
+  sendJobRescheduleReminderEmail,
+  sendJobScheduledConfirmationEmail,
+} from "../services/jobConfirmationEmail";
+import type { JobConfirmationEmailPayload } from "../services/jobConfirmationEmail";
 
 /** Request body for updating a job. Only provided fields are updated. */
 interface UpdateJobBody {
@@ -357,16 +361,59 @@ export const updateJob = async (
         set: body.serviceItemIds.map((id) => ({ id })),
       };
     }
+
+    const effectiveStartDate = data.startDate ?? existing.startDate;
+    const effectiveEndDate = data.endDate ?? existing.endDate;
+    const effectiveStartTime = data.startTime ?? existing.startTime;
+    const effectiveEndTime = data.endTime ?? existing.endTime;
+    const scheduleChanged =
+      effectiveStartDate.getTime() !== existing.startDate.getTime() ||
+      effectiveEndDate.getTime() !== existing.endDate.getTime() ||
+      effectiveStartTime.getTime() !== existing.startTime.getTime() ||
+      effectiveEndTime.getTime() !== existing.endTime.getTime();
+
     const job = await prisma.job.update({
       where: { id },
       data,
       include: {
+        company: { select: { name: true } },
         customer: true,
         technician: { include: { user: true } },
         services: true,
         invoice: true,
       },
     });
+
+    if (scheduleChanged) {
+      const statusAfter = job.status;
+      if (statusAfter !== "CANCELLED" && statusAfter !== "COMPLETED") {
+        const emailPayload: JobConfirmationEmailPayload = {
+          id: job.id,
+          company: job.company,
+          customer: {
+            firstName: job.customer.firstName,
+            lastName: job.customer.lastName,
+            email: job.customer.email,
+            phone: job.customer.phone,
+          },
+          technician: {
+            user: {
+              firstName: job.technician.user.firstName,
+              lastName: job.technician.user.lastName,
+            },
+          },
+          services: job.services.map((s) => ({ title: s.title })),
+          startDate: job.startDate,
+          endDate: job.endDate,
+          startTime: job.startTime,
+          endTime: job.endTime,
+        };
+        void sendJobRescheduleReminderEmail(emailPayload).catch((err) => {
+          console.error("Job reschedule reminder email error:", err);
+        });
+      }
+    }
+
     return res.status(200).json({
       success: true,
       message: "Job updated successfully",
