@@ -19,7 +19,7 @@ import {
   type ServiceItemListItem,
 } from "@/lib/api/service";
 import { getAvailableTechniciansForWindow } from "@/lib/api/availability";
-import { createJob, mapApiJobToJob } from "@/lib/api/jobs";
+import { createJob, mapApiJobToJob, updateJob } from "@/lib/api/jobs";
 import { formatUsdFromCents } from "@/lib/money";
 import { HiChevronLeft, HiPlus, HiUser } from "react-icons/hi2";
 import { HiSearch } from "react-icons/hi";
@@ -35,11 +35,70 @@ function displayEmployee(emp: EmployeeListItem) {
   return [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email || "—";
 }
 
+function jobServiceLineToListItem(
+  s: NonNullable<Job["services"]>[number]
+): ServiceItemListItem {
+  return {
+    id: s.id,
+    categoryId: "",
+    type: "SERVICE",
+    title: s.name,
+    description: s.description ?? "",
+    price: s.price,
+    duration: 0,
+    unit: s.quantity,
+    sortOrder: null,
+    createdAt: "",
+    updatedAt: "",
+  };
+}
+
+function jobToCustomerPlaceholder(job: Job, companyId: string): CustomerListItem {
+  return {
+    id: job.customerId!,
+    companyId,
+    firstName: job.customerFirstName ?? "",
+    lastName: job.customerLastName ?? "",
+    phone: job.customerPhone ?? "",
+    address: job.address ?? "",
+    email: job.customerEmail ?? null,
+    leadSource: null,
+    address2: job.address2 ?? null,
+    city: job.city ?? null,
+    zipCode: job.zipCode ?? null,
+    notes: null,
+  };
+}
+
+function jobToTechnicianPlaceholder(job: Job, companyId: string): EmployeeListItem {
+  const name = job.technicianName ?? "";
+  const parts = name.trim().split(/\s+/);
+  const firstName = parts[0] ?? "";
+  const lastName = parts.slice(1).join(" ");
+  return {
+    id: job.technicianId!,
+    userId: "",
+    companyId,
+    roleSlug: "technician",
+    user: {
+      id: "",
+      email: "",
+      firstName,
+      lastName,
+      phoneNumber: "",
+      createdAt: "",
+      updatedAt: "",
+    },
+  };
+}
+
 export interface NewJobModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (job: Job) => void;
   existingJobs: Job[];
+  /** When set, the modal updates this job instead of creating a new one (same form as create). */
+  jobToEdit?: Job | null;
 }
 
 export default function NewJobModal({
@@ -47,6 +106,7 @@ export default function NewJobModal({
   onClose,
   onSave,
   existingJobs,
+  jobToEdit = null,
 }: NewJobModalProps) {
   const router = useRouter();
   const companyId = useSelector((state: RootState) =>
@@ -86,9 +146,17 @@ export default function NewJobModal({
 
   const customerDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const technicianDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jobToEditRef = useRef(jobToEdit);
+  jobToEditRef.current = jobToEdit;
 
+  const isEditMode = Boolean(jobToEdit);
   const effectiveEndDate = endDate || startDate;
   const effectiveEndTime = endTime || startTime;
+
+  const jobsForOverlap = React.useMemo(() => {
+    if (!jobToEdit) return existingJobs;
+    return existingJobs.filter((j) => j.id !== jobToEdit.id);
+  }, [existingJobs, jobToEdit]);
 
   const fetchCustomers = useCallback(
     (q: string) => {
@@ -200,8 +268,8 @@ export default function NewJobModal({
       return allTechnicians;
     }
     return allTechnicians.filter((emp) => {
-      const techId = emp.userId;
-      const overlaps = existingJobs.some((job) =>
+      const techId = emp.id;
+      const overlaps = jobsForOverlap.some((job) =>
         jobOverlapsWindow(
           job,
           startDate,
@@ -215,7 +283,7 @@ export default function NewJobModal({
     });
   }, [
     allTechnicians,
-    existingJobs,
+    jobsForOverlap,
     startDate,
     startTime,
     effectiveEndDate,
@@ -244,42 +312,92 @@ export default function NewJobModal({
     setSubmitError(null);
   }, []);
 
+  const populateFromJob = useCallback((job: Job, cid: string) => {
+    setStartDate(job.date);
+    setEndDate(job.endDate ?? job.date);
+    setStartTime(job.startTime);
+    setEndTime(job.endTime ?? job.startTime);
+    setNotes(job.notes ?? "");
+    setSubmitError(null);
+    setCustomerSearch("");
+    setCustomerResults([]);
+    setCustomerDropdownOpen(false);
+    setSelectedCustomer(
+      job.customerId ? jobToCustomerPlaceholder(job, cid) : null
+    );
+    setTechnicianSearch("");
+    setAllTechnicians([]);
+    setTechnicianDropdownOpen(false);
+    setSelectedTechnician(
+      job.technicianId ? jobToTechnicianPlaceholder(job, cid) : null
+    );
+    setSelectedServiceItems(
+      (job.services ?? []).map((line) => jobServiceLineToListItem(line))
+    );
+    setServiceBooks([]);
+    setSelectedServiceBook(null);
+    setSelectedCategory(null);
+    setCategoryServiceItems([]);
+    setServicesPickerView(null);
+  }, []);
+
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+    const j = jobToEditRef.current;
+    if (j && companyId) {
+      queueMicrotask(() => populateFromJob(j, companyId));
+    } else if (!j) {
       queueMicrotask(() => resetForm());
     }
-  }, [isOpen, resetForm]);
+  }, [isOpen, jobToEdit?.id, companyId, populateFromJob, resetForm]);
 
   const handleSubmit = async () => {
     if (!companyId || !selectedCustomer || !selectedTechnician) return;
     setSubmitError(null);
     setSubmitting(true);
     try {
-      const response = await createJob({
-        companyId,
-        customerId: selectedCustomer.id,
-        technicianId: selectedTechnician.id,
-        startDate,
-        endDate: effectiveEndDate,
-        startTime,
-        endTime: effectiveEndTime,
-        status: "scheduled",
-        serviceItemIds:
-          selectedServiceItems.length > 0
-            ? selectedServiceItems.map((s) => s.id)
-            : undefined,
-        ...(notes.trim() && { notes: notes.trim() }),
-      });
-      const job = mapApiJobToJob(response.job);
-      onSave(job);
-      resetForm();
-      onClose();
+      if (jobToEdit) {
+        const response = await updateJob(jobToEdit.id, {
+          startDate,
+          endDate: effectiveEndDate,
+          startTime,
+          endTime: effectiveEndTime,
+          notes: notes.trim() ? notes.trim() : null,
+          ...(selectedTechnician && { technicianId: selectedTechnician.id }),
+          serviceItemIds: selectedServiceItems.map((s) => s.id),
+        });
+        const job = mapApiJobToJob(response.job);
+        onSave(job);
+        onClose();
+      } else {
+        const response = await createJob({
+          companyId,
+          customerId: selectedCustomer.id,
+          technicianId: selectedTechnician.id,
+          startDate,
+          endDate: effectiveEndDate,
+          startTime,
+          endTime: effectiveEndTime,
+          status: "scheduled",
+          serviceItemIds:
+            selectedServiceItems.length > 0
+              ? selectedServiceItems.map((s) => s.id)
+              : undefined,
+          ...(notes.trim() && { notes: notes.trim() }),
+        });
+        const job = mapApiJobToJob(response.job);
+        onSave(job);
+        resetForm();
+        onClose();
+      }
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } }; message?: string })
           ?.response?.data?.message ||
         (err as { message?: string })?.message ||
-        "Failed to create job. Please try again.";
+        (jobToEdit
+          ? "Failed to update job. Please try again."
+          : "Failed to create job. Please try again.");
       setSubmitError(message);
     } finally {
       setSubmitting(false);
@@ -303,10 +421,16 @@ export default function NewJobModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="New Job"
+      title={isEditMode ? "Edit Job" : "New Job"}
       cancelLabel="Cancel"
       primaryAction={{
-        label: submitting ? "Creating..." : "Create Job",
+        label: submitting
+          ? isEditMode
+            ? "Saving..."
+            : "Creating..."
+          : isEditMode
+            ? "Save"
+            : "Create Job",
         onClick: handleSubmit,
         disabled: !canSubmit,
       }}
@@ -337,16 +461,18 @@ export default function NewJobModal({
                   </span>
                 )}
               </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCustomer(null);
-                  setCustomerSearch("");
-                }}
-                className="text-small text-primary hover:underline"
-              >
-                Clear
-              </button>
+              {!isEditMode && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCustomer(null);
+                    setCustomerSearch("");
+                  }}
+                  className="text-small text-primary hover:underline"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           ) : (
             <>

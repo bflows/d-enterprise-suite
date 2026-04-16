@@ -18,8 +18,8 @@ import {
 import { isInvoiceTerminalForPayment, type Job } from "@/lib/calendar/types";
 import {
   getJobById,
-  updateJob,
   deleteJob,
+  listJobs,
   mapApiJobToJob,
   updateJobStatus,
   type ApiJobStatus,
@@ -27,7 +27,7 @@ import {
 import { createJobInvoice } from "@/lib/api/invoices";
 import JobPaymentModal from "@/components/jobs/JobPaymentModal";
 import { parseJobSlug } from "@/lib/utils/slug";
-import JobDetailModal from "@/components/schedule/JobDetailModal";
+import NewJobModal from "@/components/schedule/NewJobModal";
 import Modal from "@/components/ui/Modal";
 import { LuArrowLeft } from "react-icons/lu";
 import { ROLE_SLUGS } from "@/types/auth";
@@ -63,8 +63,7 @@ export default function JobDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [saveLoading, setSaveLoading] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [overlapJobs, setOverlapJobs] = useState<Job[]>([]);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -118,7 +117,6 @@ export default function JobDetailPage() {
   useEffect(() => {
     if (searchParams.get("action") !== "updateJob" || !job) return;
     setEditModalOpen(true);
-    setSaveError(null);
     const next = new URLSearchParams(searchParams.toString());
     next.delete("action");
     const q = next.toString();
@@ -265,42 +263,24 @@ export default function JobDetailPage() {
     };
   }, [setJobInvoiceDisabled, setJobPaymentDisabled]);
 
-  const handleSave = useCallback(
-    async (updated: Job) => {
-      setSaveError(null);
-      setSaveLoading(true);
-      try {
-        const res = await updateJob(updated.id, {
-          title: updated.title ?? null,
-          startDate: updated.date,
-          endDate: updated.endDate ?? updated.date,
-          startTime: updated.startTime,
-          endTime: updated.endTime || updated.startTime,
-          notes: updated.notes ?? null,
-          status: updated.status,
-          ...(updated.technicianId != null && { technicianId: updated.technicianId }),
-          ...(updated.serviceItemIds !== undefined && { serviceItemIds: updated.serviceItemIds }),
-        });
-        const mapped = mapApiJobToJob(res.job);
-        setJob(mapped);
-        setEditModalOpen(false);
-      } catch (err: unknown) {
-        const message =
-          err && typeof err === "object" && "response" in err
-            ? String((err as { response?: { data?: { message?: string } } }).response?.data?.message)
-            : "Failed to update job.";
-        setSaveError(message ?? "Failed to update job.");
-      } finally {
-        setSaveLoading(false);
-      }
-    },
-    []
-  );
+  useEffect(() => {
+    if (!editModalOpen || !companyId) return;
+    let cancelled = false;
+    listJobs()
+      .then((list) => {
+        if (!cancelled) setOverlapJobs(list);
+      })
+      .catch(() => {
+        if (!cancelled) setOverlapJobs([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [editModalOpen, companyId]);
 
-  const handleRequestDelete = useCallback(() => {
+  const handleJobUpdatedFromModal = useCallback((updated: Job) => {
+    setJob(updated);
     setEditModalOpen(false);
-    setDeleteConfirmOpen(true);
-    setDeleteError(null);
   }, []);
 
   const handleConfirmDelete = useCallback(async () => {
@@ -432,21 +412,13 @@ export default function JobDetailPage() {
         <JobDetailView job={job} />
       </div> */}
 
-      <JobDetailModal
+      <NewJobModal
         key={job.id}
-        companyId={companyId ?? undefined}
-        job={job}
         isOpen={editModalOpen}
-        isEditMode
-        onClose={() => {
-          setEditModalOpen(false);
-          setSaveError(null);
-        }}
-        onEdit={() => { }}
-        onSave={handleSave}
-        onRequestDelete={handleRequestDelete}
-        saveLoading={saveLoading}
-        saveError={saveError}
+        onClose={() => setEditModalOpen(false)}
+        onSave={handleJobUpdatedFromModal}
+        existingJobs={overlapJobs.filter((j) => j.id !== job.id)}
+        jobToEdit={editModalOpen ? job : null}
       />
 
       {companyId ? (
