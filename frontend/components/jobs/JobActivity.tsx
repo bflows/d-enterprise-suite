@@ -6,12 +6,14 @@ import {
   HiCheckCircle,
   HiClipboardDocumentList,
   HiClock,
-  HiCurrencyDollar,
+  HiDocumentText,
   HiMapPin,
   HiPencilSquare,
   HiPhoto,
   HiTruck,
   HiXCircle,
+  HiDocumentArrowUp,
+  HiCurrencyDollar,
 } from "react-icons/hi2";
 import {
   listJobActivities,
@@ -32,9 +34,9 @@ const ACTIVITY_ICON_MAP: Record<JobActivityType, IconType> = {
   JOB_CREATED: HiClipboardDocumentList,
   JOB_UPDATED: HiPencilSquare,
   JOB_STATUS_UPDATED: HiCheckCircle,
-  JOB_NOTE_UPDATED: HiPencilSquare,
+  JOB_NOTE_UPDATED: HiDocumentText,
   JOB_ATTACHMENT_ADDED: HiPhoto,
-  JOB_INVOICE_SENT: HiCurrencyDollar,
+  JOB_INVOICE_SENT: HiDocumentArrowUp,
 };
 
 const STATUS_ICON_MAP: Record<string, IconType> = {
@@ -42,7 +44,7 @@ const STATUS_ICON_MAP: Record<string, IconType> = {
   EN_ROUTE: HiTruck,
   ON_SITE: HiMapPin,
   COMPLETED: HiCheckCircle,
-  INVOICED: HiCurrencyDollar,
+  INVOICED: HiDocumentArrowUp,
   PAID: HiCurrencyDollar,
   VOID: HiXCircle,
   UNCOLLECTABLE: HiXCircle,
@@ -66,6 +68,8 @@ function getJobStatusFromActivity(activity: JobActivityRow): string | null {
   // Fallback for existing logs that only include prose text in logName.
   const raw = activity.logName.trim().toLowerCase();
   if (!raw) return null;
+  // Stripe sync writes `Payment: $… (card)` etc.; "payment" does not include substring "paid".
+  if (raw.startsWith("payment:")) return "PAID";
   if (raw.includes("on my way")) return "EN_ROUTE";
   if (raw.includes("on site")) return "ON_SITE";
   if (raw.includes("finished") || raw.includes("complete")) return "COMPLETED";
@@ -184,6 +188,8 @@ export default function JobActivity({
     }
 
     let cancelled = false;
+    // Defer loading state to the next microtask so this effect does not synchronously
+    // cascade renders (eslint react-compiler/react-hooks rules).
     queueMicrotask(() => {
       if (cancelled) return;
       setLoading(true);
