@@ -25,7 +25,8 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function formatJobDateTime(job: JobConfirmationEmailPayload): { dateLine: string; timeLine: string } {
+/** Shared with SMS and other customer notifications. */
+export function formatJobDateTime(job: JobConfirmationEmailPayload): { dateLine: string; timeLine: string } {
   const tz = process.env.APP_TIMEZONE?.trim();
   const options: Intl.DateTimeFormatOptions = {
     weekday: "long",

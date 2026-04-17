@@ -10,6 +10,7 @@ import {
   sendJobScheduledConfirmationEmail,
 } from "../services/jobConfirmationEmail";
 import type { JobConfirmationEmailPayload } from "../services/jobConfirmationEmail";
+import { sendJobCreatedCustomerSms } from "../services/jobScheduledSms";
 
 /** Request body for updating a job. Only provided fields are updated. */
 interface UpdateJobBody {
@@ -248,6 +249,9 @@ export const createJob = async (
     if (status === "SCHEDULED") {
       void sendJobScheduledConfirmationEmail(job).catch((err) => {
         console.error("Job confirmation email error:", err);
+      });
+      void sendJobCreatedCustomerSms(job).catch((err) => {
+        console.error("Job confirmation SMS error:", err);
       });
     }
 
