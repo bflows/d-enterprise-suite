@@ -11,13 +11,13 @@ import {
 } from "../services/token.service";
 import { ROLE_SLUGS } from "../constants/roles";
 
-interface RegisterUserType {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-}
+// interface RegisterUserType {
+//   email: string;
+//   password: string;
+//   firstName: string;
+//   lastName: string;
+//   phoneNumber: string;
+// }
 
 interface LoginUserType {
   email: string;
@@ -29,105 +29,105 @@ function sanitizeUser(user: any) {
   return rest;
 }
 
-export const registerUser = async (req: Request<{}, {}, RegisterUserType>, res: Response) => {
-  try {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const {
-      email,
-      password,
-      firstName,
-      lastName,
-      phoneNumber
-    } = req.body;
+// export const registerUser = async (req: Request<{}, {}, RegisterUserType>, res: Response) => {
+//   try {
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     const {
+//       email,
+//       password,
+//       firstName,
+//       lastName,
+//       phoneNumber
+//     } = req.body;
 
-    if (!email || !password || !firstName || !lastName || !phoneNumber) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
-    }
+//     if (!email || !password || !firstName || !lastName || !phoneNumber) {
+//       return res.status(400).json({ success: false, message: "All fields are required" });
+//     }
 
-    if (firstName.length < 3) {
-      return res.status(400).json({ success: false, message: "First name must be at least 3 characters" });
-    }
+//     if (firstName.length < 3) {
+//       return res.status(400).json({ success: false, message: "First name must be at least 3 characters" });
+//     }
 
-    if (lastName.length < 3) {
-      return res.status(400).json({ success: false, message: "Last name must be at least 3 characters" });
-    }
+//     if (lastName.length < 3) {
+//       return res.status(400).json({ success: false, message: "Last name must be at least 3 characters" });
+//     }
 
-    if (phoneNumber.length < 10) {
-      return res.status(400).json({ success: false, message: "Phone number must be 10 digits" });
-    }
+//     if (phoneNumber.length < 10) {
+//       return res.status(400).json({ success: false, message: "Phone number must be 10 digits" });
+//     }
 
-    if (password.length < 8) {
-      return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
-    }
+//     if (password.length < 8) {
+//       return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
+//     }
 
-    const trimmedEmail = email.trim().toLowerCase();
-    if (!emailRegex.test(trimmedEmail)) {
-      return res.status(400).json({ success: false, message: "Please provide a valid email address" });
-    }
+//     const trimmedEmail = email.trim().toLowerCase();
+//     if (!emailRegex.test(trimmedEmail)) {
+//       return res.status(400).json({ success: false, message: "Please provide a valid email address" });
+//     }
 
 
-    const existingUserByEmail = await prisma.user.findUnique({ where: { email } });
-    if (existingUserByEmail) {
-      return res.status(400).json({ success: false, message: "Email is already in use" });
-    }
+//     const existingUserByEmail = await prisma.user.findUnique({ where: { email } });
+//     if (existingUserByEmail) {
+//       return res.status(400).json({ success: false, message: "Email is already in use" });
+//     }
 
-    const trimmedFirstName = firstName.trim();
-    const trimmedLastName = lastName.trim();
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+//     const trimmedFirstName = firstName.trim();
+//     const trimmedLastName = lastName.trim();
+//     const saltRounds = 10;
+//     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const user = await prisma.user.create({
-      data: {
-        email: trimmedEmail,
-        passwordHash: hashedPassword,
-        firstName: trimmedFirstName,
-        lastName: trimmedLastName,
-        phoneNumber
-      }
-    });
+//     const user = await prisma.user.create({
+//       data: {
+//         email: trimmedEmail,
+//         passwordHash: hashedPassword,
+//         firstName: trimmedFirstName,
+//         lastName: trimmedLastName,
+//         phoneNumber
+//       }
+//     });
 
-    const expiresAt = getRefreshExpiresAt();
-    const session = await prisma.refreshSession.create({
-      data: {
-        userId: user.id,
-        refreshTokenHash: '',
-        expiresAt,
-        userAgent: req.headers['user-agent'] ?? null,
-        ip: (req.ip ?? req.socket?.remoteAddress) ?? null
-      }
-    });
+//     const expiresAt = getRefreshExpiresAt();
+//     const session = await prisma.refreshSession.create({
+//       data: {
+//         userId: user.id,
+//         refreshTokenHash: '',
+//         expiresAt,
+//         userAgent: req.headers['user-agent'] ?? null,
+//         ip: (req.ip ?? req.socket?.remoteAddress) ?? null
+//       }
+//     });
 
-    const refreshToken = generateRefreshToken(session.id, user.id);
-    const tokenHash = hashRefreshToken(refreshToken);
-    await prisma.refreshSession.update({
-      where: { id: session.id },
-      data: { refreshTokenHash: tokenHash }
-    });
+//     const refreshToken = generateRefreshToken(session.id, user.id);
+//     const tokenHash = hashRefreshToken(refreshToken);
+//     await prisma.refreshSession.update({
+//       where: { id: session.id },
+//       data: { refreshTokenHash: tokenHash }
+//     });
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/api/auth',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+//     res.cookie('refreshToken', refreshToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === 'production',
+//       sameSite: 'lax',
+//       path: '/api/auth',
+//       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+//     });
 
-    const accessToken = generateAccessToken(user.id, undefined, session.id);
+//     const accessToken = generateAccessToken(user.id, undefined, session.id);
 
-    return res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      accessToken,
-      user: sanitizeUser(user)
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error. Please try again later."
-    });
-  }
-};
+//     return res.status(201).json({
+//       success: true,
+//       message: "User registered successfully",
+//       accessToken,
+//       user: sanitizeUser(user)
+//     });
+//   } catch (error) {
+//     console.error("Registration error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal server error. Please try again later."
+//     });
+//   }
+// };
 
 export const loginUser = async (req: Request<{}, {}, LoginUserType>, res: Response) => {
   try {
