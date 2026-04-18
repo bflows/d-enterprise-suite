@@ -65,17 +65,23 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [clientFieldErrors, setClientFieldErrors] = useState<FieldErrors | null>(
     null
   );
 
   const redirect = searchParams.get("redirect") ?? "/dashboard";
 
-  const emailError = clientFieldErrors?.email ?? fieldErrors?.email;
-  const passwordError = clientFieldErrors?.password ?? fieldErrors?.password;
+  const emailError =
+    fieldErrors?.email ??
+    (submitAttempted ? clientFieldErrors?.email : undefined);
+  const passwordError =
+    fieldErrors?.password ??
+    (submitAttempted ? clientFieldErrors?.password : undefined);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitAttempted(true);
     const trimmedEmail = email.trim();
     const client = runClientLoginValidation(trimmedEmail, password);
     setClientFieldErrors(client);
@@ -124,6 +130,7 @@ function LoginForm() {
               const v = e.target.value;
               setEmail(v);
               dispatch(authSlice.actions.clearLoginFormErrors());
+              if (!submitAttempted) return;
               setClientFieldErrors((prev) => {
                 const next: FieldErrors = { ...(prev ?? {}) };
                 const err = validateEmailField(v.trim());
@@ -160,8 +167,9 @@ function LoginForm() {
               const v = e.target.value;
               setPassword(v);
               dispatch(authSlice.actions.clearLoginFormErrors());
+              if (!submitAttempted) return;
               setClientFieldErrors((prev) => {
-                const next: FieldErrors = { ...prev };
+                const next: FieldErrors = { ...(prev ?? {}) };
                 const err = validatePasswordField(v);
                 if (err) next.password = err;
                 else delete next.password;
