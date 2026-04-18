@@ -3,8 +3,7 @@
 import { useSelector } from "react-redux";
 import { selectUser } from "@/features/auth/authSlice";
 import EmployeeDashboard from "@/components/dashboard/EmployeeDashboard";
-import TechnicianDashboard from "@/components/dashboard/TechnicianDashboard";
-import DispatcherAdminDashboard from "@/components/dashboard/DispatcherAdminDashboard";
+import Dashboard from "@/components/dashboard/Dashboard";
 import { ROLE_SLUGS } from "@/types/auth";
 
 export default function DashboardPage() {
@@ -27,11 +26,10 @@ export default function DashboardPage() {
 
   switch (user.role) {
     case ROLE_SLUGS.TECHNICIAN:
-      return <TechnicianDashboard user={user} />;
+      return <Dashboard user={user} />;
     case ROLE_SLUGS.DISPATCHER:
-      return <DispatcherAdminDashboard user={user} showEmployeesLink={false} />;
     case ROLE_SLUGS.ADMIN:
-      return <DispatcherAdminDashboard user={user} showEmployeesLink={true} />;
+      return <Dashboard user={user} />;
     case ROLE_SLUGS.EMPLOYEE:
       return <EmployeeDashboard user={user} />;
     default:
