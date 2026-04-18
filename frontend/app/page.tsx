@@ -8,94 +8,40 @@ export default function HomePage() {
   const user = useSelector(selectUser);
 
   return (
-    <main className="min-h-screen">
-      <header>
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <span className="text-xl font-semibold text-neutral-900">
+    <main className="bg-neutral-100">
+      <div className="max-w-7xl mx-auto px-4 pt-64 pb-16 min-h-screen flex flex-col justify-between gap-y-8 md:px-6 md:pb-24">
+        <header>
+          <h1 className="text-h5 font-bold text-center text-neutral-900 md:text-h4">
             Daddy Enterprise Suite
-          </span>
-          <nav>
+          </h1>
+          <p className="mt-2 text-p text-center max-w-md mx-auto text-neutral-800">
+            Get started by logging in with your company details then head to the dashboard to start working.
+          </p>
+          <nav className="flex justify-center mt-4">
             {user ? (
-              <Link href='/dashboard'>
+              <Link
+                href='/dashboard'
+                className="py-4 px-8 text-p font-bold rounded-lg transition-colors duration-300 ease-in-out bg-primary/90 text-neutral-200 hover:bg-primary hover:text-neutral-50"
+              >
                 Dashboard
               </Link>
             ) : (
-              <div className="flex items-center gap-6">
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-neutral-600 hover:text-neutral-900"
-                >
-                  Log in
-                </Link>
-                <Link
-                  href="/register"
-                  className="hidden sm:block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-                >
-                  Get started
-                </Link>
-              </div>
+              <Link
+                href="/login"
+                className="py-4 px-8 text-p font-bold rounded-lg transition-colors duration-300 ease-in-out bg-primary/90 text-neutral-200 hover:bg-primary hover:text-neutral-50"
+              >
+                Log in
+              </Link>
             )}
           </nav>
-        </div>
-      </header>
+        </header>
 
-      <section className="mx-auto max-w-6xl px-4 py-24 text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl">
-          Run your field operations in one place
-        </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-600">
-          Daddy Enterprise Suite gives your team dispatch, scheduling, and
-          job tracking so you can deliver for customers without the chaos.
-        </p>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <Link
-            href="/register"
-            className="rounded-md bg-primary px-6 py-3 text-base font-medium text-white hover:opacity-90"
-          >
-            Start free trial
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-md border border-neutral-300 bg-white px-6 py-3 text-base font-medium text-neutral-700 hover:bg-neutral-50"
-          >
-            Sign in
-          </Link>
-        </div>
-      </section>
-
-      <section className="border-t border-neutral-200 bg-white py-16">
-        <div className="mx-auto max-w-6xl px-4">
-          <h2 className="text-center text-2xl font-semibold text-neutral-900">
-            Built for teams that move
-          </h2>
-          <ul className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            <li className="rounded-lg border border-neutral-200 p-6">
-              <h3 className="font-medium text-neutral-900">Dispatch</h3>
-              <p className="mt-2 text-sm text-neutral-600">
-                Assign jobs to technicians and keep everyone on the same page.
-              </p>
-            </li>
-            <li className="rounded-lg border border-neutral-200 p-6">
-              <h3 className="font-medium text-neutral-900">Scheduling</h3>
-              <p className="mt-2 text-sm text-neutral-600">
-                Manage calendars and avoid double-booking with a single view.
-              </p>
-            </li>
-            <li className="rounded-lg border border-neutral-200 p-6">
-              <h3 className="font-medium text-neutral-900">Reporting</h3>
-              <p className="mt-2 text-sm text-neutral-600">
-                Track completion and performance with role-based dashboards.
-              </p>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <footer className="border-t border-neutral-200 py-8">
-        <div className="mx-auto max-w-6xl px-4 text-center text-sm text-neutral-500">
-          © {new Date().getFullYear()} Built by Daddy. All rights reserved.
-        </div>
-      </footer>
+        <footer>
+          <p className="text-small text-neutral-600 text-center">
+            © {new Date().getFullYear()} Duct Daddy. All rights reserved.
+          </p>
+        </footer>
+      </div>
     </main>
   );
 }
