@@ -19,7 +19,7 @@ router.get("/", requireAuth, requireRole("admin", "dispatcher", "technician"), l
 router.post(
   "/technician",
   requireAuth,
-  requireRole("technician"),
+  requireRole("technician", "admin", "dispatcher"),
   listTechnicianJobs
 );
 router.post("/create", requireAuth, requireRole("admin", "dispatcher", "technician"), createJob);
