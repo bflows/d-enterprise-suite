@@ -47,70 +47,77 @@ function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-sm rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-      <h1 className="text-xl font-semibold text-neutral-900">Log in</h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        Enter your email and password to continue.
+    <div className="w-full sm:max-w-sm rounded-lg sm:border sm:border-neutral-200 bg-neutral-50 p-6">
+      <h1 className="text-h5 font-bold text-neutral-950">
+        Daddy Enterprise Suite
+      </h1>
+      <p className="mt-2 text-p text-neutral-600">
+        Enter your credentials to start working.
       </p>
+      {/* <h1 className="text-h4 font-bold text-neutral-950 md:text-h4">
+        Log in
+      </h1>
+      <p className="mt-2 text-p text-neutral-600">
+        Enter your email and password to access Daddy Enterprise Suite.
+      </p> */}
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        {error && (
-          <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
-            {error}
-          </div>
-        )}
-        <div>
-          <label htmlFor="login-email" className="block text-sm font-medium text-neutral-700">
-            Email
+      <form onSubmit={handleSubmit} className="flex flex-col">
+        <div className="mt-4">
+          <label htmlFor="login-email" className="text-small text-neutral-600">
+            Email <span className="text-secondary">*</span>
           </label>
           <input
             id="login-email"
             type="email"
             autoComplete="email"
-            required
+            // required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            placeholder="you@company.com"
+            className="mt-1 w-full rounded-lg border bg-neutral-100 border-neutral-200 px-3 py-2 transition-colors duration-300 ease-in-out text-neutral-800 placeholder:text-neutral-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            placeholder="you@ductdaddykc.com"
           />
         </div>
-        <div>
-          <label htmlFor="login-password" className="block text-sm font-medium text-neutral-700">
-            Password
+        <div className="mt-4">
+          <label htmlFor="login-password" className="text-small text-neutral-600">
+            Password <span className="text-secondary">*</span>
           </label>
           <input
             id="login-password"
             type="password"
             autoComplete="current-password"
-            required
+            // required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            placeholder="••••••••"
+            className="mt-1 w-full rounded-lg border bg-neutral-100 border-neutral-200 px-3 py-2 transition-colors duration-300 ease-in-out text-neutral-800 placeholder:text-neutral-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
-        <div className="flex items-center justify-between text-sm">
+        <div className="mt-2 flex items-center justify-between">
           <Link
             href="/forgot-password"
-            className="font-medium text-primary hover:underline"
+            className="text-small text-primary hover:underline"
           >
             Forgot password?
           </Link>
         </div>
+        {error && (
+          <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+            {error}
+          </div>
+        )}
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-md bg-primary py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+          className="mt-6 w-full rounded-lg py-2 text-p font-bold transition-colors duration-300 ease-in-out cursor-pointer bg-primary/90 text-neutral-200 hover:bg-primary hover:text-neutral-50 disabled:opacity-50"
         >
-          {isSubmitting ? "Signing in..." : "Sign in"}
+          {isSubmitting ? (
+            <div className="flex items-center justify-center">
+              <div className="size-6 animate-spin rounded-full border-2 border-neutral-50 border-r-transparent" />
+              <p className="sr-only">Loading customer...</p>
+            </div>
+          ) : "Log in"}
         </button>
       </form>
-
-      <p className="mt-4 text-center text-sm text-neutral-600">
-        Don&apos;t have an account?{" "}
-        <Link href="/register" className="font-medium text-primary hover:underline">
-          Sign up
-        </Link>
-      </p>
     </div>
   );
 }
