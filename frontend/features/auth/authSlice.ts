@@ -1,12 +1,17 @@
 import {
   createSlice,
   createAsyncThunk,
+  isRejectedWithValue,
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import { setAccessToken, clearAccessToken } from "@/lib/auth/tokenStore";
 import * as authApi from "@/lib/api/auth";
-import type { AuthenticatedUser } from "@/types/auth";
-import type { RoleSlug, EmploymentItem } from "@/types/auth";
+import type {
+  AuthenticatedUser,
+  AuthLoginFieldKey,
+  RoleSlug,
+  EmploymentItem,
+} from "@/types/auth";
 import type { RootState } from "@/app/store";
 
 export interface AuthState {
@@ -16,6 +21,8 @@ export interface AuthState {
   isLoading: boolean;
   hydrationDone: boolean;
   error: string | null;
+  /** Set when login fails with API field errors; cleared on next login attempt or session clear. */
+  loginFieldErrors: Partial<Record<AuthLoginFieldKey, string>> | null;
   /** Fetched from POST /api/auth/employment; used for role and company switcher. */
   employments: EmploymentItem[];
   /** Current company context from employment (used for employees list, etc.). */
@@ -29,6 +36,7 @@ const initialState: AuthState = {
   isLoading: false,
   hydrationDone: false,
   error: null,
+  loginFieldErrors: null,
   employments: [],
   currentCompany: null,
 };
@@ -36,10 +44,14 @@ const initialState: AuthState = {
 // Thunks (must be defined before slice so extraReducers can reference them)
 export const login = createAsyncThunk(
   "auth/login",
-  async (credentials: authApi.LoginCredentials) => {
-    const res = await authApi.login(credentials);
-    setAccessToken(res.accessToken);
-    return res;
+  async (credentials: authApi.LoginCredentials, { rejectWithValue }) => {
+    try {
+      const res = await authApi.login(credentials);
+      setAccessToken(res.accessToken);
+      return res;
+    } catch (e) {
+      return rejectWithValue(authApi.toLoginFailurePayload(e));
+    }
   }
 );
 
@@ -86,14 +98,20 @@ const slice = createSlice({
       state.user = action.payload.user;
       state.isAuthenticated = true;
       state.error = null;
+      state.loginFieldErrors = null;
     },
     clearSession(state) {
       state.user = null;
       state.accessToken = null;
       state.isAuthenticated = false;
       state.error = null;
+      state.loginFieldErrors = null;
       state.employments = [];
       state.currentCompany = null;
+    },
+    clearLoginFormErrors(state) {
+      state.error = null;
+      state.loginFieldErrors = null;
     },
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
@@ -107,6 +125,7 @@ const slice = createSlice({
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.error = null;
+        state.loginFieldErrors = null;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -114,10 +133,20 @@ const slice = createSlice({
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.error = null;
+        state.loginFieldErrors = null;
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message ?? "Login failed";
+        const payload = (isRejectedWithValue(action)
+          ? action.payload
+          : { kind: "general" as const, message: "Login failed" }) as authApi.LoginFailurePayload;
+        if (payload.kind === "fields") {
+          state.loginFieldErrors = payload.errors;
+          state.error = null;
+        } else {
+          state.loginFieldErrors = null;
+          state.error = payload.message;
+        }
       })
       // .addCase(register.pending, (state) => {
       //   state.isLoading = true;
@@ -185,6 +214,8 @@ export const selectAuthLoading = (state: RootState) => state.auth.isLoading;
 export const selectHydrationDone = (state: RootState) =>
   state.auth.hydrationDone;
 export const selectAuthError = (state: RootState) => state.auth.error;
+export const selectLoginFieldErrors = (state: RootState) =>
+  state.auth.loginFieldErrors;
 export const selectEmployments = (state: RootState) => state.auth.employments;
 export const selectCurrentCompany = (state: RootState) =>
   state.auth.currentCompany;

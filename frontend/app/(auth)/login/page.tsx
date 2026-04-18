@@ -5,7 +5,41 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/app/store";
-import { login, selectAuthError } from "@/features/auth/authSlice";
+import {
+  authSlice,
+  login,
+  selectAuthError,
+  selectLoginFieldErrors,
+} from "@/features/auth/authSlice";
+import type { AuthLoginFieldKey } from "@/types/auth";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type FieldErrors = Partial<Record<AuthLoginFieldKey, string>>;
+
+function validateEmailField(trimmed: string): string | undefined {
+  if (!trimmed) return "Email is required.";
+  if (!EMAIL_REGEX.test(trimmed)) return "Enter a valid email address.";
+  return undefined;
+}
+
+function validatePasswordField(password: string): string | undefined {
+  if (!password) return "Password is required.";
+  if (password.length < 8) return "Password must be at least 8 characters.";
+  return undefined;
+}
+
+function runClientLoginValidation(
+  trimmedEmail: string,
+  password: string
+): FieldErrors | null {
+  const errors: FieldErrors = {};
+  const emailErr = validateEmailField(trimmedEmail);
+  const passwordErr = validatePasswordField(password);
+  if (emailErr) errors.email = emailErr;
+  if (passwordErr) errors.password = passwordErr;
+  return Object.keys(errors).length > 0 ? errors : null;
+}
 
 function LoginFormFallback() {
   return (
@@ -26,18 +60,32 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
   const error = useSelector(selectAuthError);
+  const fieldErrors = useSelector(selectLoginFieldErrors);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [clientFieldErrors, setClientFieldErrors] = useState<FieldErrors | null>(
+    null
+  );
 
   const redirect = searchParams.get("redirect") ?? "/dashboard";
 
+  const emailError = clientFieldErrors?.email ?? fieldErrors?.email;
+  const passwordError = clientFieldErrors?.password ?? fieldErrors?.password;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedEmail = email.trim();
+    const client = runClientLoginValidation(trimmedEmail, password);
+    setClientFieldErrors(client);
+    if (client) return;
+
     setIsSubmitting(true);
     try {
-      const result = await dispatch(login({ email: email.trim(), password }));
+      const result = await dispatch(
+        login({ email: trimmedEmail, password })
+      );
       if (login.fulfilled.match(result)) {
         router.push(redirect);
       }
@@ -61,21 +109,43 @@ function LoginForm() {
         Enter your email and password to access Daddy Enterprise Suite.
       </p> */}
 
-      <form onSubmit={handleSubmit} className="flex flex-col">
+      <form noValidate onSubmit={handleSubmit} className="flex flex-col">
         <div className="mt-4">
           <label htmlFor="login-email" className="text-small text-neutral-600">
             Email <span className="text-secondary">*</span>
           </label>
           <input
             id="login-email"
-            type="email"
+            type="text"
+            inputMode="email"
             autoComplete="email"
-            // required
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border bg-neutral-100 border-neutral-200 px-3 py-2 transition-colors duration-300 ease-in-out text-neutral-800 placeholder:text-neutral-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            onChange={(e) => {
+              const v = e.target.value;
+              setEmail(v);
+              dispatch(authSlice.actions.clearLoginFormErrors());
+              setClientFieldErrors((prev) => {
+                const next: FieldErrors = { ...(prev ?? {}) };
+                const err = validateEmailField(v.trim());
+                if (err) next.email = err;
+                else delete next.email;
+                return Object.keys(next).length > 0 ? next : null;
+              });
+            }}
+            aria-invalid={Boolean(emailError)}
+            aria-describedby={emailError ? "login-email-error" : undefined}
+            className={`mt-1 w-full rounded-lg border bg-neutral-100 px-3 py-2 transition-colors duration-300 ease-in-out text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-1 ${
+              emailError
+                ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                : "border-neutral-200 focus:border-primary focus:ring-primary"
+            }`}
             placeholder="you@ductdaddykc.com"
           />
+          {emailError && (
+            <p id="login-email-error" className="mt-1 text-small text-red-700" role="alert">
+              {emailError}
+            </p>
+          )}
         </div>
         <div className="mt-4">
           <label htmlFor="login-password" className="text-small text-neutral-600">
@@ -85,12 +155,33 @@ function LoginForm() {
             id="login-password"
             type="password"
             autoComplete="current-password"
-            // required
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value;
+              setPassword(v);
+              dispatch(authSlice.actions.clearLoginFormErrors());
+              setClientFieldErrors((prev) => {
+                const next: FieldErrors = { ...prev };
+                const err = validatePasswordField(v);
+                if (err) next.password = err;
+                else delete next.password;
+                return Object.keys(next).length > 0 ? next : null;
+              });
+            }}
+            aria-invalid={Boolean(passwordError)}
+            aria-describedby={passwordError ? "login-password-error" : undefined}
             placeholder="••••••••"
-            className="mt-1 w-full rounded-lg border bg-neutral-100 border-neutral-200 px-3 py-2 transition-colors duration-300 ease-in-out text-neutral-800 placeholder:text-neutral-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className={`mt-1 w-full rounded-lg border bg-neutral-100 px-3 py-2 transition-colors duration-300 ease-in-out text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-1 ${
+              passwordError
+                ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                : "border-neutral-200 focus:border-primary focus:ring-primary"
+            }`}
           />
+          {passwordError && (
+            <p id="login-password-error" className="mt-1 text-small text-red-700" role="alert">
+              {passwordError}
+            </p>
+          )}
         </div>
         <div className="mt-2 flex items-center justify-between">
           <Link

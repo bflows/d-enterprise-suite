@@ -50,6 +50,15 @@ export interface ApiErrorResponse {
   message: string;
 }
 
+/** Field-level errors from POST /api/auth/login */
+export type AuthLoginFieldKey = "email" | "password";
+
+export interface AuthLoginFailureResponse {
+  success: false;
+  errors?: Partial<Record<AuthLoginFieldKey, string>>;
+  message?: string;
+}
+
 /** Single employment as returned by POST /api/auth/employment */
 export interface EmploymentItem {
   companyId: string;
