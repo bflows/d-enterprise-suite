@@ -24,6 +24,10 @@ interface LoginUserType {
   password: string;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type LoginFieldErrors = Partial<Record<"email" | "password", string>>;
+
 function sanitizeUser(user: any) {
   const { password: _p, ...rest } = user;
   return rest;
@@ -133,30 +137,49 @@ export const loginUser = async (req: Request<{}, {}, LoginUserType>, res: Respon
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and password are required"
-      });
+    const errors: LoginFieldErrors = {};
+    const rawEmail = typeof email === "string" ? email : "";
+    const trimmedEmail = rawEmail.trim().toLowerCase();
+
+    if (!trimmedEmail) {
+      errors.email = "Email is required.";
+    } else if (!EMAIL_REGEX.test(trimmedEmail)) {
+      errors.email = "Enter a valid email address.";
     }
 
-    const trimmedEmail = email.trim().toLowerCase();
+    const passwordStr = typeof password === "string" ? password : "";
+    if (!passwordStr) {
+      errors.password = "Password is required.";
+    } else if (passwordStr.length < 8) {
+      errors.password = "Password must be at least 8 characters.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({
+        success: false,
+        errors,
+      });
+    }
 
     const user = await prisma.user.findUnique({ where: { email: trimmedEmail } });
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password"
+        errors: {
+          email: "Invalid credentials",
+        },
       });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(passwordStr, user.passwordHash);
 
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password"
+        errors: {
+          password: "Invalid credentials",
+        },
       });
     }
 
