@@ -11,13 +11,13 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface RegisterCredentials {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-}
+// export interface RegisterCredentials {
+//   email: string;
+//   password: string;
+//   firstName: string;
+//   lastName: string;
+//   phoneNumber: string;
+// }
 
 export type AuthApiResponse = AuthSuccessResponse | ApiErrorResponse;
 
@@ -40,18 +40,18 @@ export async function login(
   return data;
 }
 
-export async function register(
-  credentials: RegisterCredentials
-): Promise<AuthSuccessResponse> {
-  const { data } = await authClient.post<AuthApiResponse>(
-    "/api/auth/register",
-    credentials
-  );
-  if (!isAuthSuccess(data)) {
-    throw new Error((data as ApiErrorResponse).message ?? "Registration failed");
-  }
-  return data;
-}
+// export async function register(
+//   credentials: RegisterCredentials
+// ): Promise<AuthSuccessResponse> {
+//   const { data } = await authClient.post<AuthApiResponse>(
+//     "/api/auth/register",
+//     credentials
+//   );
+//   if (!isAuthSuccess(data)) {
+//     throw new Error((data as ApiErrorResponse).message ?? "Registration failed");
+//   }
+//   return data;
+// }
 
 export async function refresh(): Promise<AuthSuccessResponse> {
   const { data } = await authClient.post<

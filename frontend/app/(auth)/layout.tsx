@@ -13,7 +13,7 @@ export default function AuthLayout({
 }>) {
   return (
     <AuthLayoutRedirect>
-      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center sm:bg-neutral-100 sm:p-4">
         {children}
       </div>
     </AuthLayoutRedirect>

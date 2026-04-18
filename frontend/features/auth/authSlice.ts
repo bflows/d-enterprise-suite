@@ -43,14 +43,14 @@ export const login = createAsyncThunk(
   }
 );
 
-export const register = createAsyncThunk(
-  "auth/register",
-  async (credentials: authApi.RegisterCredentials) => {
-    const res = await authApi.register(credentials);
-    setAccessToken(res.accessToken);
-    return res;
-  }
-);
+// export const register = createAsyncThunk(
+//   "auth/register",
+//   async (credentials: authApi.RegisterCredentials) => {
+//     const res = await authApi.register(credentials);
+//     setAccessToken(res.accessToken);
+//     return res;
+//   }
+// );
 
 export const logout = createAsyncThunk("auth/logout", async () => {
   await authApi.logout();
@@ -119,21 +119,21 @@ const slice = createSlice({
         state.isLoading = false;
         state.error = action.error.message ?? "Login failed";
       })
-      .addCase(register.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(register.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.accessToken = action.payload.accessToken;
-        state.user = action.payload.user;
-        state.isAuthenticated = true;
-        state.error = null;
-      })
-      .addCase(register.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message ?? "Registration failed";
-      })
+      // .addCase(register.pending, (state) => {
+      //   state.isLoading = true;
+      //   state.error = null;
+      // })
+      // .addCase(register.fulfilled, (state, action) => {
+      //   state.isLoading = false;
+      //   state.accessToken = action.payload.accessToken;
+      //   state.user = action.payload.user;
+      //   state.isAuthenticated = true;
+      //   state.error = null;
+      // })
+      // .addCase(register.rejected, (state, action) => {
+      //   state.isLoading = false;
+      //   state.error = action.error.message ?? "Registration failed";
+      // })
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.accessToken = null;
