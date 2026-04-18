@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { HiArrowRightOnRectangle } from "react-icons/hi2";
 import type { AppDispatch } from "@/app/store";
 import { logout, selectUser } from "@/features/auth/authSlice";
 import {
   DASHBOARD_NAV_SECTIONS,
+  filterDashboardNavSections,
   isDashboardNavLinkActive,
 } from "./navLinks";
 
@@ -41,6 +43,11 @@ export default function DashboardSidebar() {
   const router = useRouter();
   const user = useSelector(selectUser);
 
+  const visibleNavSections = useMemo(
+    () => filterDashboardNavSections(DASHBOARD_NAV_SECTIONS, user?.role),
+    [user?.role],
+  );
+
   const displayName = user
     ? `${user.firstName}`.trim() || user.email
     : "";
@@ -70,7 +77,7 @@ export default function DashboardSidebar() {
 
         {/* Links */}
         <div className="mt-8 flex-1 overflow-y-auto flex flex-col gap-y-2 md:gap-y-4">
-          {DASHBOARD_NAV_SECTIONS.map(({ section, items }) => (
+          {visibleNavSections.map(({ section, items }) => (
             <div key={section}>
               <h2 className="text-neutral-400 text-small uppercase font-bold hidden md:block">
                 {section}

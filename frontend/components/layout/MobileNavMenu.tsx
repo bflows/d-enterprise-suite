@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -18,6 +19,7 @@ import type { AppDispatch } from "@/app/store";
 import { logout, selectUser } from "@/features/auth/authSlice";
 import {
   DASHBOARD_NAV_SECTIONS,
+  filterDashboardNavSections,
   isDashboardNavLinkActive,
 } from "./navLinks";
 
@@ -113,6 +115,11 @@ function MobileNavMenuPanel({
   const router = useRouter();
   const user = useSelector(selectUser);
 
+  const visibleNavSections = useMemo(
+    () => filterDashboardNavSections(DASHBOARD_NAV_SECTIONS, user?.role),
+    [user?.role],
+  );
+
   const displayName = user
     ? `${user.firstName} ${user.lastName}`.trim() || user.email
     : "";
@@ -164,7 +171,7 @@ function MobileNavMenuPanel({
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
-          {DASHBOARD_NAV_SECTIONS.map(({ section, items }) => (
+          {visibleNavSections.map(({ section, items }) => (
             <div key={section} className="mb-6 last:mb-0">
               <h2 className="text-neutral-400 text-small font-bold uppercase">
                 {section}

@@ -11,18 +11,50 @@ import {
   HiOutlineIdentification,
   HiOutlineUsers,
 } from "react-icons/hi2";
+import { ROLE_SLUGS, type RoleSlug } from "@/types/auth";
 
 export type DashboardNavItem = {
   href: string;
   label: string;
   iconSolid: IconType;
   iconOutline: IconType;
+  /**
+   * If set (non-empty), only users whose current company role slug matches one of these
+   * values see this link in the sidebar and mobile nav. Omit or leave empty for all roles.
+   */
+  requiredRoles?: readonly RoleSlug[];
 };
 
-export const DASHBOARD_NAV_SECTIONS: readonly {
+export type DashboardNavSection = {
   section: string;
   items: readonly DashboardNavItem[];
-}[] = [
+};
+
+/** Shared with Sidebar and mobile menu so visibility rules stay identical. */
+export function userCanSeeDashboardNavItem(
+  userRole: string | undefined,
+  item: DashboardNavItem
+): boolean {
+  const required = item.requiredRoles;
+  if (!required?.length) return true;
+  if (!userRole) return false;
+  return (required as readonly string[]).includes(userRole);
+}
+
+/** Drops items the user cannot see; removes sections that end up with no items. */
+export function filterDashboardNavSections(
+  sections: readonly DashboardNavSection[],
+  userRole: string | undefined
+): DashboardNavSection[] {
+  return sections
+    .map((s) => ({
+      section: s.section,
+      items: s.items.filter((item) => userCanSeeDashboardNavItem(userRole, item)),
+    }))
+    .filter((s) => s.items.length > 0);
+}
+
+export const DASHBOARD_NAV_SECTIONS: readonly DashboardNavSection[] = [
     {
       section: "Home",
       items: [
@@ -60,6 +92,7 @@ export const DASHBOARD_NAV_SECTIONS: readonly {
           label: "Employees",
           iconSolid: HiUsers,
           iconOutline: HiOutlineUsers,
+          requiredRoles: [ROLE_SLUGS.ADMIN]
         },
       ],
     },
