@@ -113,8 +113,7 @@ export default function NewJobModal({
     selectCurrentCompanyId(state)
   );
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
@@ -150,7 +149,6 @@ export default function NewJobModal({
   jobToEditRef.current = jobToEdit;
 
   const isEditMode = Boolean(jobToEdit);
-  const effectiveEndDate = endDate || startDate;
   const effectiveEndTime = endTime || startTime;
 
   const jobsForOverlap = React.useMemo(() => {
@@ -202,7 +200,7 @@ export default function NewJobModal({
       setAllTechnicians([]);
       return;
     }
-    const hasWindow = startDate && effectiveEndDate && startTime && effectiveEndTime;
+    const hasWindow = date && startTime && effectiveEndTime;
     if (!hasWindow) {
       setAllTechnicians([]);
       setTechnicianLoading(false);
@@ -211,8 +209,8 @@ export default function NewJobModal({
     setTechnicianLoading(true);
     const term = technicianSearch.trim();
     getAvailableTechniciansForWindow({
-      startDate,
-      endDate: effectiveEndDate,
+      startDate: date,
+      endDate: date,
       startTime,
       endTime: effectiveEndTime,
       ...(term && { q: term }),
@@ -222,7 +220,7 @@ export default function NewJobModal({
       })
       .catch(() => setAllTechnicians([]))
       .finally(() => setTechnicianLoading(false));
-  }, [companyId, startDate, effectiveEndDate, startTime, effectiveEndTime, technicianSearch]);
+  }, [companyId, date, startTime, effectiveEndTime, technicianSearch]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -238,7 +236,7 @@ export default function NewJobModal({
         clearTimeout(technicianDebounceRef.current);
       }
     };
-  }, [isOpen, startDate, endDate, startTime, endTime, technicianSearch, loadTechnicians]);
+  }, [isOpen, date, startTime, endTime, technicianSearch, loadTechnicians]);
 
   // Load service books when user opens the Service Book picker
   useEffect(() => {
@@ -264,7 +262,7 @@ export default function NewJobModal({
   }, [selectedCategory]);
 
   const availableTechnicians = React.useMemo(() => {
-    if (!startDate || !startTime || !effectiveEndDate || !effectiveEndTime) {
+    if (!date || !startTime || !effectiveEndTime) {
       return allTechnicians;
     }
     return allTechnicians.filter((emp) => {
@@ -272,9 +270,9 @@ export default function NewJobModal({
       const overlaps = jobsForOverlap.some((job) =>
         jobOverlapsWindow(
           job,
-          startDate,
+          date,
           startTime,
-          effectiveEndDate,
+          date,
           effectiveEndTime,
           techId
         )
@@ -284,16 +282,14 @@ export default function NewJobModal({
   }, [
     allTechnicians,
     jobsForOverlap,
-    startDate,
+    date,
     startTime,
-    effectiveEndDate,
     effectiveEndTime,
   ]);
 
   const resetForm = useCallback(() => {
     const today = new Date().toISOString().slice(0, 10);
-    setStartDate(today);
-    setEndDate(today);
+    setDate(today);
     setStartTime("09:00");
     setEndTime("10:00");
     setCustomerSearch("");
@@ -313,8 +309,7 @@ export default function NewJobModal({
   }, []);
 
   const populateFromJob = useCallback((job: Job, cid: string) => {
-    setStartDate(job.date);
-    setEndDate(job.endDate ?? job.date);
+    setDate(job.date);
     setStartTime(job.startTime);
     setEndTime(job.endTime ?? job.startTime);
     setNotes(job.notes ?? "");
@@ -358,8 +353,7 @@ export default function NewJobModal({
     try {
       if (jobToEdit) {
         const response = await updateJob(jobToEdit.id, {
-          startDate,
-          endDate: effectiveEndDate,
+          date,
           startTime,
           endTime: effectiveEndTime,
           notes: notes.trim() ? notes.trim() : null,
@@ -374,8 +368,7 @@ export default function NewJobModal({
           companyId,
           customerId: selectedCustomer.id,
           technicianId: selectedTechnician.id,
-          startDate,
-          endDate: effectiveEndDate,
+          date,
           startTime,
           endTime: effectiveEndTime,
           status: "scheduled",
@@ -408,10 +401,9 @@ export default function NewJobModal({
     companyId &&
     selectedCustomer &&
     selectedTechnician &&
-    startDate &&
+    date &&
     startTime &&
-    effectiveEndDate >= startDate &&
-    (effectiveEndDate === startDate ? effectiveEndTime > startTime : true) &&
+    effectiveEndTime > startTime &&
     !submitting
   );
 
@@ -556,31 +548,15 @@ export default function NewJobModal({
           )}
         </div>
 
-        {/* Start / End date */}
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-p text-neutral-600">
-              Start date
-            </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div>
-            <label className="block text-p text-neutral-600">
-              End date
-            </label>
-            <input
-              type="date"
-              value={endDate}
-              min={startDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+        {/* Date */}
+        <div className="mt-4">
+          <label className="block text-p text-neutral-600">Date</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
+          />
         </div>
 
         {/* Start / End time */}
@@ -615,7 +591,7 @@ export default function NewJobModal({
             Technician
           </label>
           <p className="text-small text-neutral-600">
-            Select start/end date and time first.
+            Select date and time first.
           </p>
           {selectedTechnician ? (
             <div className="flex items-center justify-between rounded-lg border px-3 py-2 border-neutral-300 bg-neutral-50">
@@ -661,9 +637,9 @@ export default function NewJobModal({
                     ) : availableTechnicians.length === 0 ? (
                       <p className="px-3 py-2 text-small text-neutral-400">
                         {allTechnicians.length === 0
-                          ? startDate && effectiveEndDate && startTime && effectiveEndTime
+                          ? date && startTime && effectiveEndTime
                             ? "No technicians have availability for this date/time, try a different search."
-                            : "Select start/end date and time to see available technicians."
+                            : "Select date and time to see available technicians."
                           : "No technicians available for this date/time (already booked)."}
                       </p>
                     ) : (

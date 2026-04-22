@@ -73,10 +73,10 @@ export default function JobHistory({ companyId, customerId }: JobHistoryProps) {
         setJobs([]);
         const msg =
           axios.isAxiosError(err) &&
-          err.response?.data &&
-          typeof err.response.data === "object" &&
-          "message" in err.response.data &&
-          typeof (err.response.data as { message?: unknown }).message === "string"
+            err.response?.data &&
+            typeof err.response.data === "object" &&
+            "message" in err.response.data &&
+            typeof (err.response.data as { message?: unknown }).message === "string"
             ? (err.response.data as { message: string }).message
             : "Could not load job history.";
         setError(msg);
@@ -117,12 +117,9 @@ export default function JobHistory({ companyId, customerId }: JobHistoryProps) {
         </p>
       )}
       {showLoading && (
-        <div className="mt-4 flex items-center gap-x-3 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-4">
-          <div
-            className="inline-block size-6 animate-spin rounded-full border-2 border-primary border-r-transparent"
-            aria-hidden
-          />
-          <p className="text-neutral-800 text-p">Loading jobs…</p>
+        <div className="mt-4 flex flex-col items-center justify-center">
+          <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+          <p className="text-p font-bold mt-2 text-neutral-600">Loading jobs...</p>
         </div>
       )}
       {empty && (

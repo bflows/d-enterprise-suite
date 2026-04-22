@@ -39,11 +39,7 @@ function formatTimeParts(time: string | undefined): { time: string; period: "AM"
 export default function JobSchedule({ job }: JobScheduleProps) {
   const technicianInitials = getTechnicianInitials(job.technicianName);
   const formattedDate = scheduleDateFmt.format(new Date(`${job.date}T12:00:00`));
-  const endDateKey = job.endDate ?? job.date;
-  const scheduleDateLabel =
-    endDateKey !== job.date
-      ? `${formattedDate} - ${scheduleDateFmt.format(new Date(`${endDateKey}T12:00:00`))}`
-      : formattedDate;
+  const scheduleDateLabel = formattedDate;
   const startTime = formatTimeParts(job.startTime);
   const endTime = formatTimeParts(job.endTime);
 

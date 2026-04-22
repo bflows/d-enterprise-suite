@@ -6,8 +6,7 @@ export interface CreateJobBody {
   companyId: string;
   customerId: string;
   technicianId: string;
-  startDate: string; // YYYY-MM-DD
-  endDate: string;
+  date: string; // YYYY-MM-DD
   startTime: string; // HH:mm
   endTime: string;
   notes?: string;
@@ -26,8 +25,7 @@ export interface ApiJobResponse {
   title: string | null;
   notes: string | null;
   leadSource: string | null;
-  startDate: string;
-  endDate: string;
+  date: string;
   startTime: string;
   endTime: string;
   /** Job status from DB: operational only (SCHEDULED | EN_ROUTE | ON_SITE | COMPLETED | CANCELLED). */
@@ -83,8 +81,7 @@ export interface CreateJobResponse {
 export interface UpdateJobBody {
   id: string;
   title?: string | null;
-  startDate?: string;
-  endDate?: string;
+  date?: string;
   startTime?: string;
   endTime?: string;
   notes?: string | null;
@@ -198,8 +195,7 @@ export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
     stripeInvoiceId,
     invoice,
     title: apiJob.title ?? undefined,
-    date: toDateKey(apiJob.startDate),
-    endDate: toDateKey(apiJob.endDate),
+    date: toDateKey(apiJob.date),
     startTime: toTimeKey(apiJob.startTime),
     endTime: toTimeKey(apiJob.endTime),
     status,
