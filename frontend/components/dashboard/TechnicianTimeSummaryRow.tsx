@@ -67,7 +67,7 @@ function ClockSummaryButton({
       ? "…"
       : clockedIn
         ? elapsedLabel
-        : "Start working";
+        : "Start work";
 
   return (
     <button
@@ -170,7 +170,7 @@ export default function TechnicianTimeSummaryRow({ user }: { user: Authenticated
       ? clientNowReady
         ? formatElapsedDisplay(activeTimeCard.clockedInAt)
         : "…"
-      : "Start working";
+      : "Start work";
 
   async function onClockClick() {
     if (!currentCompany || actionLoading) return;
