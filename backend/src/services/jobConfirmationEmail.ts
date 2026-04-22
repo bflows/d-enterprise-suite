@@ -11,8 +11,7 @@ export type JobConfirmationEmailPayload = {
   };
   technician: { user: { firstName: string; lastName: string } };
   services: { title: string }[];
-  startDate: Date;
-  endDate: Date;
+  date: Date;
   startTime: Date;
   endTime: Date;
 };
@@ -40,8 +39,8 @@ export function formatJobDateTime(job: JobConfirmationEmailPayload): { dateLine:
   };
   const locale = "en-US";
   const dateLine = tz
-    ? job.startDate.toLocaleDateString(locale, { ...options, timeZone: tz })
-    : job.startDate.toLocaleDateString(locale, options);
+    ? job.date.toLocaleDateString(locale, { ...options, timeZone: tz })
+    : job.date.toLocaleDateString(locale, options);
 
   const start = tz
     ? job.startTime.toLocaleTimeString(locale, { ...timeOptions, timeZone: tz })
@@ -50,12 +49,7 @@ export function formatJobDateTime(job: JobConfirmationEmailPayload): { dateLine:
     ? job.endTime.toLocaleTimeString(locale, { ...timeOptions, timeZone: tz })
     : job.endTime.toLocaleTimeString(locale, timeOptions);
 
-  const sameCalendarDay =
-    job.startDate.getFullYear() === job.endDate.getFullYear() &&
-    job.startDate.getMonth() === job.endDate.getMonth() &&
-    job.startDate.getDate() === job.endDate.getDate();
-
-  const timeLine = sameCalendarDay ? `${start} – ${end}` : `${start} (start) – ${end} (end across days)`;
+  const timeLine = `${start} – ${end}`;
 
   return { dateLine, timeLine };
 }

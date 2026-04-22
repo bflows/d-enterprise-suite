@@ -16,8 +16,7 @@ import { sendJobCreatedCustomerSms } from "../services/jobScheduledSms";
 interface UpdateJobBody {
   id: string;
   title?: string | null;
-  startDate?: string; // YYYY-MM-DD
-  endDate?: string;
+  date?: string; // YYYY-MM-DD
   startTime?: string; // HH:mm
   endTime?: string;
   notes?: string | null;
@@ -50,8 +49,7 @@ interface CreateJobBody {
   companyId: string;
   customerId: string;
   technicianId: string;
-  startDate: string; // YYYY-MM-DD
-  endDate: string;
+  date: string; // YYYY-MM-DD
   startTime: string; // HH:mm
   endTime: string;
   notes?: string;
@@ -144,8 +142,7 @@ export const createJob = async (
       companyId,
       customerId,
       technicianId,
-      startDate: startDateStr,
-      endDate: endDateStr,
+      date: dateStr,
       startTime: startTimeStr,
       endTime: endTimeStr,
       notes,
@@ -158,15 +155,14 @@ export const createJob = async (
       !companyId ||
       !customerId ||
       !technicianId ||
-      !startDateStr ||
-      !endDateStr ||
+      !dateStr ||
       !startTimeStr ||
       !endTimeStr
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "companyId, customerId, technicianId, startDate, endDate, startTime, and endTime are required.",
+          "companyId, customerId, technicianId, date, startTime, and endTime are required.",
       });
     }
 
@@ -184,10 +180,9 @@ export const createJob = async (
       }
     }
 
-    const startDate = new Date(startDateStr + "T00:00:00");
-    const endDate = new Date(endDateStr + "T00:00:00");
-    const startTime = toDateTime(startDateStr, startTimeStr);
-    const endTime = toDateTime(endDateStr, endTimeStr);
+    const day = new Date(dateStr + "T00:00:00");
+    const startTime = toDateTime(dateStr, startTimeStr);
+    const endTime = toDateTime(dateStr, endTimeStr);
     if (!startTime || !endTime) {
       return res.status(400).json({
         success: false,
@@ -201,8 +196,8 @@ export const createJob = async (
         : "SCHEDULED";
 
     const actorUserId = req.user?.id ?? null;
-    const startDateLabel = `${startDate.getMonth() + 1}/${startDate.getDate()}`;
-    const logName = `Job: Scheduled ${startDateLabel}`;
+    const dayLabel = `${day.getMonth() + 1}/${day.getDate()}`;
+    const logName = `Job: Scheduled ${dayLabel}`;
     const { job, log } = await prisma.$transaction(async (tx) => {
       const job = await tx.job.create({
         data: {
@@ -213,8 +208,7 @@ export const createJob = async (
           notes: notes ?? null,
           leadSource: leadSource ?? null,
           status,
-          startDate,
-          endDate,
+          date: day,
           startTime,
           endTime,
           ...(serviceItemIds &&
@@ -306,8 +300,7 @@ export const updateJob = async (
       title?: string | null;
       notes?: string | null;
       status?: JobStatusType;
-      startDate?: Date;
-      endDate?: Date;
+      date?: Date;
       startTime?: Date;
       endTime?: Date;
       technicianId?: string;
@@ -324,11 +317,10 @@ export const updateJob = async (
       }
       data.status = prismaStatus;
     }
-    if (body.startDate !== undefined) data.startDate = new Date(body.startDate + "T00:00:00");
-    if (body.endDate !== undefined) data.endDate = new Date(body.endDate + "T00:00:00");
+    if (body.date !== undefined) data.date = new Date(body.date + "T00:00:00");
     if (body.startTime !== undefined) {
-      const dateForStart = body.startDate ?? dateStr(existing.startDate);
-      const parsed = toDateTime(dateForStart, body.startTime);
+      const dateKey = body.date ?? dateStr(existing.date);
+      const parsed = toDateTime(dateKey, body.startTime);
       if (!parsed) {
         return res.status(400).json({
           success: false,
@@ -338,8 +330,8 @@ export const updateJob = async (
       data.startTime = parsed;
     }
     if (body.endTime !== undefined) {
-      const dateForEnd = body.endDate ?? dateStr(existing.endDate);
-      const parsed = toDateTime(dateForEnd, body.endTime);
+      const dateKey = body.date ?? dateStr(existing.date);
+      const parsed = toDateTime(dateKey, body.endTime);
       if (!parsed) {
         return res.status(400).json({
           success: false,
@@ -366,13 +358,11 @@ export const updateJob = async (
       };
     }
 
-    const effectiveStartDate = data.startDate ?? existing.startDate;
-    const effectiveEndDate = data.endDate ?? existing.endDate;
+    const effectiveDate = data.date ?? existing.date;
     const effectiveStartTime = data.startTime ?? existing.startTime;
     const effectiveEndTime = data.endTime ?? existing.endTime;
     const scheduleChanged =
-      effectiveStartDate.getTime() !== existing.startDate.getTime() ||
-      effectiveEndDate.getTime() !== existing.endDate.getTime() ||
+      effectiveDate.getTime() !== existing.date.getTime() ||
       effectiveStartTime.getTime() !== existing.startTime.getTime() ||
       effectiveEndTime.getTime() !== existing.endTime.getTime();
 
@@ -407,8 +397,7 @@ export const updateJob = async (
             },
           },
           services: job.services.map((s) => ({ title: s.title })),
-          startDate: job.startDate,
-          endDate: job.endDate,
+          date: job.date,
           startTime: job.startTime,
           endTime: job.endTime,
         };
@@ -527,7 +516,7 @@ export const listTechnicianJobs = async (
         services: true,
         invoice: true,
       },
-      orderBy: [{ startDate: "asc" }, { startTime: "asc" }],
+      orderBy: [{ date: "asc" }, { startTime: "asc" }],
     });
 
     const stripe = getStripe();
@@ -541,7 +530,7 @@ export const listTechnicianJobs = async (
           services: true,
           invoice: true,
         },
-        orderBy: [{ startDate: "asc" }, { startTime: "asc" }],
+        orderBy: [{ date: "asc" }, { startTime: "asc" }],
       });
     }
 
@@ -580,7 +569,7 @@ export const listJobs = async (req: Request, res: Response) => {
         services: true,
         invoice: true,
       },
-      orderBy: [{ startDate: "asc" }, { startTime: "asc" }],
+      orderBy: [{ date: "asc" }, { startTime: "asc" }],
     });
 
     const stripe = getStripe();
@@ -594,7 +583,7 @@ export const listJobs = async (req: Request, res: Response) => {
           services: true,
           invoice: true,
         },
-        orderBy: [{ startDate: "asc" }, { startTime: "asc" }],
+        orderBy: [{ date: "asc" }, { startTime: "asc" }],
       });
     }
 

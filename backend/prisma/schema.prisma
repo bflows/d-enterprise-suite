@@ -231,8 +231,8 @@ model Job {
   leadSource String?
   status     JobStatusType
 
-  startDate DateTime
-  endDate   DateTime
+  /// Calendar date for the job (day-level).
+  date      DateTime
   startTime DateTime
   endTime   DateTime
 
@@ -250,7 +250,7 @@ model Job {
   @@index([companyId])
   @@index([customerId])
   @@index([technicianId])
-  @@index([startDate])
+  @@index([date])
 }
 
 /// At most one invoice row per job; `stripeInvoiceId` is set when a Stripe invoice exists.
