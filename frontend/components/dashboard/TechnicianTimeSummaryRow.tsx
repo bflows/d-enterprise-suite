@@ -16,6 +16,7 @@ import {
   selectTimeCardError,
   selectTimeCardFetching,
 } from "@/features/timeCard/timeCardSlice";
+import { HiOutlineClipboard, HiOutlineClock } from "react-icons/hi2";
 
 /** Elapsed shift display; updates every second while clocked in. */
 const DISPLAY_REFRESH_MS = 1000;
@@ -74,21 +75,20 @@ function ClockSummaryButton({
       type="button"
       disabled={disabled || actionLoading}
       onClick={() => void onClockClick()}
-      className={`w-1/2 py-3 px-4 text-start rounded-lg flex flex-col cursor-pointer transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed ${
-        clockedIn
+      className={`w-1/2 py-3 px-4 text-start rounded-lg flex flex-col cursor-pointer transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed ${clockedIn
           ? "bg-primary hover:bg-primary/90"
           : "border bg-neutral-50 border-neutral-300 hover:bg-neutral-100 hover:border-primary"
-      }`}
+        }`}
     >
       <p
-        className={`text-small ${clockedIn ? "text-neutral-200" : "text-neutral-800"}`}
+        className={`text-small flex items-center gap-x-1 ${clockedIn ? "text-neutral-200" : "text-neutral-800"}`}
       >
+        <HiOutlineClock className="size-4" />
         {clockedIn ? "Clocked in" : "Clocked out"}
       </p>
       <h3
-        className={`mt-1 text-p font-bold md:text-h6 ${
-          clockedIn ? "text-neutral-100" : "text-neutral-900"
-        }`}
+        className={`mt-1 text-p font-bold md:text-h6 ${clockedIn ? "text-neutral-100" : "text-neutral-900"
+          }`}
       >
         {primaryLine}
       </h3>
@@ -114,7 +114,10 @@ function WeekSummaryLink({
       href={href}
       className="w-1/2 py-3 px-4 text-start rounded-lg flex flex-col border bg-neutral-50 border-neutral-300 hover:bg-neutral-100 hover:border-primary transition-all duration-300 ease-in-out"
     >
-      <p className="text-small text-neutral-800">{caption}</p>
+      <div className="flex items-center gap-x-1">
+        <HiOutlineClipboard className="size-4" />
+        <p className="text-small text-neutral-800">{caption}</p>
+      </div>
       <h3 className="mt-1 text-p font-bold text-neutral-900 md:text-h6">{value}</h3>
       <span className="sr-only">{screenReaderDescription}</span>
     </Link>
