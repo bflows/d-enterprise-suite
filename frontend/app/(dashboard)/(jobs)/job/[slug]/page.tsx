@@ -30,7 +30,7 @@ import { parseJobSlug } from "@/lib/utils/slug";
 import NewJobModal from "@/components/schedule/NewJobModal";
 import Modal from "@/components/ui/Modal";
 import { LuArrowLeft } from "react-icons/lu";
-import { ROLE_SLUGS } from "@/types/auth";
+import { ROLE_SLUGS, TIME_CARD_CLOCK_ROLE_SLUGS } from "@/types/auth";
 import JobProgress from "@/components/jobs/JobProgress";
 import JobCustomer from "@/components/jobs/JobCustomer";
 import JobSchedule from "@/components/jobs/JobSchedule";
@@ -78,10 +78,15 @@ export default function JobDetailPage() {
   const isMountedRef = useRef(true);
 
   useEffect(() => {
-    if (isTechnician) {
+    const role = user?.role;
+    if (
+      companyId &&
+      role &&
+      (TIME_CARD_CLOCK_ROLE_SLUGS as readonly string[]).includes(role)
+    ) {
       void dispatch(fetchActiveTimeCard());
     }
-  }, [dispatch, isTechnician]);
+  }, [dispatch, companyId, user?.role]);
 
   useEffect(() => {
     if (!jobId) {

@@ -14,7 +14,7 @@ import {
   fetchActiveTimeCard,
   clearTimeCardState,
 } from "@/features/timeCard/timeCardSlice";
-import { ROLE_SLUGS } from "@/types/auth";
+import { TIME_CARD_CLOCK_ROLE_SLUGS } from "@/types/auth";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import MobileNav from "./MobileNav";
@@ -38,7 +38,12 @@ export default function DashboardShell({
   }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
-    if (user?.role === ROLE_SLUGS.TECHNICIAN && currentCompany) {
+    const role = user?.role;
+    if (
+      currentCompany &&
+      role &&
+      (TIME_CARD_CLOCK_ROLE_SLUGS as readonly string[]).includes(role)
+    ) {
       void dispatch(fetchActiveTimeCard());
     } else {
       dispatch(clearTimeCardState());

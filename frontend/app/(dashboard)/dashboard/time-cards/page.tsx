@@ -68,6 +68,7 @@ export default function TimeCardsPage() {
   return (
     <RequireRole
       allowedRoles={[
+        ROLE_SLUGS.EMPLOYEE,
         ROLE_SLUGS.TECHNICIAN,
         ROLE_SLUGS.DISPATCHER,
         ROLE_SLUGS.ADMIN,

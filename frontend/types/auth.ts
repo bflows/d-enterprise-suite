@@ -17,6 +17,14 @@ export const ALL_ROLE_SLUGS: readonly RoleSlug[] = [
   ROLE_SLUGS.ADMIN,
 ];
 
+/** Roles that may clock in/out and load active time card state (aligned with time-card API). */
+export const TIME_CARD_CLOCK_ROLE_SLUGS: readonly RoleSlug[] = [
+  ROLE_SLUGS.EMPLOYEE,
+  ROLE_SLUGS.TECHNICIAN,
+  ROLE_SLUGS.DISPATCHER,
+  ROLE_SLUGS.ADMIN,
+];
+
 /** User as returned by login/register/refresh/me (no passwordHash) */
 export interface AuthenticatedUser {
   id: string;

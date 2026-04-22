@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { AuthenticatedUser } from "@/types/auth";
+import TechnicianTimeSummaryRow from "./TechnicianTimeSummaryRow";
 
 export default function EmployeeDashboard({ user }: { user: AuthenticatedUser }) {
   return (
@@ -10,6 +11,7 @@ export default function EmployeeDashboard({ user }: { user: AuthenticatedUser })
       <p className="mt-1 text-neutral-600">
         Welcome back{user.firstName ? `, ${user.firstName}` : ""}.
       </p>
+      <TechnicianTimeSummaryRow user={user} />
       <p className="mt-4 text-p text-neutral-700 max-w-2xl">
         You have team member access. Use the schedule and company areas your administrator has
         opened for you.
