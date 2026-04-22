@@ -212,7 +212,7 @@ export default function CustomersTable() {
   }, [customerToDelete, companyId, loadWithSearch, searchQuery]);
 
   return (
-    <div className="overflow-hidden rounded-lg py-4 px-4 border bg-neutral-50 border-neutral-300 md:px-6 md:py-8 lg:px-10">
+    <div className="overflow-hidden rounded-lg sm:py-4 sm:px-4 sm:border sm:bg-neutral-50 sm:border-neutral-300 md:px-6 md:py-8 lg:px-10">
       <div>
         <h1 className="hidden text-h4 font-bold text-neutral-900 sm:inline">Customers</h1>
         <div className="flex justify-between sm:mt-4">
@@ -223,7 +223,7 @@ export default function CustomersTable() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Name or phone"
-              className="w-full text-p border border-neutral-300 rounded-lg py-3 pl-12 pr-4 bg-neutral-100 text-neutral-600 sm:w-48 focus:outline-none focus:border focus:ring focus:ring-primary focus:border-primary placeholder:text-neutral-400"
+              className="w-full text-p border border-neutral-300 rounded-lg py-3 pl-12 pr-4 bg-neutral-50 text-neutral-600 sm:w-48 focus:outline-none focus:border focus:ring focus:ring-primary focus:border-primary placeholder:text-neutral-400"
             />
           </div>
           <button
@@ -324,7 +324,7 @@ export default function CustomersTable() {
         ) : (
           <>
             {/* Mobile: card list */}
-            <div className="mt-4 flex flex-col gap-y-2 md:hidden">
+            <div className="mt-2 flex flex-col gap-y-1 md:hidden">
               {effectiveCustomers.length === 0 ? (
                 <p className="text-neutral-800 text-p text-center py-8">
                   {searchQuery.trim()
