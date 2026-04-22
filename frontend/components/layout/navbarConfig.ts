@@ -35,7 +35,7 @@ export type OverflowMenuItemDescriptor = {
 );
 
 type LeftRule = {
-  /** Match this path and any subpath (e.g. /dashboard/time-cards/foo). */
+  /** Match this path and any subpath (e.g. /timecards/foo). */
   prefix: string;
   slot: MobileNavbarLeftSlot;
 };
@@ -50,7 +50,7 @@ const MOBILE_NAVBAR_LEFT_RULES: LeftRule[] = [
     },
   },
   {
-    prefix: "/dashboard/time-cards",
+    prefix: "/timecards",
     slot: {
       kind: "back",
       href: "/dashboard",

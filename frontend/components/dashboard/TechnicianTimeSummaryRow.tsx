@@ -206,7 +206,7 @@ export default function TechnicianTimeSummaryRow({ user }: { user: Authenticated
           onClockClick={onClockClick}
         />
         <WeekSummaryLink
-          href="/dashboard/time-cards"
+          href="/timecards"
           caption="This week"
           value={weekValue}
           screenReaderDescription="View time cards for the last 7 days"
