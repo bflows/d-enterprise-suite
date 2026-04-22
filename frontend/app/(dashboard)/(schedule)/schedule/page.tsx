@@ -9,6 +9,8 @@ import { LuPlus } from "react-icons/lu";
 import type { Job } from "@/lib/calendar/types";
 import Calendar from "@/components/schedule/Calendar";
 import NewJobModal from "@/components/schedule/NewJobModal";
+import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
+import NewCustomerForm from "@/components/customers/NewCustomerForm";
 import { listJobs } from "@/lib/api/jobs";
 import { HiCalendar } from "react-icons/hi2";
 
@@ -20,6 +22,7 @@ export default function SchedulePage() {
   );
   const [jobs, setJobs] = useState<Job[]>([]);
   const [newJobModalOpen, setNewJobModalOpen] = useState(false);
+  const [newCustomerModalOpen, setNewCustomerModalOpen] = useState(false);
   const [jobsLoading, setJobsLoading] = useState(true);
   const [jobsError, setJobsError] = useState<string | null>(null);
 
@@ -41,6 +44,14 @@ export default function SchedulePage() {
     if (searchParams.get("newJob") !== "1") return;
     queueMicrotask(() => {
       setNewJobModalOpen(true);
+      router.replace("/schedule", { scroll: false });
+    });
+  }, [searchParams, router]);
+
+  useEffect(() => {
+    if (searchParams.get("newCustomer") !== "1") return;
+    queueMicrotask(() => {
+      setNewCustomerModalOpen(true);
       router.replace("/schedule", { scroll: false });
     });
   }, [searchParams, router]);
@@ -107,6 +118,20 @@ export default function SchedulePage() {
         onSave={handleJobCreate}
         existingJobs={displayJobs}
       />
+      <NewEmployeeModal
+        open={newCustomerModalOpen}
+        onClose={() => setNewCustomerModalOpen(false)}
+        title="New Customer"
+      >
+        {companyId ? (
+          <NewCustomerForm
+            companyId={companyId}
+            onClose={() => setNewCustomerModalOpen(false)}
+          />
+        ) : (
+          <p className="text-neutral-600 text-p">No company selected.</p>
+        )}
+      </NewEmployeeModal>
     </div>
   );
 }

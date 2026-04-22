@@ -3,7 +3,6 @@
 import { usePathname, useRouter } from "next/navigation";
 import {
   resolveMobileNavbarLeft,
-  resolveMobileNavbarRight,
   resolveOverflowMenuItems,
 } from "./navbarConfig";
 import { useMobileNavMenu } from "./MobileNavMenu";
@@ -24,16 +23,12 @@ import { useJobNavbarActions } from "./JobNavbarActionsContext";
 const backButtonClass =
   "flex items-center justify-center -ml-2 p-1 rounded-md cursor-pointer text-neutral-100 hover:bg-white/10";
 
-const iconButtonClass =
-  "flex items-center justify-center -mr-2 p-1 rounded-md cursor-pointer text-neutral-100 hover:bg-white/10";
-
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { openMenu } = useMobileNavMenu();
   const { jobInvoiceDisabled, jobPaymentDisabled } = useJobNavbarActions();
   const left = resolveMobileNavbarLeft(pathname);
-  const right = resolveMobileNavbarRight(pathname);
 
   const overflowItems: ActionMenuItem[] = resolveOverflowMenuItems(pathname).map((d) => {
     const icon =
@@ -78,9 +73,9 @@ export default function Navbar() {
   });
 
   return (
-    <nav className="bg-primary h-16 shrink-0 px-6 top-0 sticky border-b border-neutral-400 sm:hidden">
+    <nav className="bg-primary h-16 shrink-0 px-6 top-0 sticky sm:hidden">
       <div className="flex items-center justify-between h-full">
-        <div className="min-w-7 flex items-center justify-start">
+        <div className="flex items-center justify-start">
           {left.kind === "back" ? (
             <button
               type="button"
@@ -113,11 +108,7 @@ export default function Navbar() {
           <h1 className="text-neutral-50 text-h6 font-bold">Duct Daddy</h1>
         </div>
         <div className="flex items-center justify-end">
-          {right.kind === "ellipsis" ? (
-            <span className={iconButtonClass} aria-hidden>
-              <HiEllipsisVertical className="size-8" />
-            </span>
-          ) : overflowItems.length > 0 ? (
+          {overflowItems.length > 0 ? (
             <ActionMenu
               align="right"
               triggerLabel="Open menu"

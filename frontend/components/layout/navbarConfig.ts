@@ -1,16 +1,11 @@
 /**
- * Mobile top bar (Navbar) — left/right slots by route.
+ * Mobile top bar (Navbar) — left slot by route; right slot is ActionMenu when overflow items exist.
  * Left: longest matching prefix wins (resolveMobileNavbarLeft).
- * Right: resolveMobileNavbarRight — ellipsis on hub routes except /dashboard (ActionMenu: create job / customer).
  */
 
 export type MobileNavbarLeftSlot =
   | { kind: "menu" }
   | { kind: "back"; href: string; ariaLabel: string };
-
-export type MobileNavbarRightSlot =
-  | { kind: "overflow" }
-  | { kind: "ellipsis" };
 
 export type OverflowMenuItemDescriptor = {
   label: string;
@@ -108,24 +103,17 @@ export function resolveMobileNavbarLeft(pathname: string): MobileNavbarLeftSlot 
   return matches[0].slot;
 }
 
-const ELLIPSIS_NAVBAR_RIGHT_PATHS = new Set([
+const HUB_NEW_JOB_CUSTOMER_PATHS = new Set([
+  "/dashboard",
   "/schedule",
   "/customers",
   "/inbox",
 ]);
 
-export function resolveMobileNavbarRight(pathname: string): MobileNavbarRightSlot {
-  const path = normalizePathname(pathname);
-  if (ELLIPSIS_NAVBAR_RIGHT_PATHS.has(path)) {
-    return { kind: "ellipsis" };
-  }
-  return { kind: "overflow" };
-}
-
 export function resolveOverflowMenuItems(pathname: string): OverflowMenuItemDescriptor[] {
   const path = normalizePathname(pathname);
 
-  if (path === "/dashboard") {
+  if (HUB_NEW_JOB_CUSTOMER_PATHS.has(path)) {
     return [
       { label: "New Job", icon: "createJob", action: "createJob" },
       { label: "New Customer", icon: "createCustomer", action: "createCustomer" },
