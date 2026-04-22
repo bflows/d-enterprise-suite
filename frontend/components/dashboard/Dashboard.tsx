@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import type { AuthenticatedUser } from "@/types/auth";
+import { selectIsClockedIn } from "@/features/timeCard/timeCardSlice";
 import TechnicianTimeSummaryRow from "./TechnicianTimeSummaryRow";
 import TechnicianJobs from "./TechnicianJobs";
 
 export default function TechnicianDashboard({ user }: { user: AuthenticatedUser }) {
+  const clockedIn = useSelector(selectIsClockedIn);
   const [dayName, setDayName] = useState<string | null>(null);
   const [calendarDate, setCalendarDate] = useState<string | null>(null);
 
@@ -33,7 +36,12 @@ export default function TechnicianDashboard({ user }: { user: AuthenticatedUser 
           <h1 className="text-h5 font-bold text-neutral-900 md:text-h3">
             Welcome, {user.firstName}!
           </h1>
-          <p className="py-1 px-3 rounded-full text-small bg-neutral-200 text-neutral-600 capitalize">
+          <p
+            className={`py-1 px-3 rounded-full text-small capitalize transition-colors duration-300 ease-in-out ${clockedIn
+              ? "bg-primary text-neutral-50"
+              : "bg-neutral-200 text-neutral-600"
+              }`}
+          >
             {user.role}
           </p>
         </div>
