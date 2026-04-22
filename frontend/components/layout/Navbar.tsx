@@ -28,7 +28,8 @@ function navbarTitleForPathname(pathname: string): string {
     pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
   if (p === "/dashboard" || p.startsWith("/dashboard/")) return "Dashboard";
   if (p === "/schedule" || p.startsWith("/schedule/")) return "Schedule";
-  if (p === "/customers" || p.startsWith("/customers/")) return "Customers";
+  if (p === "/customers") return "Customers";
+  if (p.startsWith("/customers/")) return "Customer";
   if (p === "/inbox" || p.startsWith("/inbox/")) return "Inbox";
   if (p === "/job" || p.startsWith("/job/")) return "Job";
   return "Duct Daddy";
