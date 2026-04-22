@@ -295,13 +295,9 @@ export default function Pricebook() {
 
       <div className="mt-4">
         {loadingBooks ? (
-          <div className="">
-            <div className="flex items-center gap-x-4">
-              <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-              <p className="text-neutral-800 text-p mt-2">
-                Loading service books...
-              </p>
-            </div>
+          <div className="flex flex-col items-center justify-center">
+            <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+            <p className="text-p font-bold mt-2 text-neutral-600">Loading servicebooks...</p>
           </div>
         ) : serviceBooks.length === 0 ? (
           <p className="text-neutral-600 text-p">No service books yet. Create one to get started.</p>

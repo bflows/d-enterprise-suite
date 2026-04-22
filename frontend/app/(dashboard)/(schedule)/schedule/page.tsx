@@ -97,11 +97,9 @@ export default function SchedulePage() {
       )}
 
       {displayLoading ? (
-        <div className="flex justify-center items-center">
-          <div className="text-center">
-            <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-            <p className="text-p font-bold mt-2 text-neutral-600">Loading schedule...</p>
-          </div>
+        <div className="flex flex-col items-center justify-center">
+          <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+          <p className="text-p font-bold mt-2 text-neutral-600">Loading schedule...</p>
         </div>
       ) : (
         <Calendar

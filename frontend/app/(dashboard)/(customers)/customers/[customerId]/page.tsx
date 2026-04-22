@@ -132,11 +132,7 @@ function CustomerDetailInner() {
       .finally(() => setDeleteLoading(false));
   }, [customer, companyId, router]);
 
-  if (!companyId) {
-    return (
-      <p className="text-neutral-600 text-p mt-6">Select a company to view this customer.</p>
-    );
-  }
+  if (!companyId) return
 
   if (!customerId) {
     return (
@@ -157,11 +153,9 @@ function CustomerDetailInner() {
 
   if (loading) {
     return (
-      <div className="mt-10 flex justify-center min-h-30 items-center">
-        <div className="text-center">
-          <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-          <p className="text-neutral-800 text-p mt-2">Loading customer...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center">
+        <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+        <p className="text-p font-bold mt-2 text-neutral-600">Loading customer...</p>
       </div>
     );
   }

@@ -90,13 +90,9 @@ export default function ServiceBookPage() {
 
   if (loading) {
     return (
-      <div className="py-8">
-        <div className="flex items-center gap-x-4">
-          <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-          <p className="text-neutral-800 text-p mt-2">
-            Loading service book...
-          </p>
-        </div>
+      <div className="flex flex-col items-center justify-center">
+        <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+        <p className="text-p font-bold mt-2 text-neutral-600">Loading servicebook...</p>
       </div>
     );
   }

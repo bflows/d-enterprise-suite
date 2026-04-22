@@ -117,11 +117,8 @@ function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
         </p>
       )}
       {showLoading && (
-        <div className="mt-4 flex flex-col justify-center items-center">
-          <div
-            className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent"
-            aria-hidden
-          />
+        <div className="mt-4 flex flex-col items-center justify-center">
+          <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
           <p className="text-p font-bold mt-2 text-neutral-600">Loading jobs...</p>
         </div>
       )}
@@ -140,11 +137,10 @@ function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
               <li key={job.id}>
                 <Link
                   href={`/job/${slug}`}
-                  className={`block rounded-lg border px-4 py-3 transition-all duration-300 ease-in-out ring-transparent ring-2 ${
-                    today
-                      ? "border-primary bg-neutral-50 ring-primary hover:bg-neutral-100"
-                      : "border-neutral-300 bg-neutral-50 hover:bg-neutral-100 hover:ring-primary"
-                  }`}
+                  className={`block rounded-lg border px-4 py-3 transition-all duration-300 ease-in-out ring-transparent ring-2 ${today
+                    ? "border-primary bg-neutral-50 ring-primary hover:bg-neutral-100"
+                    : "border-neutral-300 bg-neutral-50 hover:bg-neutral-100 hover:ring-primary"
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-small text-neutral-600">{dateLabel}</p>

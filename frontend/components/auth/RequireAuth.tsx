@@ -36,11 +36,9 @@ export default function RequireAuth({
 
   if (!hydrationDone || isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-neutral-100">
-        <div className="text-center">
-          <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-          <p className="text-p font-bold mt-2 text-neutral-600">Authenticating...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+        <p className="text-p font-bold mt-2 text-neutral-600">Authenticating...</p>
       </div>
     );
   }

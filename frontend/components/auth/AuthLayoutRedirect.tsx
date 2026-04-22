@@ -32,9 +32,9 @@ export default function AuthLayoutRedirect({
   if (hydrationDone && isAuthenticated) {
     return (
       <div className="grid min-h-[40vh] place-items-center">
-        <div className="text-center">
+        <div className="flex flex-col items-center justify-center">
           <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-          <p className="mt-2 text-sm text-neutral-600">Redirecting...</p>
+          <p className="text-p font-bold mt-2 text-neutral-600">Loading redirecting...</p>
         </div>
       </div>
     );

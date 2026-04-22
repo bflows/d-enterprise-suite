@@ -44,7 +44,7 @@ export default function DashboardPage() {
     const run = () => {
       listJobs()
         .then(setJobs)
-        .catch(() => {});
+        .catch(() => { });
     };
     queueMicrotask(run);
   }, [companyId]);
@@ -60,9 +60,9 @@ export default function DashboardPage() {
   if (!user.role) {
     return (
       <div className="grid min-h-[40vh] place-items-center">
-        <div className="text-center">
+        <div className="flex flex-col items-center justify-center">
           <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-          <p className="text-neutral-800 text-p mt-2">Loading your dashboard…</p>
+          <p className="text-p font-bold mt-2 text-neutral-600">Loading dashboard...</p>
         </div>
       </div>
     );

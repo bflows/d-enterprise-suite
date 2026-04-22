@@ -216,88 +216,86 @@ export default function EmployeesTable() {
         <div className="mt-6 min-h-30">
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="text-center">
+              <div className="flex flex-col items-center justify-center">
                 <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-                <p className="text-neutral-800 text-p mt-2">
-                  Loading employees...
-                </p>
+                <p className="text-p font-bold mt-2 text-neutral-600">Loading employees...</p>
               </div>
             </div>
           ) : error ? (
             <p className="text-neutral-600 text-p py-6">{error}</p>
           ) : (
             <table className="w-full table-auto max-h-[80vh]">
-            <thead>
-              <tr>
-                <th className="text-left text-neutral-600 text-p font-normal py-2">
-                  Name
-                </th>
-                <th className="text-left text-neutral-600 text-p font-normal py-2">
-                  Phone
-                </th>
-                <th className="text-left text-neutral-600 text-p font-normal py-2 hidden lg:table-cell">
-                  Email
-                </th>
-                <th className="text-left text-neutral-600 text-p font-normal py-2">
-                  Position
-                </th>
-                <th className="text-left text-neutral-600 text-p font-normal py-2 w-12">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.length === 0 ? (
+              <thead>
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="text-neutral-800 text-p text-center pt-6"
-                  >
-                    {searchQuery.trim()
-                      ? "No employees match your search."
-                      : "No employees yet. Add an employee to get started."}
-                  </td>
+                  <th className="text-left text-neutral-600 text-p font-normal py-2">
+                    Name
+                  </th>
+                  <th className="text-left text-neutral-600 text-p font-normal py-2">
+                    Phone
+                  </th>
+                  <th className="text-left text-neutral-600 text-p font-normal py-2 hidden lg:table-cell">
+                    Email
+                  </th>
+                  <th className="text-left text-neutral-600 text-p font-normal py-2">
+                    Position
+                  </th>
+                  <th className="text-left text-neutral-600 text-p font-normal py-2 w-12">
+                    Actions
+                  </th>
                 </tr>
-              ) : (
-                employees.map((emp) => (
-                  <tr key={emp.id} className="border-t border-neutral-200">
-                    <td className="text-neutral-800 text-p text-left py-2">
-                      {[emp.user.firstName, emp.user.lastName]
-                        .filter(Boolean)
-                        .join(" ") || "—"}
-                    </td>
-                    <td className="text-neutral-800 text-p text-left py-2">
-                      {emp.user.phoneNumber || "—"}
-                    </td>
-                    <td className="text-neutral-800 text-p text-left py-2 hidden lg:table-cell">
-                      {emp.user.email || "—"}
-                    </td>
-                    <td className="text-neutral-800 text-p text-left py-2 capitalize">
-                      {emp.roleSlug || "—"}
-                    </td>
-                    <td className="flex items-center gap-1 py-2">
-                      <button
-                        type="button"
-                        onClick={() => setEditTarget(emp)}
-                        className="p-1.5 rounded-lg cursor-pointer text-neutral-600 hover:bg-primary/10 hover:text-primary transition-colors"
-                        aria-label={`Edit ${displayName(emp)}`}
-                      >
-                        <LuUserRoundPen className="size-6" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openRemoveConfirm(emp)}
-                        className="p-1.5 rounded-lg cursor-pointer text-neutral-600 hover:bg-red-100 hover:text-red-600 transition-colors"
-                        aria-label={`Remove ${displayName(emp)}`}
-                      >
-                        <LuUserRoundMinus className="size-6" />
-                      </button>
+              </thead>
+              <tbody>
+                {employees.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="text-neutral-800 text-p text-center pt-6"
+                    >
+                      {searchQuery.trim()
+                        ? "No employees match your search."
+                        : "No employees yet. Add an employee to get started."}
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  employees.map((emp) => (
+                    <tr key={emp.id} className="border-t border-neutral-200">
+                      <td className="text-neutral-800 text-p text-left py-2">
+                        {[emp.user.firstName, emp.user.lastName]
+                          .filter(Boolean)
+                          .join(" ") || "—"}
+                      </td>
+                      <td className="text-neutral-800 text-p text-left py-2">
+                        {emp.user.phoneNumber || "—"}
+                      </td>
+                      <td className="text-neutral-800 text-p text-left py-2 hidden lg:table-cell">
+                        {emp.user.email || "—"}
+                      </td>
+                      <td className="text-neutral-800 text-p text-left py-2 capitalize">
+                        {emp.roleSlug || "—"}
+                      </td>
+                      <td className="flex items-center gap-1 py-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditTarget(emp)}
+                          className="p-1.5 rounded-lg cursor-pointer text-neutral-600 hover:bg-primary/10 hover:text-primary transition-colors"
+                          aria-label={`Edit ${displayName(emp)}`}
+                        >
+                          <LuUserRoundPen className="size-6" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openRemoveConfirm(emp)}
+                          className="p-1.5 rounded-lg cursor-pointer text-neutral-600 hover:bg-red-100 hover:text-red-600 transition-colors"
+                          aria-label={`Remove ${displayName(emp)}`}
+                        >
+                          <LuUserRoundMinus className="size-6" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           )}
         </div>
       </div>
