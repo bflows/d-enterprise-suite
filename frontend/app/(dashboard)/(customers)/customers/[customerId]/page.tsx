@@ -15,7 +15,7 @@ import { useSelector } from "react-redux";
 import { LuArrowLeft } from "react-icons/lu";
 import type { AxiosError } from "axios";
 import { HiChatBubbleBottomCenterText, HiInbox, HiPhone } from "react-icons/hi2";
-import CustomerAddress from "@/components/customers/CustomerAddress";
+import JobAddress from "@/components/jobs/JobAddress";
 import CustomerNotes from "@/components/customers/CustomerNotes";
 import JobHistory from "@/components/customers/JobHistory";
 
@@ -272,7 +272,8 @@ function CustomerDetailInner() {
         </div>
       </div>
       {/*  */}
-      <CustomerAddress
+      <JobAddress
+        layout="page"
         address={customer.address}
         address2={customer.address2}
         city={customer.city}
