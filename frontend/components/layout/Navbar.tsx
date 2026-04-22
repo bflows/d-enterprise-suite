@@ -73,7 +73,7 @@ export default function Navbar() {
   });
 
   return (
-    <nav className="bg-primary h-16 shrink-0 px-6 top-0 sticky sm:hidden">
+    <nav className="z-40 bg-primary h-16 shrink-0 px-6 top-0 sticky sm:hidden">
       <div className="flex items-center justify-between h-full">
         <div className="flex items-center justify-start">
           {left.kind === "back" ? (
