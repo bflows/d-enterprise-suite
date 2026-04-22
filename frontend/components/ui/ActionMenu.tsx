@@ -88,7 +88,7 @@ export default function ActionMenu({
       {open && (
         <div
           role="menu"
-          className={`absolute top-full mt-2 min-w-40 ${alignClass} z-50 rounded-lg border border-neutral-300 bg-neutral-50 p-2 shadow-lg`}
+          className={`absolute top-full mt-2 min-w-48 ${alignClass} z-50 rounded-lg border border-neutral-300 bg-neutral-50 p-2 shadow-lg`}
         >
           <div className="flex flex-col gap-y-1">
             {items.map((item, index) =>
@@ -107,12 +107,12 @@ export default function ActionMenu({
                           <Icon
                             aria-hidden
                             size={item.iconSize}
-                            className={item.iconClassName ?? "size-6"}
+                            className={`text-neutral-600 ${item.iconClassName ?? "size-6"}`}
                           />
                         );
                       })()}
                     </div>
-                    <p className="font-bold text-p">{item.label}</p>
+                    <p className="font-bold text-p text-neutral-600">{item.label}</p>
                   </div>
                 ) : (
                   <Link
@@ -120,7 +120,7 @@ export default function ActionMenu({
                     href={item.href}
                     role="menuitem"
                     onClick={() => setOpen(false)}
-                    className="flex w-full items-center gap-x-3 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out bg-neutral-50 text-neutral-800 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex w-full items-center gap-x-3 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out bg-neutral-50 text-neutral-600 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <div>
                       {(() => {
@@ -144,7 +144,7 @@ export default function ActionMenu({
                   role="menuitem"
                   onClick={() => handleItemClick(item)}
                   disabled={item.disabled || !item.onClick}
-                  className="flex w-full items-center gap-x-3 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out bg-neutral-50 text-neutral-800 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full items-center gap-x-3 rounded-lg px-3 py-2 text-left cursor-pointer transition-colors duration-300 ease-in-out bg-neutral-50 text-neutral-600 hover:bg-primary hover:text-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <div>
                     {(() => {
