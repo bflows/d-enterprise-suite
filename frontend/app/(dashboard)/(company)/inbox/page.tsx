@@ -18,8 +18,10 @@ export default function InboxPage() {
   }, [searchParams, router]);
 
   return (
-    <div>
-      <h1 className="text-neutral-900 text-h4 font-bold">Inbox</h1>
+    <div className="flex items-center justify-center h-[60vh]">
+      <h1 className="text-h4 font-bold text-neutral-600">
+        Coming soon...
+      </h1>
     </div>
   );
 }
