@@ -214,8 +214,8 @@ export default function CustomersTable() {
   return (
     <div className="overflow-hidden rounded-lg py-4 px-4 border bg-neutral-50 border-neutral-300 md:px-6 md:py-8 lg:px-10">
       <div>
-        <h1 className="text-h4 font-bold text-neutral-900">Customers</h1>
-        <div className="flex justify-between mt-4">
+        <h1 className="hidden text-h4 font-bold text-neutral-900 sm:inline">Customers</h1>
+        <div className="flex justify-between sm:mt-4">
           <div className="z-10 relative flex items-center w-full sm:w-auto">
             <LuUserRoundSearch className="absolute text-neutral-600 size-6 left-4" />
             <input
