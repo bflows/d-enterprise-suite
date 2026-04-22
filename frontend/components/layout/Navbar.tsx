@@ -30,6 +30,7 @@ function navbarTitleForPathname(pathname: string): string {
   if (p === "/schedule" || p.startsWith("/schedule/")) return "Schedule";
   if (p === "/customers" || p.startsWith("/customers/")) return "Customers";
   if (p === "/inbox" || p.startsWith("/inbox/")) return "Inbox";
+  if (p === "/job" || p.startsWith("/job/")) return "Job";
   return "Duct Daddy";
 }
 
