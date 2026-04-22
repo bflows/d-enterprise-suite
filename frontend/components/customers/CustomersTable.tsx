@@ -182,6 +182,21 @@ export default function CustomersTable() {
     router.replace(suffix ? `${pathname}?${suffix}` : pathname);
   }, [searchParams, router, pathname]);
 
+  useEffect(() => {
+    if (searchParams.get("newCustomer") !== "1") return;
+    queueMicrotask(() => {
+      setModalOpen(true);
+      router.replace("/customers", { scroll: false });
+    });
+  }, [searchParams, router]);
+
+  useEffect(() => {
+    if (searchParams.get("newJob") !== "1") return;
+    queueMicrotask(() => {
+      router.replace("/schedule?newJob=1", { scroll: false });
+    });
+  }, [searchParams, router]);
+
   const handleConfirmDelete = useCallback(() => {
     if (!customerToDelete || !companyId) return;
     setDeleting(true);
@@ -201,14 +216,14 @@ export default function CustomersTable() {
       <div>
         <h1 className="text-h4 font-bold text-neutral-900">Customers</h1>
         <div className="flex justify-between mt-4">
-          <div className="relative flex items-center w-full sm:w-auto">
+          <div className="z-10 relative flex items-center w-full sm:w-auto">
             <LuUserRoundSearch className="absolute text-neutral-600 size-6 left-4" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Name or phone"
-              className="w-full text-p border border-neutral-400 rounded-lg py-3 pl-12 pr-4 bg-neutral-100 text-neutral-600 sm:w-48 focus:outline-none focus:border focus:ring focus:ring-primary focus:border-primary placeholder:text-neutral-400"
+              className="w-full text-p border border-neutral-300 rounded-lg py-3 pl-12 pr-4 bg-neutral-100 text-neutral-600 sm:w-48 focus:outline-none focus:border focus:ring focus:ring-primary focus:border-primary placeholder:text-neutral-400"
             />
           </div>
           <button
