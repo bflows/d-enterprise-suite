@@ -33,7 +33,7 @@ export default function TechnicianDashboard({ user }: { user: AuthenticatedUser 
           <h1 className="text-h5 font-bold text-neutral-900 md:text-h3">
             Welcome, {user.firstName}!
           </h1>
-          <p className="py-1 px-3 rounded-full text-small bg-neutral-300 text-neutral-600 capitalize">
+          <p className="py-1 px-3 rounded-full text-small bg-neutral-200 text-neutral-600 capitalize">
             {user.role}
           </p>
         </div>
