@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { HiCalendar, HiOutlineUser } from "react-icons/hi2";
+import { HiCalendar, HiOutlineWrench } from "react-icons/hi2";
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import { listJobs } from "@/lib/api/jobs";
 import { formatInvoiceStatus, type Job } from "@/lib/calendar/types";
@@ -149,7 +149,7 @@ export default function JobHistory({ companyId, customerId }: JobHistoryProps) {
                   <p className="mt-2 font-bold text-h6 text-neutral-900">{jobTitleLine(job)}</p>
                   <div className="mt-2 flex items-center gap-x-2 text-neutral-600">
                     <div>
-                      <HiOutlineUser className="size-5 text-primary" />
+                      <HiOutlineWrench className="size-5 text-primary" />
                     </div>
                     <p className="text-p">{techLabel}</p>
                   </div>
