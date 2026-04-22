@@ -1,4 +1,5 @@
 import express from "express";
+import { ALL_ROLE_SLUGS } from "../constants/roles";
 import { requireAuth, requireRole } from "../middleware/auth.middleware";
 import {
   clockIn,
@@ -9,9 +10,9 @@ import {
 
 const router = express.Router();
 
-router.get("/recent", requireAuth, requireRole("admin", "dispatcher", "technician"), getRecentTimeCards);
-router.get("/active", requireAuth, requireRole("admin", "dispatcher", "technician"), getActiveTimeCard);
-router.post("/clock-in", requireAuth, requireRole("admin", "dispatcher", "technician"), clockIn);
-router.post("/clock-out", requireAuth, requireRole("admin", "dispatcher", "technician"), clockOut);
+router.get("/recent", requireAuth, requireRole(...ALL_ROLE_SLUGS), getRecentTimeCards);
+router.get("/active", requireAuth, requireRole(...ALL_ROLE_SLUGS), getActiveTimeCard);
+router.post("/clock-in", requireAuth, requireRole(...ALL_ROLE_SLUGS), clockIn);
+router.post("/clock-out", requireAuth, requireRole(...ALL_ROLE_SLUGS), clockOut);
 
 export default router;
