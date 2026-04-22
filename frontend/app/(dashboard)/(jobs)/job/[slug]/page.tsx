@@ -337,12 +337,12 @@ export default function JobDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-x-3 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-4">
+      <div className="flex flex-col items-center justify-center">
         <div
-          className="inline-block size-6 animate-spin rounded-full border-2 border-primary border-r-transparent"
+          className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent"
           aria-hidden
         />
-        <p className="text-neutral-800 text-p">Loading job...</p>
+        <p className="text-p font-bold mt-2 text-neutral-600">Loading job...</p>
       </div>
     );
   }
