@@ -50,7 +50,7 @@ export async function getActiveTimeCard(): Promise<TimeCardDto | null> {
   return data.data.activeTimeCard;
 }
 
-/** Time cards for the current user at the current company (clockedInAt in the last 7 days). */
+/** Time Cards for the current user at the current company (clockedInAt in the last 7 days). */
 export async function getRecentTimeCards(): Promise<TimeCardDto[]> {
   const { data } = await apiClient.get<{
     success: true;

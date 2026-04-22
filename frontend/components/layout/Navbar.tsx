@@ -27,7 +27,7 @@ function navbarTitleForPathname(pathname: string): string {
   const p =
     pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
   if (p === "/dashboard" || p.startsWith("/dashboard/")) return "Dashboard";
-  if (p === "/timecards" || p.startsWith("/timecards/")) return "Time cards";
+  if (p === "/timecards" || p.startsWith("/timecards/")) return "Time Cards";
   if (p === "/schedule" || p.startsWith("/schedule/")) return "Schedule";
   if (p === "/customers") return "Customers";
   if (p.startsWith("/customers/")) return "Customer";

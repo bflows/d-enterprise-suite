@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Time cards | Daddy Enterprise Suite",
+  title: "Time Cards | Daddy Enterprise Suite",
   description: "Your recent time entries.",
 };
 
