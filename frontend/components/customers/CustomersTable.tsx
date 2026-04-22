@@ -316,7 +316,7 @@ export default function CustomersTable() {
           <div className="mt-6 flex justify-center min-h-30 items-center">
             <div className="text-center">
               <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-              <p className="text-neutral-800 text-p mt-2">Loading customers...</p>
+              <p className="text-p font-bold mt-2 text-neutral-600">Loading customers...</p>
             </div>
           </div>
         ) : effectiveError ? (
