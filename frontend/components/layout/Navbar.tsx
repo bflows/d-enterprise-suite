@@ -23,6 +23,16 @@ import { useJobNavbarActions } from "./JobNavbarActionsContext";
 const backButtonClass =
   "flex items-center justify-center -ml-2 p-1 rounded-md cursor-pointer text-neutral-100 hover:bg-white/10";
 
+function navbarTitleForPathname(pathname: string): string {
+  const p =
+    pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+  if (p === "/dashboard" || p.startsWith("/dashboard/")) return "Dashboard";
+  if (p === "/schedule" || p.startsWith("/schedule/")) return "Schedule";
+  if (p === "/customers" || p.startsWith("/customers/")) return "Customers";
+  if (p === "/inbox" || p.startsWith("/inbox/")) return "Inbox";
+  return "Duct Daddy";
+}
+
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -105,7 +115,9 @@ export default function Navbar() {
           )}
         </div>
         <div>
-          <h1 className="text-neutral-50 text-h6 font-bold">Duct Daddy</h1>
+          <h1 className="text-neutral-50 text-h6 font-bold">
+            {navbarTitleForPathname(pathname)}
+          </h1>
         </div>
         <div className="flex items-center justify-end">
           {overflowItems.length > 0 ? (
