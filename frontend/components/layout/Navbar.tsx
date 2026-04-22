@@ -16,6 +16,7 @@ import {
   HiTrash,
   HiCreditCard,
   HiPlus,
+  HiUserPlus,
 } from "react-icons/hi2";
 import ActionMenu, { type ActionMenuItem } from "@/components/ui/ActionMenu";
 import { useJobNavbarActions } from "./JobNavbarActionsContext";
@@ -38,7 +39,9 @@ export default function Navbar() {
     const icon =
       d.icon === "createJob"
         ? HiPlus
-        : d.icon === "sendInvoice"
+        : d.icon === "createCustomer"
+          ? HiUserPlus
+          : d.icon === "sendInvoice"
           ? HiArrowUpOnSquare
           : d.icon === "requestPayment"
             ? HiCreditCard
@@ -65,6 +68,8 @@ export default function Navbar() {
       onClick: () => {
         if (d.action === "createJob") {
           router.push(`${pathname}?newJob=1`);
+        } else if (d.action === "createCustomer") {
+          router.push(`${pathname}?newCustomer=1`);
         } else {
           router.push(`${pathname}?action=${encodeURIComponent(d.action)}`);
         }

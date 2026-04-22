@@ -8,6 +8,8 @@ import { selectCurrentCompanyId, selectUser } from "@/features/auth/authSlice";
 import EmployeeDashboard from "@/components/dashboard/EmployeeDashboard";
 import Dashboard from "@/components/dashboard/Dashboard";
 import NewJobModal from "@/components/schedule/NewJobModal";
+import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
+import NewCustomerForm from "@/components/customers/NewCustomerForm";
 import { listJobs } from "@/lib/api/jobs";
 import type { Job } from "@/lib/calendar/types";
 import { ROLE_SLUGS } from "@/types/auth";
@@ -18,12 +20,21 @@ export default function DashboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [newJobModalOpen, setNewJobModalOpen] = useState(false);
+  const [newCustomerModalOpen, setNewCustomerModalOpen] = useState(false);
   const [jobs, setJobs] = useState<Job[]>([]);
 
   useEffect(() => {
     if (searchParams.get("newJob") !== "1") return;
     queueMicrotask(() => {
       setNewJobModalOpen(true);
+      router.replace("/dashboard", { scroll: false });
+    });
+  }, [searchParams, router]);
+
+  useEffect(() => {
+    if (searchParams.get("newCustomer") !== "1") return;
+    queueMicrotask(() => {
+      setNewCustomerModalOpen(true);
       router.replace("/dashboard", { scroll: false });
     });
   }, [searchParams, router]);
@@ -82,6 +93,20 @@ export default function DashboardPage() {
         onSave={handleJobCreate}
         existingJobs={companyId ? jobs : []}
       />
+      <NewEmployeeModal
+        open={newCustomerModalOpen}
+        onClose={() => setNewCustomerModalOpen(false)}
+        title="New Customer"
+      >
+        {companyId ? (
+          <NewCustomerForm
+            companyId={companyId}
+            onClose={() => setNewCustomerModalOpen(false)}
+          />
+        ) : (
+          <p className="text-neutral-600 text-p">No company selected.</p>
+        )}
+      </NewEmployeeModal>
     </>
   );
 }

@@ -1,7 +1,7 @@
 /**
  * Mobile top bar (Navbar) — left/right slots by route.
  * Left: longest matching prefix wins (resolveMobileNavbarLeft).
- * Right: resolveMobileNavbarRight — ellipsis on hub routes except /dashboard (ActionMenu with Create job).
+ * Right: resolveMobileNavbarRight — ellipsis on hub routes except /dashboard (ActionMenu: create job / customer).
  */
 
 export type MobileNavbarLeftSlot =
@@ -21,7 +21,8 @@ export type OverflowMenuItemDescriptor = {
     | "removeJob"
     | "updateCustomer"
     | "removeCustomer"
-    | "createJob";
+    | "createJob"
+    | "createCustomer";
 } & (
   | { href: string; action?: never }
   | {
@@ -32,7 +33,8 @@ export type OverflowMenuItemDescriptor = {
         | "removeJob"
         | "updateCustomer"
         | "removeCustomer"
-        | "createJob";
+        | "createJob"
+        | "createCustomer";
       href?: never;
     }
 );
@@ -124,7 +126,10 @@ export function resolveOverflowMenuItems(pathname: string): OverflowMenuItemDesc
   const path = normalizePathname(pathname);
 
   if (path === "/dashboard") {
-    return [{ label: "Create job", icon: "createJob", action: "createJob" }];
+    return [
+      { label: "New Job", icon: "createJob", action: "createJob" },
+      { label: "New Customer", icon: "createCustomer", action: "createCustomer" },
+    ];
   }
 
   if (isCustomerDetailPath(path)) {
