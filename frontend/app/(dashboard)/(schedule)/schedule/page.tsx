@@ -97,7 +97,7 @@ export default function SchedulePage() {
       )}
 
       {displayLoading ? (
-        <div className="flex justify-center items-center min-h-30">
+        <div className="flex justify-center items-center">
           <div className="text-center">
             <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
             <p className="text-neutral-800 text-p sr-only">Loading schedule...</p>
