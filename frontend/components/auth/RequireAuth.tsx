@@ -39,7 +39,7 @@ export default function RequireAuth({
       <div className="flex items-center justify-center h-screen bg-neutral-100">
         <div className="text-center">
           <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-          <p className="text-neutral-600 text-p font-bold mt-2">Authenticating...</p>
+          <p className="text-p font-bold mt-2 text-neutral-600">Authenticating...</p>
         </div>
       </div>
     );
