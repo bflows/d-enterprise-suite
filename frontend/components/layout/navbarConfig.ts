@@ -1,7 +1,7 @@
 /**
  * Mobile top bar (Navbar) — left/right slots by route.
  * Left: longest matching prefix wins (resolveMobileNavbarLeft).
- * Right: resolveMobileNavbarRight — ellipsis on main hub routes; /dashboard/foo does not get dashboard ellipsis.
+ * Right: resolveMobileNavbarRight — ellipsis on hub routes except /dashboard (ActionMenu with Create job).
  */
 
 export type MobileNavbarLeftSlot =
@@ -20,7 +20,8 @@ export type OverflowMenuItemDescriptor = {
     | "updateJob"
     | "removeJob"
     | "updateCustomer"
-    | "removeCustomer";
+    | "removeCustomer"
+    | "createJob";
 } & (
   | { href: string; action?: never }
   | {
@@ -30,7 +31,8 @@ export type OverflowMenuItemDescriptor = {
         | "updateJob"
         | "removeJob"
         | "updateCustomer"
-        | "removeCustomer";
+        | "removeCustomer"
+        | "createJob";
       href?: never;
     }
 );
@@ -105,7 +107,6 @@ export function resolveMobileNavbarLeft(pathname: string): MobileNavbarLeftSlot 
 }
 
 const ELLIPSIS_NAVBAR_RIGHT_PATHS = new Set([
-  "/dashboard",
   "/schedule",
   "/customers",
   "/inbox",
@@ -121,6 +122,10 @@ export function resolveMobileNavbarRight(pathname: string): MobileNavbarRightSlo
 
 export function resolveOverflowMenuItems(pathname: string): OverflowMenuItemDescriptor[] {
   const path = normalizePathname(pathname);
+
+  if (path === "/dashboard") {
+    return [{ label: "Create job", icon: "createJob", action: "createJob" }];
+  }
 
   if (isCustomerDetailPath(path)) {
     return [

@@ -15,6 +15,7 @@ import {
   HiPencilSquare,
   HiTrash,
   HiCreditCard,
+  HiPlus,
 } from "react-icons/hi2";
 import ActionMenu, { type ActionMenuItem } from "@/components/ui/ActionMenu";
 import { useJobNavbarActions } from "./JobNavbarActionsContext";
@@ -35,13 +36,15 @@ export default function Navbar() {
 
   const overflowItems: ActionMenuItem[] = resolveOverflowMenuItems(pathname).map((d) => {
     const icon =
-      d.icon === "sendInvoice"
-        ? HiArrowUpOnSquare
-        : d.icon === "requestPayment"
-          ? HiCreditCard
-          : d.icon === "updateJob" || d.icon === "updateCustomer"
-            ? HiPencilSquare
-            : HiTrash;
+      d.icon === "createJob"
+        ? HiPlus
+        : d.icon === "sendInvoice"
+          ? HiArrowUpOnSquare
+          : d.icon === "requestPayment"
+            ? HiCreditCard
+            : d.icon === "updateJob" || d.icon === "updateCustomer"
+              ? HiPencilSquare
+              : HiTrash;
 
     if ("href" in d) {
       return { label: d.label, icon, href: d.href, iconClassName: "size-6" };
@@ -60,7 +63,11 @@ export default function Navbar() {
       iconClassName: "size-6",
       disabled,
       onClick: () => {
-        router.push(`${pathname}?action=${encodeURIComponent(d.action)}`);
+        if (d.action === "createJob") {
+          router.push(`${pathname}?newJob=1`);
+        } else {
+          router.push(`${pathname}?action=${encodeURIComponent(d.action)}`);
+        }
       },
     };
   });
