@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ReduxProvider from "@/lib/reduxProvider";
 import AuthHydration from "@/components/auth/AuthHydration";
+import DisableContextMenu from "@/components/DisableContextMenu";
 
 const interSans = Inter({
   variable: "--font-inter-sans",
@@ -26,6 +27,7 @@ export default function RootLayout({
       >
         <ReduxProvider>
           <AuthHydration>
+            <DisableContextMenu />
             {children}
           </AuthHydration>
         </ReduxProvider>
