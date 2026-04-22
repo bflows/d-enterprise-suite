@@ -75,7 +75,7 @@ export default function SchedulePage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="hidden flex-wrap items-center justify-between gap-2 sm:flex">
         <div className="flex items-center gap-x-2">
           <div>
             <HiCalendar className="size-6 text-neutral-900" />

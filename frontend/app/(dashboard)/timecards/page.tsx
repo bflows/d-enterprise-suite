@@ -76,7 +76,7 @@ export default function TimeCardsPage() {
     >
       <div>
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-          <h1 className="hidden text-h4 font-bold text-neutral-900 md:inline">
+          <h1 className="hidden text-h4 font-bold text-neutral-900 sm:inline">
             Time Cards
           </h1>
           <div className="rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 sm:text-end">

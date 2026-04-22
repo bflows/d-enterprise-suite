@@ -167,7 +167,7 @@ export default function Calendar({ jobs }: CalendarProps) {
   };
 
   return (
-    <div className="flex flex-col mt-6">
+    <div className="flex flex-col sm:mt-6">
       {/* Header: nav + title */}
       <div className="flex items-center justify-between md:justify-start w-full">
         <button
