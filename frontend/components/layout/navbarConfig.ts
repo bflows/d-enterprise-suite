@@ -1,7 +1,7 @@
 /**
  * Mobile top bar (Navbar) — left/right slots by route.
  * Left: longest matching prefix wins (resolveMobileNavbarLeft).
- * Right: exact pathname only (resolveMobileNavbarRight) so /dashboard/foo does not get dashboard-home actions.
+ * Right: resolveMobileNavbarRight — ellipsis on main hub routes; /dashboard/foo does not get dashboard ellipsis.
  */
 
 export type MobileNavbarLeftSlot =
@@ -10,8 +10,7 @@ export type MobileNavbarLeftSlot =
 
 export type MobileNavbarRightSlot =
   | { kind: "overflow" }
-  | { kind: "newJob"; href: string; ariaLabel: string }
-  | { kind: "newCustomer"; ariaLabel: string };
+  | { kind: "ellipsis" };
 
 export type OverflowMenuItemDescriptor = {
   label: string;
@@ -105,24 +104,19 @@ export function resolveMobileNavbarLeft(pathname: string): MobileNavbarLeftSlot 
   return matches[0].slot;
 }
 
-/** Opens the new-job flow on the schedule page (see schedule page + search param). */
-export const SCHEDULE_NEW_JOB_HREF = "/schedule?newJob=1" as const;
-
-const MOBILE_NAVBAR_RIGHT_BY_EXACT_PATH: Record<string, MobileNavbarRightSlot> = {
-  "/schedule": {
-    kind: "newJob",
-    href: SCHEDULE_NEW_JOB_HREF,
-    ariaLabel: "Create new job",
-  },
-  "/customers": {
-    kind: "newCustomer",
-    ariaLabel: "Create new customer",
-  },
-};
+const ELLIPSIS_NAVBAR_RIGHT_PATHS = new Set([
+  "/dashboard",
+  "/schedule",
+  "/customers",
+  "/inbox",
+]);
 
 export function resolveMobileNavbarRight(pathname: string): MobileNavbarRightSlot {
   const path = normalizePathname(pathname);
-  return MOBILE_NAVBAR_RIGHT_BY_EXACT_PATH[path] ?? { kind: "overflow" };
+  if (ELLIPSIS_NAVBAR_RIGHT_PATHS.has(path)) {
+    return { kind: "ellipsis" };
+  }
+  return { kind: "overflow" };
 }
 
 export function resolveOverflowMenuItems(pathname: string): OverflowMenuItemDescriptor[] {

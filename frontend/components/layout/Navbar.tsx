@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   resolveMobileNavbarLeft,
@@ -12,7 +11,6 @@ import {
   HiBars3,
   HiChevronLeft,
   HiEllipsisVertical,
-  HiPlus,
   HiArrowUpOnSquare,
   HiPencilSquare,
   HiTrash,
@@ -103,25 +101,10 @@ export default function Navbar() {
           <h1 className="text-neutral-50 text-h6 font-bold">Duct Daddy</h1>
         </div>
         <div className="flex items-center justify-end">
-          {right.kind === "newJob" ? (
-            <Link
-              href={right.href}
-              aria-label={right.ariaLabel}
-              className={iconButtonClass}
-            >
-              <HiPlus className="size-8" />
-            </Link>
-          ) : right.kind === "newCustomer" ? (
-            <button
-              type="button"
-              aria-label={right.ariaLabel}
-              className={iconButtonClass}
-              onClick={() => {
-                router.push(`${pathname}?action=newCustomer`);
-              }}
-            >
-              <HiPlus className="size-8" />
-            </button>
+          {right.kind === "ellipsis" ? (
+            <span className={iconButtonClass} aria-hidden>
+              <HiEllipsisVertical className="size-8" />
+            </span>
           ) : overflowItems.length > 0 ? (
             <ActionMenu
               align="right"
