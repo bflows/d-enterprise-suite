@@ -117,12 +117,12 @@ function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
         </p>
       )}
       {showLoading && (
-        <div className="mt-4 flex items-center gap-x-3 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-4">
+        <div className="mt-4 flex flex-col justify-center items-center">
           <div
-            className="inline-block size-6 animate-spin rounded-full border-2 border-primary border-r-transparent"
+            className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent"
             aria-hidden
           />
-          <p className="text-neutral-800 text-p">Loading jobs…</p>
+          <p className="text-p font-bold mt-2 text-neutral-600">Loading jobs...</p>
         </div>
       )}
       {empty && (
@@ -197,11 +197,6 @@ export default function TechnicianJobs({ user }: TechnicianJobsProps) {
         </div>
         <h2 className="text-h6 font-bold md:text-h5">Jobs</h2>
       </div>
-      {/* {!currentCompany && (
-        <p className="mt-1 text-small text-neutral-600">
-          Select a company to see your assigned jobs.
-        </p>
-      )} */}
       {currentCompany && (
         <TechnicianJobsList
           key={currentCompany.id}
