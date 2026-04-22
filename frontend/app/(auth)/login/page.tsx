@@ -108,12 +108,6 @@ function LoginForm() {
       <p className="mt-2 text-p text-neutral-600">
         Enter your credentials to start working.
       </p>
-      {/* <h1 className="text-h4 font-bold text-neutral-950 md:text-h4">
-        Log in
-      </h1>
-      <p className="mt-2 text-p text-neutral-600">
-        Enter your email and password to access Daddy Enterprise Suite.
-      </p> */}
 
       <form noValidate onSubmit={handleSubmit} className="flex flex-col">
         <div className="mt-4">
