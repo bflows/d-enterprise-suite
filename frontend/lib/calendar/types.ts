@@ -54,6 +54,12 @@ export interface Job {
     quantity: number;
     /** Per-unit price in integer USD cents (matches ServiceItem.price). */
     price: number;
+    /** Minutes per unit; used with unit/quantity to derive end time. */
+    duration?: number;
+    /** Prisma `ServiceItem.unit` (non-negative; schedule multiplier). */
+    serviceUnit?: number;
+    /** Prisma `ServiceItem.quantity` (line count; schedule multiplier). */
+    serviceQuantity?: number;
   }[];
 }
 
@@ -150,6 +156,21 @@ export function formatTimeLabel(time: string): string {
   const period = hours >= 12 ? "pm" : "am";
   const hour12 = hours % 12 || 12;
   return `${hour12}:${minutes}${period}`;
+}
+
+/** `HH:mm` on `dateYmd` plus `addMinutes` (local). */
+export function addMinutesToHhMm(
+  dateYmd: string,
+  timeHhMm: string,
+  addMinutes: number
+): string {
+  const m = timeHhMm.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return timeHhMm;
+  const d = new Date(`${dateYmd}T${String(m[1]).padStart(2, "0")}:${m[2]}:00`);
+  d.setMinutes(d.getMinutes() + addMinutes);
+  const h = d.getHours();
+  const min = d.getMinutes();
+  return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
 }
 
 /** Returns true if a job overlaps the given window for the given technician (if technicianId provided). */

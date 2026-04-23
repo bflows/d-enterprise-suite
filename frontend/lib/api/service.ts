@@ -183,6 +183,8 @@ export interface ServiceItemListItem {
   price: number;
   duration: number;
   unit: number;
+  /** Line quantity (e.g. systems); from Prisma, default 1. */
+  quantity: number;
   sortOrder: number | null;
   createdAt: string;
   updatedAt: string;

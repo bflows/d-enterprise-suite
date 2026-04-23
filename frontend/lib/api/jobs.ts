@@ -8,7 +8,6 @@ export interface CreateJobBody {
   technicianId: string;
   date: string; // YYYY-MM-DD
   startTime: string; // HH:mm
-  endTime: string;
   notes?: string;
   leadSource?: string;
   /** Initial status; defaults to "scheduled" on the server if omitted. */
@@ -65,9 +64,10 @@ export interface ApiJobResponse {
     description?: string;
     unit?: number;
     price?: number;
+    duration?: number;
+    quantity?: number;
     /** Mapped from API (title → name, unit → quantityOrUnit) */
     name?: string;
-    quantity?: number;
   }>;
 }
 
@@ -83,6 +83,7 @@ export interface UpdateJobBody {
   title?: string | null;
   date?: string;
   startTime?: string;
+  /** Ignored; end time is computed on the server from service item durations. */
   endTime?: string;
   notes?: string | null;
   status?: "scheduled" | "en_route" | "in_progress" | "completed" | "cancelled";
@@ -220,14 +221,27 @@ export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
       apiJob.services && apiJob.services.length > 0
         ? apiJob.services.map((s) => {
             const name = s.title ?? (s as { name?: string }).name ?? "";
-            const quantity = s.unit ?? (s as { quantity?: number }).quantity ?? 0;
+            const prismaUnit = (s as { unit?: number | null }).unit;
+            const prismaQty = (s as { quantity?: number | null }).quantity;
+            const quantity =
+              prismaUnit != null && prismaUnit > 0
+                ? prismaUnit
+                : prismaQty != null && prismaQty > 0
+                  ? prismaQty
+                  : 0;
             const price = s.price ?? (s as { price?: number }).price ?? 0;
+            const rawDuration = (s as { duration?: number }).duration;
+            const duration =
+              typeof rawDuration === "number" && Number.isFinite(rawDuration) ? rawDuration : 0;
             return {
               id: s.id,
               name,
               description: s.description,
               quantity,
               price,
+              duration,
+              serviceUnit: prismaUnit != null && prismaUnit > 0 ? prismaUnit : 1,
+              serviceQuantity: prismaQty != null && prismaQty > 0 ? prismaQty : 1,
             };
           })
         : undefined,

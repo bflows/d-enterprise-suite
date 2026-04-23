@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import type { Job, JobStatus } from "@/lib/calendar/types";
+import { addMinutesToHhMm } from "@/lib/calendar/types";
 import Modal from "@/components/ui/Modal";
 import JobDetailView from "./JobDetailView";
 import { LuPencil, LuTrash2, LuX } from "react-icons/lu";
@@ -140,6 +141,23 @@ export default function JobDetailModal({
 
   const currentForm = form ?? job;
   const currentServices = currentForm.services ?? [];
+
+  const totalServiceMins = useMemo(() => {
+    if (currentServices.length === 0) return 0;
+    return currentServices.reduce((sum, s) => {
+      const m = s.duration ?? 0;
+      const u = s.serviceUnit != null && s.serviceUnit > 0 ? s.serviceUnit : 1;
+      const q = s.serviceQuantity != null && s.serviceQuantity > 0 ? s.serviceQuantity : 1;
+      return sum + m * u * q;
+    }, 0);
+  }, [currentServices]);
+
+  const estimatedEndFromServices = useMemo(() => {
+    if (totalServiceMins <= 0 || !currentForm.date || !currentForm.startTime) {
+      return null;
+    }
+    return addMinutesToHhMm(currentForm.date, currentForm.startTime, totalServiceMins);
+  }, [currentForm.date, currentForm.startTime, totalServiceMins]);
   const handleSave = () => {
     const payload: Job = {
       ...currentForm,
@@ -252,16 +270,14 @@ export default function JobDetailModal({
               </div>
               <div>
                 <label className="block text-small font-semibold text-neutral-700 mb-1">
-                  End time
+                  End time (from services)
                 </label>
-                <input
-                  type="time"
-                  value={currentForm.endTime ?? ""}
-                  onChange={(e) =>
-                    updateForm({ endTime: e.target.value || undefined })
-                  }
-                  className="w-full rounded-lg border border-neutral-400 px-3 py-2 text-p focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <p className="rounded-lg border border-neutral-200 bg-neutral-100 px-3 py-2 text-p text-neutral-800 min-h-10 flex items-center">
+                  {estimatedEndFromServices ?? currentForm.endTime ?? "—"}
+                </p>
+                <p className="mt-1 text-small text-neutral-500">
+                  Saved on the server from your start time and service line items.
+                </p>
               </div>
             </div>
             {companyId && (

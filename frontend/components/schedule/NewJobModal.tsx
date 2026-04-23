@@ -7,7 +7,7 @@ import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import Modal from "@/components/ui/Modal";
 import type { Job } from "@/lib/calendar/types";
-import { jobOverlapsWindow } from "@/lib/calendar/types";
+import { addMinutesToHhMm, jobOverlapsWindow } from "@/lib/calendar/types";
 import { searchCustomers } from "@/lib/api/customers";
 import type { CustomerListItem } from "@/lib/api/customers";
 import type { EmployeeListItem } from "@/lib/api/company";
@@ -45,8 +45,9 @@ function jobServiceLineToListItem(
     title: s.name,
     description: s.description ?? "",
     price: s.price,
-    duration: 0,
-    unit: s.quantity,
+    duration: s.duration ?? 0,
+    unit: s.serviceUnit != null && s.serviceUnit > 0 ? s.serviceUnit : 1,
+    quantity: s.serviceQuantity != null && s.serviceQuantity > 0 ? s.serviceQuantity : 1,
     sortOrder: null,
     createdAt: "",
     updatedAt: "",
@@ -115,7 +116,6 @@ export default function NewJobModal({
 
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
 
   const [customerSearch, setCustomerSearch] = useState("");
   const [customerResults, setCustomerResults] = useState<CustomerListItem[]>([]);
@@ -149,7 +149,25 @@ export default function NewJobModal({
   jobToEditRef.current = jobToEdit;
 
   const isEditMode = Boolean(jobToEdit);
-  const effectiveEndTime = endTime || startTime;
+
+  const totalServiceMins = React.useMemo(
+    () =>
+      selectedServiceItems.reduce(
+        (sum, s) =>
+          sum +
+          s.duration *
+            Math.max(1, s.unit > 0 ? s.unit : 1) *
+            Math.max(1, s.quantity > 0 ? s.quantity : 1),
+        0
+      ),
+    [selectedServiceItems]
+  );
+
+  const effectiveEndTime = React.useMemo(() => {
+    if (!date || !startTime) return "";
+    if (totalServiceMins <= 0) return "";
+    return addMinutesToHhMm(date, startTime, totalServiceMins);
+  }, [date, startTime, totalServiceMins]);
 
   const jobsForOverlap = React.useMemo(() => {
     if (!jobToEdit) return existingJobs;
@@ -200,7 +218,7 @@ export default function NewJobModal({
       setAllTechnicians([]);
       return;
     }
-    const hasWindow = date && startTime && effectiveEndTime;
+    const hasWindow = date && startTime && effectiveEndTime && totalServiceMins > 0;
     if (!hasWindow) {
       setAllTechnicians([]);
       setTechnicianLoading(false);
@@ -220,7 +238,7 @@ export default function NewJobModal({
       })
       .catch(() => setAllTechnicians([]))
       .finally(() => setTechnicianLoading(false));
-  }, [companyId, date, startTime, effectiveEndTime, technicianSearch]);
+  }, [companyId, date, startTime, effectiveEndTime, totalServiceMins, technicianSearch]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -236,7 +254,7 @@ export default function NewJobModal({
         clearTimeout(technicianDebounceRef.current);
       }
     };
-  }, [isOpen, date, startTime, endTime, technicianSearch, loadTechnicians]);
+  }, [isOpen, date, startTime, totalServiceMins, technicianSearch, loadTechnicians]);
 
   // Load service books when user opens the Service Book picker
   useEffect(() => {
@@ -262,7 +280,7 @@ export default function NewJobModal({
   }, [selectedCategory]);
 
   const availableTechnicians = React.useMemo(() => {
-    if (!date || !startTime || !effectiveEndTime) {
+    if (!date || !startTime || !effectiveEndTime || totalServiceMins <= 0) {
       return allTechnicians;
     }
     return allTechnicians.filter((emp) => {
@@ -285,13 +303,13 @@ export default function NewJobModal({
     date,
     startTime,
     effectiveEndTime,
+    totalServiceMins,
   ]);
 
   const resetForm = useCallback(() => {
     const today = new Date().toISOString().slice(0, 10);
     setDate(today);
     setStartTime("09:00");
-    setEndTime("10:00");
     setCustomerSearch("");
     setCustomerResults([]);
     setSelectedCustomer(null);
@@ -311,7 +329,6 @@ export default function NewJobModal({
   const populateFromJob = useCallback((job: Job, cid: string) => {
     setDate(job.date);
     setStartTime(job.startTime);
-    setEndTime(job.endTime ?? job.startTime);
     setNotes(job.notes ?? "");
     setSubmitError(null);
     setCustomerSearch("");
@@ -355,7 +372,6 @@ export default function NewJobModal({
         const response = await updateJob(jobToEdit.id, {
           date,
           startTime,
-          endTime: effectiveEndTime,
           notes: notes.trim() ? notes.trim() : null,
           ...(selectedTechnician && { technicianId: selectedTechnician.id }),
           serviceItemIds: selectedServiceItems.map((s) => s.id),
@@ -370,12 +386,8 @@ export default function NewJobModal({
           technicianId: selectedTechnician.id,
           date,
           startTime,
-          endTime: effectiveEndTime,
           status: "scheduled",
-          serviceItemIds:
-            selectedServiceItems.length > 0
-              ? selectedServiceItems.map((s) => s.id)
-              : undefined,
+          serviceItemIds: selectedServiceItems.map((s) => s.id),
           ...(notes.trim() && { notes: notes.trim() }),
         });
         const job = mapApiJobToJob(response.job);
@@ -403,7 +415,8 @@ export default function NewJobModal({
     selectedTechnician &&
     date &&
     startTime &&
-    effectiveEndTime > startTime &&
+    selectedServiceItems.length > 0 &&
+    totalServiceMins > 0 &&
     !submitting
   );
 
@@ -559,7 +572,7 @@ export default function NewJobModal({
           />
         </div>
 
-        {/* Start / End time */}
+        {/* Start time; end is derived from service line durations on the server */}
         <div className="mt-2 grid grid-cols-2 gap-3">
           <div>
             <label className="block text-p text-neutral-600">
@@ -574,14 +587,13 @@ export default function NewJobModal({
           </div>
           <div>
             <label className="block text-p text-neutral-600">
-              End time
+              End time (from services)
             </label>
-            <input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+            <p className="mt-1 rounded-lg border border-neutral-200 bg-neutral-100 px-3 py-2 text-p text-neutral-800 min-h-11 flex items-center">
+              {date && startTime && totalServiceMins > 0
+                ? addMinutesToHhMm(date, startTime, totalServiceMins)
+                : "—"}
+            </p>
           </div>
         </div>
 
@@ -637,9 +649,9 @@ export default function NewJobModal({
                     ) : availableTechnicians.length === 0 ? (
                       <p className="px-3 py-2 text-small text-neutral-400">
                         {allTechnicians.length === 0
-                          ? date && startTime && effectiveEndTime
+                          ? date && startTime && totalServiceMins > 0
                             ? "No technicians have availability for this date/time, try a different search."
-                            : "Select date and time to see available technicians."
+                            : "Select date, time, and at least one service to see available technicians."
                           : "No technicians available for this date/time (already booked)."}
                       </p>
                     ) : (
