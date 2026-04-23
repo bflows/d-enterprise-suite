@@ -21,7 +21,7 @@ import {
 import { getAvailableTechniciansForWindow } from "@/lib/api/availability";
 import { createJob, mapApiJobToJob, updateJob } from "@/lib/api/jobs";
 import { formatUsdFromCents } from "@/lib/money";
-import { HiChevronLeft, HiPlus, HiUser } from "react-icons/hi2";
+import { HiCalendar, HiChevronLeft, HiPlus, HiUser } from "react-icons/hi2";
 import { HiSearch } from "react-icons/hi";
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -501,7 +501,7 @@ export default function NewJobModal({
             </h2>
           </div>
           {selectedCustomer ? (
-            <div className="mt-4 flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2">
+            <div className="mt-2 flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2">
               <span className="text-p text-neutral-800">
                 {displayCustomer(selectedCustomer)}
                 {selectedCustomer.address && (
@@ -607,12 +607,19 @@ export default function NewJobModal({
 
         {/* Date */}
         <div className="mt-4">
-          <label className="block text-p text-neutral-600">Date</label>
+          <div className="flex items-center gap-x-2">
+            <div>
+              <HiCalendar className="size-6 text-neutral-800" />
+            </div>
+            <h2 className="text-h6 font-bold text-neutral-800">
+              Date
+            </h2>
+          </div>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="mt-2 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
 
