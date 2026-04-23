@@ -573,28 +573,14 @@ export default function NewJobModal({
         </div>
 
         {/* Start time; end is derived from service line durations on the server */}
-        <div className="mt-2 grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-p text-neutral-600">
-              Start time
-            </label>
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div>
-            <label className="block text-p text-neutral-600">
-              End time (from services)
-            </label>
-            <p className="mt-1 rounded-lg border border-neutral-200 bg-neutral-100 px-3 py-2 text-p text-neutral-800 min-h-11 flex items-center">
-              {date && startTime && totalServiceMins > 0
-                ? addMinutesToHhMm(date, startTime, totalServiceMins)
-                : "—"}
-            </p>
-          </div>
+        <div className="mt-2">
+          <label className="block text-p text-neutral-600">Start time</label>
+          <input
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
+          />
         </div>
 
         {/* Technician search & select (only available for chosen window) */}
