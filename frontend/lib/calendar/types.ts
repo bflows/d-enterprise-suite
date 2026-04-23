@@ -173,6 +173,27 @@ export function addMinutesToHhMm(
   return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
 }
 
+/** Total scheduled minutes from line items (duration × unit × quantity per line). */
+export function jobServiceDurationMinutes(job: Job): number {
+  const services = job.services ?? [];
+  if (services.length === 0) return 0;
+  return services.reduce((sum, s) => {
+    const m = s.duration ?? 0;
+    const u = s.serviceUnit != null && s.serviceUnit > 0 ? s.serviceUnit : 1;
+    const q = s.serviceQuantity != null && s.serviceQuantity > 0 ? s.serviceQuantity : 1;
+    return sum + m * u * q;
+  }, 0);
+}
+
+/** End time (HH:mm) for overlap checks: derived from services when possible, else stored endTime. */
+export function jobBlockEndHhMm(job: Job): string {
+  const mins = jobServiceDurationMinutes(job);
+  if (mins > 0) {
+    return addMinutesToHhMm(job.date, job.startTime, mins);
+  }
+  return job.endTime ?? job.startTime;
+}
+
 /** Returns true if a job overlaps the given window for the given technician (if technicianId provided). */
 export function jobOverlapsWindow(
   job: Job,
@@ -184,9 +205,7 @@ export function jobOverlapsWindow(
 ): boolean {
   if (technicianId != null && job.technicianId !== technicianId) return false;
   const jobStart = new Date(`${job.date}T${job.startTime}`).getTime();
-  const jobEnd = new Date(
-    `${job.date}T${job.endTime ?? job.startTime}`
-  ).getTime();
+  const jobEnd = new Date(`${job.date}T${jobBlockEndHhMm(job)}`).getTime();
   const start = new Date(`${windowStartDate}T${windowStartTime}`).getTime();
   const end = new Date(`${windowEndDate}T${windowEndTime}`).getTime();
   return jobStart < end && jobEnd > start;

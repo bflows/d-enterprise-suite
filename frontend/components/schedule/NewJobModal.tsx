@@ -306,6 +306,37 @@ export default function NewJobModal({
     totalServiceMins,
   ]);
 
+  /** Edit mode keeps the assigned tech selected; re-check after date/time/services change. */
+  const selectedTechnicianFitsWindow = React.useMemo(() => {
+    if (!selectedTechnician) return true;
+    if (!date || !startTime || effectiveEndTime === "" || totalServiceMins <= 0) {
+      return true;
+    }
+    if (technicianLoading) return true;
+    const inWeeklyAvailability = allTechnicians.some((e) => e.id === selectedTechnician.id);
+    if (!inWeeklyAvailability) return false;
+    const overlapsOtherJob = jobsForOverlap.some((job) =>
+      jobOverlapsWindow(
+        job,
+        date,
+        startTime,
+        date,
+        effectiveEndTime,
+        selectedTechnician.id
+      )
+    );
+    return !overlapsOtherJob;
+  }, [
+    selectedTechnician,
+    date,
+    startTime,
+    effectiveEndTime,
+    totalServiceMins,
+    technicianLoading,
+    allTechnicians,
+    jobsForOverlap,
+  ]);
+
   const resetForm = useCallback(() => {
     const today = new Date().toISOString().slice(0, 10);
     setDate(today);
@@ -417,6 +448,7 @@ export default function NewJobModal({
     startTime &&
     selectedServiceItems.length > 0 &&
     totalServiceMins > 0 &&
+    selectedTechnicianFitsWindow &&
     !submitting
   );
 
@@ -446,6 +478,18 @@ export default function NewJobModal({
             {submitError}
           </p>
         )}
+        {selectedTechnician &&
+          !technicianLoading &&
+          !selectedTechnicianFitsWindow &&
+          date &&
+          startTime &&
+          totalServiceMins > 0 && (
+            <p className="text-p mb-4 text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {isEditMode
+                ? "This technician is not available for the updated date, time, and services. Clear the technician and pick someone else, or adjust the schedule."
+                : "This technician is not available for this window. Clear the technician and pick someone else, or adjust the schedule."}
+            </p>
+          )}
         {/* Customer search & select */}
         <div className="relative">
           <div className="flex items-center gap-x-2">
