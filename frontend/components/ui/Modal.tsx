@@ -77,7 +77,7 @@ export default function Modal({
           )}
         </div>
         {/* Scrollable Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 bg-neutral-200">
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 bg-neutral-100">
           {children}
         </div>
         {/* Sticky Footer */}
