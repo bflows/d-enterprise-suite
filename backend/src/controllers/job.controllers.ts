@@ -18,6 +18,7 @@ interface UpdateJobBody {
   title?: string | null;
   date?: string; // YYYY-MM-DD
   startTime?: string; // HH:mm
+  /** @deprecated End time is computed from start time and service item durations. Ignored if sent. */
   endTime?: string;
   notes?: string | null;
   status?: "scheduled" | "en_route" | "in_progress" | "completed" | "cancelled";
@@ -44,14 +45,15 @@ interface ListTechnicianJobsBody {
   companyId: string;
 }
 
-/** Request body for creating a job. Frontend sends date as YYYY-MM-DD and startTime/endTime as HH:mm. */
+/** Request body for creating a job. Frontend sends date as YYYY-MM-DD and startTime as HH:mm. End time is derived from service item durations. */
 interface CreateJobBody {
   companyId: string;
   customerId: string;
   technicianId: string;
   date: string; // YYYY-MM-DD
   startTime: string; // HH:mm
-  endTime: string;
+  /** @deprecated Ignored. End time is computed from `startTime` and total service item duration. */
+  endTime?: string;
   notes?: string;
   leadSource?: string;
   /** Optional initial status; defaults to SCHEDULED. */
@@ -75,6 +77,53 @@ function toDateTime(dateStr: string, timeStr: string): Date | null {
   const d = new Date(dateStr + "T00:00:00");
   d.setHours(hours, minutes, 0, 0);
   return d;
+}
+
+function addMinutesToDateTime(start: Date, minutes: number): Date {
+  const d = new Date(start.getTime());
+  d.setMinutes(d.getMinutes() + minutes);
+  return d;
+}
+
+function totalMinutesFromServiceRows(
+  services: { duration: number; unit: number | null; quantity: number }[]
+): number {
+  return services.reduce(
+    (sum, s) =>
+      sum + s.duration * Math.max(1, s.unit ?? 1) * Math.max(1, s.quantity),
+    0
+  );
+}
+
+/** Resolves and sums `duration * quantity` for each id (order preserved; duplicate ids add twice). */
+async function totalMinutesForServiceItemIds(
+  companyId: string,
+  serviceIds: string[]
+): Promise<{ totalMinutes: number; error: string | null }> {
+  if (serviceIds.length === 0) {
+    return { totalMinutes: 0, error: null };
+  }
+  const items = await prisma.serviceItem.findMany({
+    where: {
+      id: { in: serviceIds },
+      category: { serviceBook: { companyId } },
+    },
+    select: { id: true, duration: true, quantity: true, unit: true },
+  });
+  const byId = new Map(items.map((i) => [i.id, i] as const));
+  let total = 0;
+  for (const id of serviceIds) {
+    const row = byId.get(id);
+    if (!row) {
+      return {
+        totalMinutes: 0,
+        error:
+          "One or more service items are invalid or do not belong to this company.",
+      };
+    }
+    total += row.duration * Math.max(1, row.unit ?? 1) * Math.max(1, row.quantity);
+  }
+  return { totalMinutes: total, error: null };
 }
 
 /** Maps API/frontend snake_case statuses to Prisma `JobStatusType` (replaces legacy IN_PROGRESS with ON_SITE). */
@@ -144,7 +193,6 @@ export const createJob = async (
       technicianId,
       date: dateStr,
       startTime: startTimeStr,
-      endTime: endTimeStr,
       notes,
       leadSource,
       status: statusFromBody,
@@ -156,13 +204,18 @@ export const createJob = async (
       !customerId ||
       !technicianId ||
       !dateStr ||
-      !startTimeStr ||
-      !endTimeStr
+      !startTimeStr
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "companyId, customerId, technicianId, date, startTime, and endTime are required.",
+          "companyId, customerId, technicianId, date, and startTime are required.",
+      });
+    }
+    if (!serviceItemIds || serviceItemIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one service item is required.",
       });
     }
 
@@ -182,13 +235,23 @@ export const createJob = async (
 
     const day = new Date(dateStr + "T00:00:00");
     const startTime = toDateTime(dateStr, startTimeStr);
-    const endTime = toDateTime(dateStr, endTimeStr);
-    if (!startTime || !endTime) {
+    if (!startTime) {
       return res.status(400).json({
         success: false,
-        message: "startTime and endTime must be valid (HH:mm).",
+        message: "startTime must be valid (HH:mm).",
       });
     }
+    const { totalMinutes, error: durationError } = await totalMinutesForServiceItemIds(
+      companyId,
+      serviceItemIds
+    );
+    if (durationError) {
+      return res.status(400).json({
+        success: false,
+        message: durationError,
+      });
+    }
+    const endTime = addMinutesToDateTime(startTime, totalMinutes);
 
     const status: JobStatusType =
       statusFromBody !== undefined && STATUS_MAP[statusFromBody]
@@ -211,12 +274,9 @@ export const createJob = async (
           date: day,
           startTime,
           endTime,
-          ...(serviceItemIds &&
-            serviceItemIds.length > 0 && {
-              services: {
-                connect: serviceItemIds.map((id) => ({ id })),
-              },
-            }),
+          services: {
+            connect: serviceItemIds.map((id) => ({ id })),
+          },
         },
         include: {
           company: { select: { name: true } },
@@ -288,6 +348,8 @@ export const updateJob = async (
     }
     const existing = await prisma.job.findFirst({
       where: { id, companyId },
+      include: {
+        services: { select: { id: true, duration: true, quantity: true, unit: true } } },
     });
     if (!existing) {
       return res.status(404).json({
@@ -329,17 +391,6 @@ export const updateJob = async (
       }
       data.startTime = parsed;
     }
-    if (body.endTime !== undefined) {
-      const dateKey = body.date ?? dateStr(existing.date);
-      const parsed = toDateTime(dateKey, body.endTime);
-      if (!parsed) {
-        return res.status(400).json({
-          success: false,
-          message: "endTime must be valid (HH:mm).",
-        });
-      }
-      data.endTime = parsed;
-    }
     if (body.technicianId !== undefined) {
       const technician = await prisma.employee.findFirst({
         where: { id: body.technicianId, companyId },
@@ -356,6 +407,30 @@ export const updateJob = async (
       (data as Record<string, unknown>).services = {
         set: body.serviceItemIds.map((id) => ({ id })),
       };
+    }
+
+    const shouldRecomputeEndTime =
+      body.startTime !== undefined ||
+      body.date !== undefined ||
+      body.serviceItemIds !== undefined;
+
+    if (shouldRecomputeEndTime) {
+      const startForEnd = data.startTime ?? existing.startTime;
+      let totalMinutes: number;
+      if (body.serviceItemIds !== undefined) {
+        const { totalMinutes: t, error: durationError } =
+          await totalMinutesForServiceItemIds(companyId, body.serviceItemIds);
+        if (durationError) {
+          return res.status(400).json({
+            success: false,
+            message: durationError,
+          });
+        }
+        totalMinutes = t;
+      } else {
+        totalMinutes = totalMinutesFromServiceRows(existing.services);
+      }
+      data.endTime = addMinutesToDateTime(startForEnd, totalMinutes);
     }
 
     const effectiveDate = data.date ?? existing.date;

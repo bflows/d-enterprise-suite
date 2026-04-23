@@ -234,6 +234,7 @@ model Job {
   /// Calendar date for the job (day-level).
   date      DateTime
   startTime DateTime
+  /// Set by the API: start time plus total minutes from linked service items (duration × unit × quantity per item).
   endTime   DateTime
 
   createdAt DateTime @default(now())
