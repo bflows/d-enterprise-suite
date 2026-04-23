@@ -156,8 +156,8 @@ export default function NewJobModal({
         (sum, s) =>
           sum +
           s.duration *
-            Math.max(1, s.unit > 0 ? s.unit : 1) *
-            Math.max(1, s.quantity > 0 ? s.quantity : 1),
+          Math.max(1, s.unit > 0 ? s.unit : 1) *
+          Math.max(1, s.quantity > 0 ? s.quantity : 1),
         0
       ),
     [selectedServiceItems]
@@ -583,88 +583,6 @@ export default function NewJobModal({
           />
         </div>
 
-        {/* Technician search & select (only available for chosen window) */}
-        <div className="relative mt-4">
-          <label className="block text-p text-neutral-600">
-            Technician
-          </label>
-          <p className="text-small text-neutral-600">
-            Select date and time first.
-          </p>
-          {selectedTechnician ? (
-            <div className="flex items-center justify-between rounded-lg border px-3 py-2 border-neutral-300 bg-neutral-50">
-              <span className="text-p text-neutral-900">
-                {displayEmployee(selectedTechnician)}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedTechnician(null);
-                  setTechnicianSearch("");
-                }}
-                className="text-small text-primary hover:underline"
-              >
-                Clear
-              </button>
-            </div>
-          ) : (
-            <>
-              <input
-                type="text"
-                value={technicianSearch}
-                onChange={(e) => {
-                  setTechnicianSearch(e.target.value);
-                  setTechnicianDropdownOpen(true);
-                }}
-                onFocus={() => setTechnicianDropdownOpen(true)}
-                placeholder="Search technicians..."
-                className="mt-2 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              {technicianDropdownOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    aria-hidden="true"
-                    onClick={() => setTechnicianDropdownOpen(false)}
-                  />
-                  <div className="absolute z-50 mt-1 w-full rounded-lg border border-neutral-300 bg-neutral-50 shadow-lg max-h-48 overflow-y-auto">
-                    {technicianLoading ? (
-                      <p className="px-3 py-2 text-small text-neutral-600">
-                        Searching...
-                      </p>
-                    ) : availableTechnicians.length === 0 ? (
-                      <p className="px-3 py-2 text-small text-neutral-400">
-                        {allTechnicians.length === 0
-                          ? date && startTime && totalServiceMins > 0
-                            ? "No technicians have availability for this date/time, try a different search."
-                            : "Select date, time, and at least one service to see available technicians."
-                          : "No technicians available for this date/time (already booked)."}
-                      </p>
-                    ) : (
-                      <div className="py-3 px-2 flex flex-col gap-y-1">
-                        {availableTechnicians.map((emp) => (
-                          <button
-                            key={emp.id}
-                            type="button"
-                            className="w-full text-left px-3 py-2 text-p rounded-lg text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
-                            onClick={() => {
-                              setSelectedTechnician(emp);
-                              setTechnicianSearch("");
-                              setTechnicianDropdownOpen(false);
-                            }}
-                          >
-                            {displayEmployee(emp)}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </>
-          )}
-        </div>
-
         {/* Services: Service Book → Category → ServiceItem */}
         <div className="mt-4">
           <label className="block text-p text-neutral-600">
@@ -878,6 +796,88 @@ export default function NewJobModal({
                 </>
               )}
             </div>
+          )}
+        </div>
+
+        {/* Technician search & select (only available for chosen window) */}
+        <div className="relative mt-4">
+          <label className="block text-p text-neutral-600">
+            Technician
+          </label>
+          <p className="text-small text-neutral-600">
+            Select date and time first.
+          </p>
+          {selectedTechnician ? (
+            <div className="flex items-center justify-between rounded-lg border px-3 py-2 border-neutral-300 bg-neutral-50">
+              <span className="text-p text-neutral-900">
+                {displayEmployee(selectedTechnician)}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedTechnician(null);
+                  setTechnicianSearch("");
+                }}
+                className="text-small text-primary hover:underline"
+              >
+                Clear
+              </button>
+            </div>
+          ) : (
+            <>
+              <input
+                type="text"
+                value={technicianSearch}
+                onChange={(e) => {
+                  setTechnicianSearch(e.target.value);
+                  setTechnicianDropdownOpen(true);
+                }}
+                onFocus={() => setTechnicianDropdownOpen(true)}
+                placeholder="Search technicians..."
+                className="mt-2 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              {technicianDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    aria-hidden="true"
+                    onClick={() => setTechnicianDropdownOpen(false)}
+                  />
+                  <div className="absolute z-50 mt-1 w-full rounded-lg border border-neutral-300 bg-neutral-50 shadow-lg max-h-48 overflow-y-auto">
+                    {technicianLoading ? (
+                      <p className="px-3 py-2 text-small text-neutral-600">
+                        Searching...
+                      </p>
+                    ) : availableTechnicians.length === 0 ? (
+                      <p className="px-3 py-2 text-small text-neutral-400">
+                        {allTechnicians.length === 0
+                          ? date && startTime && totalServiceMins > 0
+                            ? "No technicians have availability for this date/time, try a different search."
+                            : "Select date, time, and at least one service to see available technicians."
+                          : "No technicians available for this date/time (already booked)."}
+                      </p>
+                    ) : (
+                      <div className="py-3 px-2 flex flex-col gap-y-1">
+                        {availableTechnicians.map((emp) => (
+                          <button
+                            key={emp.id}
+                            type="button"
+                            className="w-full text-left px-3 py-2 text-p rounded-lg text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                            onClick={() => {
+                              setSelectedTechnician(emp);
+                              setTechnicianSearch("");
+                              setTechnicianDropdownOpen(false);
+                            }}
+                          >
+                            {displayEmployee(emp)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </>
           )}
         </div>
 
