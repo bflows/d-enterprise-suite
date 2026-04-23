@@ -126,6 +126,39 @@ async function totalMinutesForServiceItemIds(
   return { totalMinutes: total, error: null };
 }
 
+/** True if another job for the same technician overlaps [windowStart, windowEnd). End times follow service-line durations. */
+async function technicianHasScheduleConflict(
+  companyId: string,
+  technicianId: string,
+  excludeJobId: string,
+  windowStart: Date,
+  windowEnd: Date
+): Promise<boolean> {
+  const others = await prisma.job.findMany({
+    where: {
+      companyId,
+      technicianId,
+      id: { not: excludeJobId },
+    },
+    select: {
+      startTime: true,
+      services: { select: { duration: true, unit: true, quantity: true } },
+    },
+  });
+  const wStart = windowStart.getTime();
+  const wEnd = windowEnd.getTime();
+  for (const o of others) {
+    const oEnd = addMinutesToDateTime(
+      o.startTime,
+      totalMinutesFromServiceRows(o.services)
+    );
+    if (wStart < oEnd.getTime() && wEnd > o.startTime.getTime()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Maps API/frontend snake_case statuses to Prisma `JobStatusType` (replaces legacy IN_PROGRESS with ON_SITE). */
 const STATUS_MAP: Record<string, JobStatusType> = {
   scheduled: "SCHEDULED",
@@ -431,6 +464,38 @@ export const updateJob = async (
         totalMinutes = totalMinutesFromServiceRows(existing.services);
       }
       data.endTime = addMinutesToDateTime(startForEnd, totalMinutes);
+    }
+
+    const scheduleOrAssignmentChanged =
+      body.technicianId !== undefined ||
+      body.date !== undefined ||
+      body.startTime !== undefined ||
+      body.serviceItemIds !== undefined;
+
+    if (scheduleOrAssignmentChanged) {
+      const candidateTechId = data.technicianId ?? existing.technicianId;
+      const effectiveStart = data.startTime ?? existing.startTime;
+      const effectiveEnd =
+        data.endTime !== undefined
+          ? data.endTime
+          : addMinutesToDateTime(
+              effectiveStart,
+              totalMinutesFromServiceRows(existing.services)
+            );
+      const conflict = await technicianHasScheduleConflict(
+        companyId,
+        candidateTechId,
+        id,
+        effectiveStart,
+        effectiveEnd
+      );
+      if (conflict) {
+        return res.status(409).json({
+          success: false,
+          message:
+            "This technician already has another job that overlaps this time (based on start time and service durations).",
+        });
+      }
     }
 
     const effectiveDate = data.date ?? existing.date;
