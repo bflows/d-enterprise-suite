@@ -1,11 +1,29 @@
 "use client";
 
-import { selectUser } from "@/features/auth/authSlice";
+import { selectUser, selectHydrationDone } from "@/features/auth/authSlice";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
 
 export default function HomePage() {
   const user = useSelector(selectUser);
+  const hydrationDone = useSelector(selectHydrationDone);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
+
+  if (user) {
+    return null;
+  }
+
+  if (!hydrationDone) {
+    return null;
+  }
 
   return (
     <main className="bg-neutral-100">
