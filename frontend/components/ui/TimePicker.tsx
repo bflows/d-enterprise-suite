@@ -1,7 +1,16 @@
 "use client";
 
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { HiOutlineClock } from "react-icons/hi2";
+import type { MouseEvent as ReactMouseEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { HiCheck, HiOutlineClock } from "react-icons/hi2";
 
 function parseHhMm(s: string): { h: number; m: number } | null {
   const m = /^(\d{1,2}):(\d{2})$/.exec(s.trim());
@@ -62,6 +71,30 @@ function formatDisplayTime(hhMm: string, emptyLabel: string): string {
   });
 }
 
+function clamp(n: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, n));
+}
+
+/** iOS-style wheel: item height in px (must match Tailwind h-10). */
+const ITEM_H = 40;
+const WHEEL_VIEWPORT_H = 200;
+const WHEEL_PAD = (WHEEL_VIEWPORT_H - ITEM_H) / 2;
+
+/**
+ * Mouse wheels send a large |deltaY| in pixels; the browser then scrolls by that many
+ * pixels and skips many rows. We take over wheel handling and move exactly one row per
+ * event (sign only) so every slot is reachable on desktop. Trackpads may emit many
+ * small events; each still moves at most one row.
+ */
+function moveWheelOneStep(el: HTMLDivElement, direction: 1 | -1): void {
+  const maxTop = el.scrollHeight - el.clientHeight;
+  if (maxTop <= 0) return;
+  const next = clamp(el.scrollTop + direction * ITEM_H, 0, maxTop);
+  if (next !== el.scrollTop) {
+    el.scrollTop = next;
+  }
+}
+
 export interface TimePickerProps {
   value: string;
   onChange: (value: string) => void;
@@ -89,7 +122,6 @@ export default function TimePicker({
   const id = idProp ?? `time-picker-${autoId}`;
   const panelId = `${id}-panel`;
 
-  // Keep stored value on quarter minutes when parent passes non-quarter times.
   useEffect(() => {
     const p = parseHhMm(value);
     if (!p) return;
@@ -109,11 +141,167 @@ export default function TimePicker({
     return from24h(parsed.h, parsed.m);
   }, [parsed]);
 
+  const defaultParts = useMemo(() => from24h(9, 0), []);
+  const effectiveParts = parts ?? defaultParts;
+
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const hourRef = useRef<HTMLDivElement>(null);
-  const minuteRef = useRef<HTMLDivElement>(null);
-  const periodRef = useRef<HTMLDivElement>(null);
+  const hourRef = useRef<HTMLDivElement | null>(null);
+  const minuteRef = useRef<HTMLDivElement | null>(null);
+  const periodRef = useRef<HTMLDivElement | null>(null);
+  const isProgrammaticRef = useRef(false);
+  const programmaticScrollTRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const setTime = useCallback(
+    (period: Period, hour12: number, minute: number) => {
+      const { h, m } = to24h(period, hour12, minute);
+      onChange(toHhMm(h, m));
+    },
+    [onChange]
+  );
+
+  const partsToScrollIndices = (p: { period: Period; hour12: number; m: number }) => {
+    return {
+      iH: clamp(HOURS_12.indexOf(p.hour12 as (typeof HOURS_12)[number]), 0, 11),
+      iM: clamp(
+        MINUTES_QUARTER.indexOf(p.m as (typeof MINUTES_QUARTER)[number]),
+        0,
+        3
+      ),
+      iP: p.period === "AM" ? 0 : 1,
+    };
+  };
+
+  const scrollWheelsToParts = useCallback(
+    (p: { period: Period; hour12: number; m: number }, behavior: ScrollBehavior) => {
+      const { iH, iM, iP } = partsToScrollIndices(p);
+      const top = (idx: number) => idx * ITEM_H;
+      if (programmaticScrollTRef.current) {
+        clearTimeout(programmaticScrollTRef.current);
+        programmaticScrollTRef.current = null;
+      }
+      isProgrammaticRef.current = true;
+      hourRef.current?.scrollTo({ top: top(iH), behavior });
+      minuteRef.current?.scrollTo({ top: top(iM), behavior });
+      periodRef.current?.scrollTo({ top: top(iP), behavior });
+      programmaticScrollTRef.current = setTimeout(() => {
+        programmaticScrollTRef.current = null;
+        isProgrammaticRef.current = false;
+      }, 64);
+    },
+    []
+  );
+
+  const readIndicesFromWheels = useCallback((): { iH: number; iM: number; iP: number } | null => {
+    const hEl = hourRef.current;
+    const mEl = minuteRef.current;
+    const pEl = periodRef.current;
+    if (!hEl || !mEl || !pEl) return null;
+    return {
+      iH: clamp(Math.round(hEl.scrollTop / ITEM_H), 0, 11),
+      iM: clamp(Math.round(mEl.scrollTop / ITEM_H), 0, 3),
+      iP: clamp(Math.round(pEl.scrollTop / ITEM_H), 0, 1),
+    };
+  }, []);
+
+  const commitFromWheels = useCallback(() => {
+    if (isProgrammaticRef.current) return;
+    const r = readIndicesFromWheels();
+    if (!r) return;
+    setTime(
+      PERIODS[r.iP],
+      HOURS_12[r.iH],
+      MINUTES_QUARTER[r.iM]
+    );
+  }, [readIndicesFromWheels, setTime]);
+
+  const handleConfirmTime = useCallback(
+    (e: ReactMouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      isProgrammaticRef.current = false;
+      commitFromWheels();
+      setOpen(false);
+    },
+    [commitFromWheels]
+  );
+
+  const wasOpenRef = useRef(false);
+  useLayoutEffect(() => {
+    if (!open) {
+      wasOpenRef.current = false;
+      return;
+    }
+    if (wasOpenRef.current) return;
+    wasOpenRef.current = true;
+    scrollWheelsToParts(effectiveParts, "instant");
+  }, [open, effectiveParts, scrollWheelsToParts]);
+
+  const debounceTRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollCleanupRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      if (debounceTRef.current) {
+        clearTimeout(debounceTRef.current);
+        debounceTRef.current = null;
+      }
+      scrollCleanupRef.current?.();
+      scrollCleanupRef.current = null;
+      return;
+    }
+
+    const onScroll = () => {
+      if (isProgrammaticRef.current) return;
+      if (debounceTRef.current) clearTimeout(debounceTRef.current);
+      debounceTRef.current = setTimeout(() => {
+        debounceTRef.current = null;
+        if (isProgrammaticRef.current) return;
+        commitFromWheels();
+      }, 100);
+    };
+
+    const makeWheel = (el: HTMLDivElement) => {
+      const onWheel = (e: WheelEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.deltaY === 0) return;
+        if (isProgrammaticRef.current) return;
+        const direction: 1 | -1 = e.deltaY > 0 ? 1 : -1;
+        moveWheelOneStep(el, direction);
+        commitFromWheels();
+      };
+      el.addEventListener("wheel", onWheel, { passive: false });
+      return () => el.removeEventListener("wheel", onWheel);
+    };
+
+    const h = hourRef.current;
+    const m = minuteRef.current;
+    const p = periodRef.current;
+    h?.addEventListener("scroll", onScroll, { passive: true });
+    m?.addEventListener("scroll", onScroll, { passive: true });
+    p?.addEventListener("scroll", onScroll, { passive: true });
+    const wh = h && makeWheel(h);
+    const wm = m && makeWheel(m);
+    const wp = p && makeWheel(p);
+
+    scrollCleanupRef.current = () => {
+      h?.removeEventListener("scroll", onScroll);
+      m?.removeEventListener("scroll", onScroll);
+      p?.removeEventListener("scroll", onScroll);
+      wh?.();
+      wm?.();
+      wp?.();
+    };
+
+    return () => {
+      if (debounceTRef.current) {
+        clearTimeout(debounceTRef.current);
+        debounceTRef.current = null;
+      }
+      scrollCleanupRef.current?.();
+      scrollCleanupRef.current = null;
+    };
+  }, [open, commitFromWheels]);
 
   const openPicker = useCallback(() => {
     setOpen(true);
@@ -142,36 +330,17 @@ export default function TimePicker({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
-  const defaultParts = useMemo(
-    () => from24h(9, 0),
-    []
-  );
-
-  const effectiveParts = parts ?? defaultParts;
-
-  // Scroll selected values into view when the panel opens
-  useEffect(() => {
-    if (!open) return;
-    const h12 = effectiveParts.hour12;
-    const m = effectiveParts.m;
-    const per = effectiveParts.period;
-    const hourEl = hourRef.current?.querySelector<HTMLElement>(`[data-h12="${h12}"]`);
-    const minuteEl = minuteRef.current?.querySelector<HTMLElement>(`[data-minute="${m}"]`);
-    const periodEl = periodRef.current?.querySelector<HTMLElement>(`[data-period="${per}"]`);
-    requestAnimationFrame(() => {
-      hourEl?.scrollIntoView({ block: "center" });
-      minuteEl?.scrollIntoView({ block: "center" });
-      periodEl?.scrollIntoView({ block: "center" });
-    });
-  }, [open, effectiveParts.hour12, effectiveParts.m, effectiveParts.period]);
-
   const hasValue = Boolean(parsed);
   const display = formatDisplayTime(value, emptyLabel);
 
-  const setTime = (period: Period, hour12: number, minute: number) => {
-    const { h, m } = to24h(period, hour12, minute);
-    onChange(toHhMm(h, m));
-  };
+  const wheelListClass =
+    "h-full w-full snap-y snap-mandatory overflow-y-auto overscroll-y-contain " +
+    "[scrollbar-width:none] [-ms-overflow-style:none] " +
+    "[&::-webkit-scrollbar]:hidden touch-pan-y";
+
+  const wheelItemClass =
+    "flex h-10 shrink-0 cursor-default snap-center select-none items-center justify-center " +
+    "text-p text-neutral-800";
 
   return (
     <div className={`relative ${className}`} ref={wrapRef}>
@@ -211,127 +380,143 @@ export default function TimePicker({
             id={panelId}
             role={popoverRole}
             aria-label={ariaLabel}
-            className="absolute left-0 right-0 z-50 mt-2 flex max-h-64 gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3 shadow"
+            className="absolute left-0 right-0 z-50 mt-2 min-w-0 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50/95 p-1 shadow-lg backdrop-blur-sm"
           >
-            <div
-              className="flex min-h-0 min-w-0 flex-1 flex-col"
-              ref={hourRef}
+            <button
+              type="button"
+              onClick={handleConfirmTime}
+              className="absolute right-1.5 top-1.5 z-30 rounded-lg p-1.5 text-primary hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary"
+              aria-label="Apply selected time"
             >
-              <span className="mb-1 text-center text-small font-bold text-neutral-500">
-                Hour
-              </span>
-              <ul
-                className="max-h-52 overflow-y-auto rounded-lg border border-neutral-200 bg-white py-1"
-                role="listbox"
-                aria-label={`${ariaLabel} hours`}
+              <HiCheck className="size-5" aria-hidden />
+            </button>
+            <div className="flex min-h-0 min-w-0 gap-0">
+            {/* Hour 1 (top) → 12 (bottom) — Apple order */}
+            <div className="relative min-h-0 min-w-0 flex-1">
+              <div
+                className="pointer-events-none absolute inset-0 z-20 flex items-center"
+                aria-hidden
               >
-                {HOURS_12.map((h12) => {
-                  const selected = effectiveParts.hour12 === h12;
-                  return (
-                    <li key={h12} role="presentation">
-                      <button
-                        type="button"
-                        data-h12={h12}
-                        role="option"
-                        aria-selected={selected}
-                        onClick={() => {
-                          setTime(effectiveParts.period, h12, effectiveParts.m);
-                        }}
-                        className={[
-                          "w-full px-3 py-1.5 text-center text-p",
-                          selected
-                            ? "bg-primary font-bold text-neutral-50"
-                            : "text-neutral-700 hover:bg-neutral-100",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                      >
-                        {h12}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                <div className="h-10 w-full border-y border-primary/20 bg-primary/6" />
+              </div>
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/2 bg-linear-to-b from-neutral-50 to-transparent"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/2 bg-linear-to-t from-neutral-50 to-transparent"
+                aria-hidden
+              />
+              <div className="relative bg-white" style={{ height: WHEEL_VIEWPORT_H }}>
+                <div
+                  ref={hourRef}
+                  className={wheelListClass}
+                  style={{
+                    paddingTop: WHEEL_PAD,
+                    paddingBottom: WHEEL_PAD,
+                  }}
+                  role="listbox"
+                  aria-label={`${ariaLabel} hours`}
+                >
+                  {HOURS_12.map((h12) => (
+                    <div
+                      key={h12}
+                      className={wheelItemClass}
+                      role="option"
+                      aria-selected={effectiveParts.hour12 === h12}
+                    >
+                      {h12}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div
-              className="flex min-h-0 min-w-0 flex-1 flex-col"
-              ref={minuteRef}
-            >
-              <span className="mb-1 text-center text-small font-bold text-neutral-500">
-                Min
-              </span>
-              <ul
-                className="max-h-52 overflow-y-auto rounded-lg border border-neutral-200 bg-white py-1"
-                role="listbox"
-                aria-label={`${ariaLabel} minutes`}
+
+            <div className="relative min-h-0 min-w-0 flex-1">
+              <div
+                className="pointer-events-none absolute inset-0 z-20 flex items-center"
+                aria-hidden
               >
-                {MINUTES_QUARTER.map((m) => {
-                  const selected = effectiveParts.m === m;
-                  return (
-                    <li key={m} role="presentation">
-                      <button
-                        type="button"
-                        data-minute={m}
-                        role="option"
-                        aria-selected={selected}
-                        onClick={() => {
-                          setTime(effectiveParts.period, effectiveParts.hour12, m);
-                        }}
-                        className={[
-                          "w-full px-3 py-1.5 text-center text-p",
-                          selected
-                            ? "bg-primary font-bold text-neutral-50"
-                            : "text-neutral-700 hover:bg-neutral-100",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                      >
-                        {String(m).padStart(2, "0")}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                <div className="h-10 w-full border-y border-primary/20 bg-primary/6" />
+              </div>
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/2 bg-linear-to-b from-neutral-50 to-transparent"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/2 bg-linear-to-t from-neutral-50 to-transparent"
+                aria-hidden
+              />
+              <div
+                className="relative bg-white"
+                style={{ height: WHEEL_VIEWPORT_H }}
+              >
+                <div
+                  ref={minuteRef}
+                  className={wheelListClass}
+                  style={{
+                    paddingTop: WHEEL_PAD,
+                    paddingBottom: WHEEL_PAD,
+                  }}
+                  role="listbox"
+                  aria-label={`${ariaLabel} minutes`}
+                >
+                  {MINUTES_QUARTER.map((m) => (
+                    <div
+                      key={m}
+                      className={wheelItemClass}
+                      role="option"
+                      aria-selected={effectiveParts.m === m}
+                    >
+                      {String(m).padStart(2, "0")}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div
-              className="flex min-h-0 min-w-0 flex-1 flex-col"
-              ref={periodRef}
-            >
-              <span className="mb-1 text-center text-small font-bold text-neutral-500">
-                AM/PM
-              </span>
-              <ul
-                className="max-h-52 overflow-y-auto rounded-lg border border-neutral-200 bg-white py-1"
-                role="listbox"
-                aria-label={`${ariaLabel} period`}
+
+            <div className="relative min-h-0 min-w-0 flex-1">
+              <div
+                className="pointer-events-none absolute inset-0 z-20 flex items-center"
+                aria-hidden
               >
-                {PERIODS.map((period) => {
-                  const selected = effectiveParts.period === period;
-                  return (
-                    <li key={period} role="presentation">
-                      <button
-                        type="button"
-                        data-period={period}
-                        role="option"
-                        aria-selected={selected}
-                        onClick={() => {
-                          setTime(period, effectiveParts.hour12, effectiveParts.m);
-                        }}
-                        className={[
-                          "w-full px-3 py-1.5 text-center text-p",
-                          selected
-                            ? "bg-primary font-bold text-neutral-50"
-                            : "text-neutral-700 hover:bg-neutral-100",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                      >
-                        {period}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                <div className="h-10 w-full border-y border-primary/20 bg-primary/6" />
+              </div>
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/2 bg-linear-to-b from-neutral-50 to-transparent"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/2 bg-linear-to-t from-neutral-50 to-transparent"
+                aria-hidden
+              />
+              <div
+                className="relative bg-white"
+                style={{ height: WHEEL_VIEWPORT_H }}
+              >
+                <div
+                  ref={periodRef}
+                  className={wheelListClass}
+                  style={{
+                    paddingTop: WHEEL_PAD,
+                    paddingBottom: WHEEL_PAD,
+                  }}
+                  role="listbox"
+                  aria-label={`${ariaLabel} period`}
+                >
+                  {PERIODS.map((p) => (
+                    <div
+                      key={p}
+                      className={wheelItemClass}
+                      role="option"
+                      aria-selected={effectiveParts.period === p}
+                    >
+                      {p}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
             </div>
           </div>
         </>
