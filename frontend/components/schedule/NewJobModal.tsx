@@ -514,7 +514,9 @@ export default function NewJobModal({
             id="notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="mt-2 rounded-lg py-2 px-3 border text-neutral-800 bg-neutral-50 border-neutral-300 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
+            className={`mt-2 rounded-lg py-2 px-3 border text-neutral-800 bg-neutral-50 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary ${
+              notes.length > 0 ? "border-neutral-300" : "border-neutral-200"
+            }`}
           />
         </div>
       </div>
