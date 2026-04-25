@@ -39,6 +39,7 @@ import JobAttachments from "@/components/jobs/JobAttachments";
 import JobNotes from "@/components/jobs/JobNotes";
 import JobActivity from "@/components/jobs/JobActivity";
 import { useJobNavbarActions } from "@/components/layout/JobNavbarActionsContext";
+import { getDashboardPreviousPathname } from "@/components/layout/dashboardNavigationPaths";
 
 export default function JobDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -292,9 +293,10 @@ export default function JobDetailPage() {
     if (!job) return;
     setDeleteLoading(true);
     setDeleteError(null);
+    let success = false;
     try {
       await deleteJob(job.id);
-      router.replace("/schedule");
+      success = true;
     } catch (err: unknown) {
       const message =
         err && typeof err === "object" && "response" in err
@@ -304,7 +306,14 @@ export default function JobDetailPage() {
     } finally {
       setDeleteLoading(false);
     }
-  }, [job, router]);
+    if (!success) return;
+    setDeleteConfirmOpen(false);
+    setDeleteError(null);
+    const prev = getDashboardPreviousPathname();
+    const target =
+      prev && prev.length > 0 && prev !== pathname ? prev : "/schedule";
+    router.replace(target);
+  }, [job, router, pathname]);
 
   const handleCloseDeleteConfirm = useCallback(() => {
     if (!deleteLoading) {

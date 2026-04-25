@@ -20,6 +20,7 @@ import Navbar from "./Navbar";
 import MobileNav from "./MobileNav";
 import { MobileNavMenuProvider } from "./MobileNavMenu";
 import { JobNavbarActionsProvider } from "./JobNavbarActionsContext";
+import { DashboardNavigationTracker } from "./dashboardNavigationPaths";
 
 export default function DashboardShell({
   children,
@@ -52,6 +53,7 @@ export default function DashboardShell({
 
   return (
     <RequireAuth>
+      <DashboardNavigationTracker />
       <MobileNavMenuProvider>
         <JobNavbarActionsProvider>
           <div className="bg-neutral-100 flex flex-col sm:flex-row h-screen overflow-hidden">
