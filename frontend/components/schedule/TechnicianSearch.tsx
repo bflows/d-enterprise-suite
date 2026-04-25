@@ -168,7 +168,7 @@ export default function TechnicianSearch({
         <h2 className="text-p text-neutral-800">Technician</h2>
       </div>
       {selectedTechnician ? (
-        <div className="mt-2 flex items-center justify-between rounded-lg border px-4 py-3 border-neutral-200 bg-neutral-50">
+        <div className="mt-2 flex items-center justify-between rounded-lg border px-4 py-3 border-neutral-300 bg-neutral-50">
           <span className="text-p text-neutral-800">
             {displayEmployee(selectedTechnician)}
           </span>
