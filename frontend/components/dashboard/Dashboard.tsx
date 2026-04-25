@@ -7,7 +7,14 @@ import { selectIsClockedIn } from "@/features/timeCard/timeCardSlice";
 import TechnicianTimeSummaryRow from "./TechnicianTimeSummaryRow";
 import TechnicianJobs from "./TechnicianJobs";
 
-export default function TechnicianDashboard({ user }: { user: AuthenticatedUser }) {
+export default function TechnicianDashboard({
+  user,
+  jobsListRefreshKey = 0,
+}: {
+  user: AuthenticatedUser;
+  /** When this increments, the Jobs section refetches from the server. */
+  jobsListRefreshKey?: number;
+}) {
   const clockedIn = useSelector(selectIsClockedIn);
   const [dayName, setDayName] = useState<string | null>(null);
   const [calendarDate, setCalendarDate] = useState<string | null>(null);
@@ -54,7 +61,7 @@ export default function TechnicianDashboard({ user }: { user: AuthenticatedUser 
         </p>
       </div>
       <TechnicianTimeSummaryRow user={user} />
-      <TechnicianJobs user={user} />
+      <TechnicianJobs user={user} jobsListRefreshKey={jobsListRefreshKey} />
     </div>
   );
 }

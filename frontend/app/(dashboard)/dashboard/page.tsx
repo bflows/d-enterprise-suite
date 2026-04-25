@@ -22,6 +22,8 @@ export default function DashboardPage() {
   const [newJobModalOpen, setNewJobModalOpen] = useState(false);
   const [newCustomerModalOpen, setNewCustomerModalOpen] = useState(false);
   const [jobs, setJobs] = useState<Job[]>([]);
+  /** Bumps when a job is created/updated from the modal so the dashboard Jobs list refetches. */
+  const [jobsListRefreshKey, setJobsListRefreshKey] = useState(0);
 
   useEffect(() => {
     if (searchParams.get("newJob") !== "1") return;
@@ -50,7 +52,11 @@ export default function DashboardPage() {
   }, [companyId]);
 
   const handleJobCreate = useCallback((job: Job) => {
-    setJobs((prev) => [...prev, job]);
+    setJobs((prev) => {
+      const without = prev.filter((j) => j.id !== job.id);
+      return [...without, job];
+    });
+    setJobsListRefreshKey((k) => k + 1);
   }, []);
 
   if (!user) {
@@ -71,11 +77,11 @@ export default function DashboardPage() {
   let content: ReactNode;
   switch (user.role) {
     case ROLE_SLUGS.TECHNICIAN:
-      content = <Dashboard user={user} />;
+      content = <Dashboard user={user} jobsListRefreshKey={jobsListRefreshKey} />;
       break;
     case ROLE_SLUGS.DISPATCHER:
     case ROLE_SLUGS.ADMIN:
-      content = <Dashboard user={user} />;
+      content = <Dashboard user={user} jobsListRefreshKey={jobsListRefreshKey} />;
       break;
     case ROLE_SLUGS.EMPLOYEE:
       content = <EmployeeDashboard user={user} />;

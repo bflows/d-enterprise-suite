@@ -72,10 +72,11 @@ type TechnicianJobsListProps = {
   user: AuthenticatedUser;
   companyId: string;
   companyName: string;
+  jobsListRefreshKey: number;
 };
 
-/** Fetches jobs for one company; parent remounts this when `companyId` changes (`key`). */
-function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
+/** Fetches jobs for one company; parent remounts this when `companyId` changes (`key`), or when `jobsListRefreshKey` bumps after create/update. */
+function TechnicianJobsList({ user, companyId, jobsListRefreshKey }: TechnicianJobsListProps) {
   const [jobs, setJobs] = useState<Job[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -104,7 +105,7 @@ function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
     return () => {
       cancelled = true;
     };
-  }, [user.id, companyId]);
+  }, [user.id, companyId, jobsListRefreshKey]);
 
   const showLoading = jobs === null && !error;
   const empty = jobs !== null && jobs.length === 0 && !error;
@@ -180,9 +181,10 @@ function TechnicianJobsList({ user, companyId }: TechnicianJobsListProps) {
 
 type TechnicianJobsProps = {
   user: AuthenticatedUser;
+  jobsListRefreshKey?: number;
 };
 
-export default function TechnicianJobs({ user }: TechnicianJobsProps) {
+export default function TechnicianJobs({ user, jobsListRefreshKey = 0 }: TechnicianJobsProps) {
   const currentCompany = useSelector(selectCurrentCompany);
 
   return (
@@ -199,6 +201,7 @@ export default function TechnicianJobs({ user }: TechnicianJobsProps) {
           user={user}
           companyId={currentCompany.id}
           companyName={currentCompany.name}
+          jobsListRefreshKey={jobsListRefreshKey}
         />
       )}
     </section>
