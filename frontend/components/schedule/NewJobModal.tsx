@@ -14,7 +14,7 @@ import { searchCustomers } from "@/lib/api/customers";
 import type { CustomerListItem } from "@/lib/api/customers";
 import type { EmployeeListItem } from "@/lib/api/company";
 import type { ServiceItemListItem } from "@/lib/api/service";
-import NewJobServiceBookSection from "@/components/schedule/NewJobServiceBookSection";
+import JobServiceBook from "@/components/schedule/JobServiceBook";
 import TechnicianSearch from "@/components/schedule/TechnicianSearch";
 import { createJob, mapApiJobToJob, updateJob } from "@/lib/api/jobs";
 import { HiOutlineCalendar, HiOutlineClock, HiOutlineDocumentText, HiOutlineUser, HiPlus } from "react-icons/hi2";
@@ -479,7 +479,7 @@ export default function NewJobModal({
           />
         </div>
 
-        <NewJobServiceBookSection
+        <JobServiceBook
           key={jobToEdit?.id ?? "new"}
           companyId={companyId}
           isOpen={isOpen}
