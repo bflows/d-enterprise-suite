@@ -44,7 +44,7 @@ export interface DatePickerProps {
   onChange: (value: string) => void;
   id?: string;
   className?: string;
-  /** `YYYY-MM-DD` — no day before this is selectable. */
+  /** `YYYY-MM-DD` — no day before this is selectable. Days before **today** are always disabled; if this is set, the first selectable day is the later of today and this date. */
   minDate?: string;
   /** `YYYY-MM-DD` — no day after this is selectable. */
   maxDate?: string;
@@ -76,13 +76,14 @@ export default function DatePicker({
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  const today = useMemo(() => {
-    const n = new Date();
-    return { y: n.getFullYear(), m0: n.getMonth(), d: n.getDate() };
-  }, []);
-
-  const [viewY, setViewY] = useState(() => parsedValue?.y ?? today.y);
-  const [viewM0, setViewM0] = useState(() => parsedValue?.m0 ?? today.m0);
+  const [viewY, setViewY] = useState(() => {
+    if (parsedValue) return parsedValue.y;
+    return new Date().getFullYear();
+  });
+  const [viewM0, setViewM0] = useState(() => {
+    if (parsedValue) return parsedValue.m0;
+    return new Date().getMonth();
+  });
 
   const openPicker = useCallback(() => {
     const p = value ? parseYmd(value) : null;
@@ -136,14 +137,15 @@ export default function DatePicker({
   };
 
   const isDisabledDay = useCallback(
-    (y: number, m0: number, d: number): boolean => {
+    (y: number, m0: number, d: number, todayInt: number): boolean => {
+      const t = y * 1e4 + m0 * 100 + d;
+      let minInt = todayInt;
       if (parsedMin) {
-        const t = y * 1e4 + m0 * 100 + d;
-        const a = parsedMin.y * 1e4 + parsedMin.m0 * 100 + parsedMin.d;
-        if (t < a) return true;
+        const propMin = parsedMin.y * 1e4 + parsedMin.m0 * 100 + parsedMin.d;
+        minInt = Math.max(minInt, propMin);
       }
+      if (t < minInt) return true;
       if (parsedMax) {
-        const t = y * 1e4 + m0 * 100 + d;
         const b = parsedMax.y * 1e4 + parsedMax.m0 * 100 + parsedMax.d;
         if (t > b) return true;
       }
@@ -188,6 +190,9 @@ export default function DatePicker({
     return out;
   }, [viewY, viewM0]);
 
+  const now = new Date();
+  const todayInt = now.getFullYear() * 1e4 + now.getMonth() * 100 + now.getDate();
+
   return (
     <div className={`relative ${className}`} ref={wrapRef}>
       <button
@@ -226,23 +231,23 @@ export default function DatePicker({
             id={listId}
             role={popoverRole}
             aria-labelledby={`${id}-title`}
-            className="absolute left-0 right-0 z-50 mt-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3 shadow-lg"
+            className="absolute left-0 right-0 z-50 mt-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3 shadow"
           >
             <div className="mb-2 flex items-center justify-between gap-2">
               <button
                 type="button"
-                className="rounded-lg p-1.5 text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="rounded-lg p-1.5 text-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary"
                 onClick={() => stepMonth(-1)}
                 aria-label="Previous month"
               >
                 <HiChevronLeft className="size-5" />
               </button>
-              <h3 id={`${id}-title`} className="text-p font-semibold text-neutral-800">
+              <h3 id={`${id}-title`} className="text-p font-bold text-neutral-800">
                 {monthLabel}
               </h3>
               <button
                 type="button"
-                className="rounded-lg p-1.5 text-neutral-700 hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="rounded-lg p-1.5 text-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary"
                 onClick={() => stepMonth(1)}
                 aria-label="Next month"
               >
@@ -250,25 +255,30 @@ export default function DatePicker({
               </button>
             </div>
             <div
-              className="grid grid-cols-7 gap-y-1 text-center text-xs font-medium text-neutral-500"
+              className="grid grid-cols-7 gap-y-1 text-center text-small font-bold text-neutral-400"
               aria-hidden
             >
               {WEEKDAYS.map((w) => (
-                <div key={w} className="px-0.5 py-1">
+                <div key={w}>
                   {w}
                 </div>
               ))}
             </div>
             <div
-              className="mt-1 grid grid-cols-7 gap-1"
+              className="mt-2 grid grid-cols-7 gap-1"
               role="grid"
               aria-label="Calendar"
             >
               {cells.map((cell, index) => {
                 const ymd = toYmd(cell.y, cell.m0, cell.d);
+                const t = cell.y * 1e4 + cell.m0 * 100 + cell.d;
+                const isBeforeToday = t < todayInt;
                 const isSelected = Boolean(parsedValue && ymd === value);
-                const isToday = cell.y === today.y && cell.m0 === today.m0 && cell.d === today.d;
-                const off = isDisabledDay(cell.y, cell.m0, cell.d);
+                const isToday =
+                  cell.y === now.getFullYear() &&
+                  cell.m0 === now.getMonth() &&
+                  cell.d === now.getDate();
+                const off = isDisabledDay(cell.y, cell.m0, cell.d, todayInt);
                 return (
                   <button
                     type="button"
@@ -288,6 +298,7 @@ export default function DatePicker({
                       cell.inMonth &&
                       "ring-1 ring-inset ring-primary/40",
                       !isSelected && cell.inMonth && !isToday && "hover:bg-neutral-200",
+                      isBeforeToday && "line-through decoration-neutral-500",
                       off && "cursor-not-allowed opacity-30",
                     ]
                       .filter(Boolean)
