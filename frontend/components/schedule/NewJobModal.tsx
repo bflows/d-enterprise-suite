@@ -621,11 +621,11 @@ export default function NewJobModal({
 
         {/* Start time; end is derived from service line durations on the server */}
         <div className="mt-4">
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center gap-x-1.5">
             <div>
               <HiOutlineClock className="size-6 text-neutral-800" />
             </div>
-            <h2 className="text-h6 font-bold text-neutral-800">
+            <h2 className="text-p text-neutral-800">
               Time
             </h2>
           </div>
