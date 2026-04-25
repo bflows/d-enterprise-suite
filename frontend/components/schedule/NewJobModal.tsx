@@ -601,17 +601,17 @@ export default function NewJobModal({
 
         {/* Technician search & select (only available for chosen window) */}
         <div className="relative mt-4">
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center gap-x-1.5">
             <div>
               <HiOutlineWrench className="size-6 text-neutral-800" />
             </div>
-            <h2 className="text-h6 font-bold text-neutral-800">
+            <h2 className="text-p text-neutral-800">
               Technician
             </h2>
           </div>
           {selectedTechnician ? (
-            <div className="mt-2 flex items-center justify-between rounded-lg border px-3 py-2 border-neutral-300 bg-neutral-50">
-              <span className="text-p text-neutral-900">
+            <div className="mt-2 flex items-center justify-between rounded-lg border px-4 py-3 border-neutral-200 bg-neutral-50">
+              <span className="text-p text-neutral-800">
                 {displayEmployee(selectedTechnician)}
               </span>
               <button
@@ -635,8 +635,8 @@ export default function NewJobModal({
                   setTechnicianDropdownOpen(true);
                 }}
                 onFocus={() => setTechnicianDropdownOpen(true)}
-                placeholder="Search technicians..."
-                className="mt-2 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Search name or phone"
+                className="mt-2 w-full rounded-lg border px-4 py-3 text-p bg-neutral-50 border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary"
               />
               {technicianDropdownOpen && (
                 <>
@@ -645,13 +645,13 @@ export default function NewJobModal({
                     aria-hidden="true"
                     onClick={() => setTechnicianDropdownOpen(false)}
                   />
-                  <div className="absolute z-50 mt-2 w-full rounded-lg border border-neutral-300 bg-neutral-50 shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-50 mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 shadow-lg max-h-48 overflow-y-auto">
                     {technicianLoading ? (
-                      <p className="px-3 py-2 text-small text-neutral-600">
+                      <p className="px-4 py-3 text-small text-neutral-400">
                         Searching...
                       </p>
                     ) : availableTechnicians.length === 0 ? (
-                      <p className="px-3 py-2 text-small text-neutral-400">
+                      <p className="px-4 py-3 text-small text-neutral-400">
                         {allTechnicians.length === 0
                           ? date && startTime && totalServiceMins > 0
                             ? "No technicians have availability for this date/time, try a different search."
@@ -659,12 +659,12 @@ export default function NewJobModal({
                           : "No technicians available for this date/time (already booked)."}
                       </p>
                     ) : (
-                      <div className="py-3 px-2 flex flex-col gap-y-1">
+                      <div className="px-4 py-3 flex flex-col gap-y-1">
                         {availableTechnicians.map((emp) => (
                           <button
                             key={emp.id}
                             type="button"
-                            className="w-full text-left px-3 py-2 text-p rounded-lg text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                            className="w-full text-left px-4 py-3 text-p rounded-lg text-neutral-600 hover:text-neutral-50 hover:bg-primary focus:bg-neutral-100 focus:outline-none"
                             onClick={() => {
                               setSelectedTechnician(emp);
                               setTechnicianSearch("");
