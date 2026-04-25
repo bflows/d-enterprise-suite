@@ -219,14 +219,19 @@ export default function TechnicianSearch({
                       <button
                         key={emp.id}
                         type="button"
-                        className="w-full text-left px-4 py-3 text-p rounded-lg text-neutral-600 hover:text-neutral-50 hover:bg-primary focus:bg-neutral-100 focus:outline-none"
+                        className="flex w-full items-center justify-between gap-3 text-left px-4 py-3 text-p rounded-lg text-neutral-600 hover:text-neutral-50 hover:bg-primary focus:bg-neutral-100 focus:outline-none"
                         onClick={() => {
                           onChange(emp);
                           setTechnicianSearch("");
                           setTechnicianDropdownOpen(false);
                         }}
                       >
-                        {displayEmployee(emp)}
+                        <span className="min-w-0 truncate">
+                          {displayEmployee(emp)}
+                        </span>
+                        <span className="shrink-0 text-small tabular-nums">
+                          {emp.user.phoneNumber || "—"}
+                        </span>
                       </button>
                     ))}
                   </div>
