@@ -1,6 +1,6 @@
 "use client";
 
-import type { MouseEvent as ReactMouseEvent } from "react";
+import type { MouseEvent as ReactMouseEvent, UIEvent } from "react";
 import {
   useCallback,
   useEffect,
@@ -148,6 +148,7 @@ export default function TimePicker({
   const effectiveParts = parts ?? defaultParts;
 
   const [open, setOpen] = useState(false);
+  const [centerIndices, setCenterIndices] = useState({ iH: 0, iM: 0, iP: 0 });
   const wrapRef = useRef<HTMLDivElement>(null);
   const hourRef = useRef<HTMLDivElement | null>(null);
   const minuteRef = useRef<HTMLDivElement | null>(null);
@@ -236,7 +237,14 @@ export default function TimePicker({
     if (wasOpenRef.current) return;
     wasOpenRef.current = true;
     scrollWheelsToParts(effectiveParts, "instant");
-  }, [open, effectiveParts, scrollWheelsToParts]);
+    const raf = requestAnimationFrame(() => {
+      const r = readIndicesFromWheels();
+      if (r) {
+        setCenterIndices({ iH: r.iH, iM: r.iM, iP: r.iP });
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [open, effectiveParts, scrollWheelsToParts, readIndicesFromWheels]);
 
   const scrollCleanupRef = useRef<(() => void) | null>(null);
 
@@ -319,9 +327,48 @@ export default function TimePicker({
     "[scrollbar-width:none] [-ms-overflow-style:none] " +
     "[&::-webkit-scrollbar]:hidden touch-pan-y";
 
-  const wheelItemClass =
+  const wheelItemBaseClass =
     "flex h-10 shrink-0 cursor-default snap-center select-none items-center justify-center " +
-    "text-p text-neutral-800";
+    "text-p";
+
+  const handleHourScroll = useCallback(
+    (e: UIEvent<HTMLDivElement>) => {
+      if (isProgrammaticRef.current) return;
+      const iH = clamp(
+        Math.round(e.currentTarget.scrollTop / ITEM_H),
+        0,
+        11
+      );
+      setCenterIndices((prev) => (prev.iH === iH ? prev : { ...prev, iH }));
+    },
+    []
+  );
+
+  const handleMinuteScroll = useCallback(
+    (e: UIEvent<HTMLDivElement>) => {
+      if (isProgrammaticRef.current) return;
+      const iM = clamp(
+        Math.round(e.currentTarget.scrollTop / ITEM_H),
+        0,
+        3
+      );
+      setCenterIndices((prev) => (prev.iM === iM ? prev : { ...prev, iM }));
+    },
+    []
+  );
+
+  const handlePeriodScroll = useCallback(
+    (e: UIEvent<HTMLDivElement>) => {
+      if (isProgrammaticRef.current) return;
+      const iP = clamp(
+        Math.round(e.currentTarget.scrollTop / ITEM_H),
+        0,
+        1
+      );
+      setCenterIndices((prev) => (prev.iP === iP ? prev : { ...prev, iP }));
+    },
+    []
+  );
 
   return (
     <div className={`relative ${className}`} ref={wrapRef}>
@@ -386,22 +433,25 @@ export default function TimePicker({
             </button>
             <div className="flex min-h-0 min-w-0 gap-0">
             {/* Hour 1 (top) → 12 (bottom) — Apple order */}
-            <div className="relative min-h-0 min-w-0 flex-1">
+            <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-l-lg bg-white">
               <div
-                className="pointer-events-none absolute inset-0 z-20 flex items-center"
+                className="pointer-events-none absolute inset-0 z-1 flex items-center"
                 aria-hidden
               >
-                <div className="h-10 w-full border-y border-primary/20 bg-primary/6" />
+                <div className="h-10 w-full rounded-l-lg border-y border-l border-primary/25 bg-primary" />
               </div>
               <div
-                className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/2 bg-linear-to-b from-neutral-50 to-transparent"
+                className="pointer-events-none absolute inset-x-0 top-0 z-3 h-1/2 bg-linear-to-b from-neutral-50 to-transparent"
                 aria-hidden
               />
               <div
-                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/2 bg-linear-to-t from-neutral-50 to-transparent"
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-3 h-1/2 bg-linear-to-t from-neutral-50 to-transparent"
                 aria-hidden
               />
-              <div className="relative bg-white" style={{ height: WHEEL_VIEWPORT_H }}>
+              <div
+                className="relative z-2 h-full min-h-0 bg-transparent"
+                style={{ height: WHEEL_VIEWPORT_H }}
+              >
                 <div
                   ref={hourRef}
                   className={wheelListClass}
@@ -411,13 +461,18 @@ export default function TimePicker({
                   }}
                   role="listbox"
                   aria-label={`${ariaLabel} hours`}
+                  onScroll={handleHourScroll}
                 >
-                  {HOURS_12.map((h12) => (
+                  {HOURS_12.map((h12, iH) => (
                     <div
                       key={h12}
-                      className={wheelItemClass}
+                      className={`${wheelItemBaseClass} bg-transparent ${
+                        centerIndices.iH === iH
+                          ? "text-neutral-50"
+                          : "text-neutral-600"
+                      }`}
                       role="option"
-                      aria-selected={effectiveParts.hour12 === h12}
+                      aria-selected={centerIndices.iH === iH}
                     >
                       {h12}
                     </div>
@@ -426,23 +481,23 @@ export default function TimePicker({
               </div>
             </div>
 
-            <div className="relative min-h-0 min-w-0 flex-1">
+            <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-white">
               <div
-                className="pointer-events-none absolute inset-0 z-20 flex items-center"
+                className="pointer-events-none absolute inset-0 z-1 flex items-center"
                 aria-hidden
               >
-                <div className="h-10 w-full border-y border-primary/20 bg-primary/6" />
+                <div className="h-10 w-full border-y border-primary/25 bg-primary" />
               </div>
               <div
-                className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/2 bg-linear-to-b from-neutral-50 to-transparent"
+                className="pointer-events-none absolute inset-x-0 top-0 z-3 h-1/2 bg-linear-to-b from-neutral-50 to-transparent"
                 aria-hidden
               />
               <div
-                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/2 bg-linear-to-t from-neutral-50 to-transparent"
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-3 h-1/2 bg-linear-to-t from-neutral-50 to-transparent"
                 aria-hidden
               />
               <div
-                className="relative bg-white"
+                className="relative z-2 h-full min-h-0 bg-transparent"
                 style={{ height: WHEEL_VIEWPORT_H }}
               >
                 <div
@@ -454,13 +509,18 @@ export default function TimePicker({
                   }}
                   role="listbox"
                   aria-label={`${ariaLabel} minutes`}
+                  onScroll={handleMinuteScroll}
                 >
-                  {MINUTES_QUARTER.map((m) => (
+                  {MINUTES_QUARTER.map((m, iM) => (
                     <div
                       key={m}
-                      className={wheelItemClass}
+                      className={`${wheelItemBaseClass} bg-transparent ${
+                        centerIndices.iM === iM
+                          ? "text-neutral-50"
+                          : "text-neutral-600"
+                      }`}
                       role="option"
-                      aria-selected={effectiveParts.m === m}
+                      aria-selected={centerIndices.iM === iM}
                     >
                       {String(m).padStart(2, "0")}
                     </div>
@@ -469,23 +529,23 @@ export default function TimePicker({
               </div>
             </div>
 
-            <div className="relative min-h-0 min-w-0 flex-1">
+            <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-r-lg bg-white">
               <div
-                className="pointer-events-none absolute inset-0 z-20 flex items-center"
+                className="pointer-events-none absolute inset-0 z-1 flex items-center"
                 aria-hidden
               >
-                <div className="h-10 w-full border-y border-primary/20 bg-primary/6" />
+                <div className="h-10 w-full rounded-r-lg border-y border-r border-primary/25 bg-primary" />
               </div>
               <div
-                className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/2 bg-linear-to-b from-neutral-50 to-transparent"
+                className="pointer-events-none absolute inset-x-0 top-0 z-3 h-1/2 bg-linear-to-b from-neutral-50 to-transparent"
                 aria-hidden
               />
               <div
-                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/2 bg-linear-to-t from-neutral-50 to-transparent"
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-3 h-1/2 bg-linear-to-t from-neutral-50 to-transparent"
                 aria-hidden
               />
               <div
-                className="relative bg-white"
+                className="relative z-2 h-full min-h-0 bg-transparent"
                 style={{ height: WHEEL_VIEWPORT_H }}
               >
                 <div
@@ -497,13 +557,18 @@ export default function TimePicker({
                   }}
                   role="listbox"
                   aria-label={`${ariaLabel} period`}
+                  onScroll={handlePeriodScroll}
                 >
-                  {PERIODS.map((p) => (
+                  {PERIODS.map((p, iP) => (
                     <div
                       key={p}
-                      className={wheelItemClass}
+                      className={`${wheelItemBaseClass} bg-transparent ${
+                        centerIndices.iP === iP
+                          ? "text-neutral-50"
+                          : "text-neutral-600"
+                      }`}
                       role="option"
-                      aria-selected={effectiveParts.period === p}
+                      aria-selected={centerIndices.iP === iP}
                     >
                       {p}
                     </div>
