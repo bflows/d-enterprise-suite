@@ -5,7 +5,7 @@ import type { Job } from "@/lib/calendar/types";
 import { jobOverlapsWindow } from "@/lib/calendar/types";
 import type { EmployeeListItem } from "@/lib/api/company";
 import { getAvailableTechniciansForWindow } from "@/lib/api/availability";
-import { HiOutlineWrench } from "react-icons/hi2";
+import { HiOutlineWrench, HiXMark } from "react-icons/hi2";
 import { HiSearch } from "react-icons/hi";
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -178,9 +178,9 @@ export default function TechnicianSearch({
               onChange(null);
               setTechnicianSearch("");
             }}
-            className="text-small text-primary hover:underline"
+            className="text-secondary"
           >
-            Clear
+            <HiXMark className="size-5" />
           </button>
         </div>
       ) : (
