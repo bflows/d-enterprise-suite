@@ -96,7 +96,8 @@ function moveWheelOneStep(el: HTMLDivElement, direction: 1 | -1): void {
 }
 
 export interface TimePickerProps {
-  value: string;
+  /** 24h `HH:MM` (e.g. `09:00`). Empty string means no time chosen yet. */
+  value?: string;
   onChange: (value: string) => void;
   id?: string;
   className?: string;
@@ -109,7 +110,7 @@ export interface TimePickerProps {
 }
 
 export default function TimePicker({
-  value,
+  value: valueProp,
   onChange,
   id: idProp,
   className = "",
@@ -118,6 +119,8 @@ export default function TimePicker({
   popoverRole = "dialog",
   "aria-label": ariaLabel = "Time",
 }: TimePickerProps) {
+  /** Trimmed; empty or whitespace-only means no selection (show placeholder, not 9:00). */
+  const value = (valueProp ?? "").trim();
   const autoId = useId();
   const id = idProp ?? `time-picker-${autoId}`;
   const panelId = `${id}-panel`;
@@ -205,7 +208,6 @@ export default function TimePicker({
   }, []);
 
   const commitFromWheels = useCallback(() => {
-    if (isProgrammaticRef.current) return;
     const r = readIndicesFromWheels();
     if (!r) return;
     setTime(
@@ -236,29 +238,14 @@ export default function TimePicker({
     scrollWheelsToParts(effectiveParts, "instant");
   }, [open, effectiveParts, scrollWheelsToParts]);
 
-  const debounceTRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!open) {
-      if (debounceTRef.current) {
-        clearTimeout(debounceTRef.current);
-        debounceTRef.current = null;
-      }
       scrollCleanupRef.current?.();
       scrollCleanupRef.current = null;
       return;
     }
-
-    const onScroll = () => {
-      if (isProgrammaticRef.current) return;
-      if (debounceTRef.current) clearTimeout(debounceTRef.current);
-      debounceTRef.current = setTimeout(() => {
-        debounceTRef.current = null;
-        if (isProgrammaticRef.current) return;
-        commitFromWheels();
-      }, 100);
-    };
 
     const makeWheel = (el: HTMLDivElement) => {
       const onWheel = (e: WheelEvent) => {
@@ -268,7 +255,6 @@ export default function TimePicker({
         if (isProgrammaticRef.current) return;
         const direction: 1 | -1 = e.deltaY > 0 ? 1 : -1;
         moveWheelOneStep(el, direction);
-        commitFromWheels();
       };
       el.addEventListener("wheel", onWheel, { passive: false });
       return () => el.removeEventListener("wheel", onWheel);
@@ -277,35 +263,21 @@ export default function TimePicker({
     const h = hourRef.current;
     const m = minuteRef.current;
     const p = periodRef.current;
-    h?.addEventListener("scroll", onScroll, { passive: true });
-    m?.addEventListener("scroll", onScroll, { passive: true });
-    p?.addEventListener("scroll", onScroll, { passive: true });
     const wh = h && makeWheel(h);
     const wm = m && makeWheel(m);
     const wp = p && makeWheel(p);
 
     scrollCleanupRef.current = () => {
-      h?.removeEventListener("scroll", onScroll);
-      m?.removeEventListener("scroll", onScroll);
-      p?.removeEventListener("scroll", onScroll);
       wh?.();
       wm?.();
       wp?.();
     };
 
     return () => {
-      if (debounceTRef.current) {
-        clearTimeout(debounceTRef.current);
-        debounceTRef.current = null;
-      }
       scrollCleanupRef.current?.();
       scrollCleanupRef.current = null;
     };
-  }, [open, commitFromWheels]);
-
-  const openPicker = useCallback(() => {
-    setOpen(true);
-  }, []);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -333,6 +305,15 @@ export default function TimePicker({
   const hasValue = Boolean(parsed);
   const display = formatDisplayTime(value, emptyLabel);
 
+  const openOrToggle = useCallback(() => {
+    if (disabled) return;
+    if (open) {
+      setOpen(false);
+    } else {
+      setOpen(true);
+    }
+  }, [disabled, open]);
+
   const wheelListClass =
     "h-full w-full snap-y snap-mandatory overflow-y-auto overscroll-y-contain " +
     "[scrollbar-width:none] [-ms-overflow-style:none] " +
@@ -344,30 +325,43 @@ export default function TimePicker({
 
   return (
     <div className={`relative ${className}`} ref={wrapRef}>
-      <button
-        type="button"
-        id={id}
-        disabled={disabled}
-        aria-haspopup={popoverRole === "dialog" ? "dialog" : "listbox"}
-        aria-expanded={open}
-        aria-controls={open ? panelId : undefined}
-        onClick={() => {
-          if (disabled) return;
-          if (open) {
-            setOpen(false);
-          } else {
-            openPicker();
-          }
-        }}
-        className={`mt-2 flex w-full items-center gap-3 rounded-lg border bg-neutral-50 px-4 py-3 text-left text-p transition-shadow focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50 ${
+      <div
+        className={`relative mt-2 flex w-full items-center rounded-lg border bg-neutral-50 text-p transition-shadow focus-within:ring-2 focus-within:ring-primary ${
           hasValue ? "border-neutral-300" : "border-neutral-200"
-        }`}
+        } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
       >
         {!hasValue && (
-          <HiOutlineClock className="size-4 shrink-0 text-neutral-400" aria-hidden />
+          <HiOutlineClock
+            className="pointer-events-none absolute left-4 top-1/2 size-4 shrink-0 -translate-y-1/2 text-neutral-400"
+            aria-hidden
+          />
         )}
-        <span className={hasValue ? "text-neutral-800" : "text-neutral-400"}>{display}</span>
-      </button>
+        <input
+          id={id}
+          type="text"
+          role="combobox"
+          aria-autocomplete="none"
+          readOnly
+          tabIndex={disabled ? -1 : 0}
+          disabled={disabled}
+          value={hasValue ? display : ""}
+          placeholder={emptyLabel}
+          aria-haspopup={popoverRole === "dialog" ? "dialog" : "listbox"}
+          aria-expanded={open}
+          aria-controls={open ? panelId : undefined}
+          onClick={openOrToggle}
+          onKeyDown={(e) => {
+            if (disabled) return;
+            if (e.key === " " || e.key === "Enter") {
+              e.preventDefault();
+              openOrToggle();
+            }
+          }}
+          className={`w-full min-w-0 cursor-pointer rounded-lg bg-transparent py-3 pr-4 text-p outline-none focus:ring-0 disabled:cursor-not-allowed ${
+            hasValue ? "pl-4 text-neutral-800" : "pl-11 text-neutral-800 placeholder:text-neutral-400"
+          }`}
+        />
+      </div>
 
       {open && (
         <>

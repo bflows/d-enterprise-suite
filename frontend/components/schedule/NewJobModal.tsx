@@ -341,7 +341,7 @@ export default function NewJobModal({
 
   const resetForm = useCallback(() => {
     setDate("");
-    setStartTime("09:00");
+    setStartTime("");
     setCustomerSearch("");
     setCustomerResults([]);
     setSelectedCustomer(null);
@@ -634,7 +634,7 @@ export default function NewJobModal({
             value={startTime}
             onChange={setStartTime}
             popoverRole="dialog"
-            emptyLabel="Pick start time"
+            emptyLabel="Pick a time"
             aria-label="Job start time"
           />
         </div>
