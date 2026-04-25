@@ -602,11 +602,11 @@ export default function NewJobModal({
 
         {/* Date */}
         <div className="mt-4">
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center gap-x-1.5">
             <div>
               <HiOutlineCalendar className="size-6 text-neutral-800" />
             </div>
-            <h2 className="text-h6 font-bold text-neutral-800">
+            <h2 className="text-p text-neutral-800">
               Date
             </h2>
           </div>
@@ -614,7 +614,7 @@ export default function NewJobModal({
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="mt-2 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="mt-2 w-full rounded-lg border px-4 py-3 text-p bg-neutral-50 border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
 
