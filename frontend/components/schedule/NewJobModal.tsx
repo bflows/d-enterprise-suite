@@ -21,7 +21,7 @@ import {
 import { getAvailableTechniciansForWindow } from "@/lib/api/availability";
 import { createJob, mapApiJobToJob, updateJob } from "@/lib/api/jobs";
 import { formatUsdFromCents } from "@/lib/money";
-import { HiCalendar, HiChevronLeft, HiPlus, HiUser } from "react-icons/hi2";
+import { HiChevronLeft, HiOutlineBookOpen, HiOutlineCalendar, HiOutlineClock, HiOutlineDocumentText, HiOutlineUser, HiOutlineWrench, HiPlus } from "react-icons/hi2";
 import { HiSearch } from "react-icons/hi";
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -494,7 +494,7 @@ export default function NewJobModal({
         <div className="relative">
           <div className="flex items-center gap-x-2">
             <div>
-              <HiUser className="size-6 text-neutral-800" />
+              <HiOutlineUser className="size-6 text-neutral-800" />
             </div>
             <h2 className="text-h6 font-bold text-neutral-800">
               Customer
@@ -609,7 +609,7 @@ export default function NewJobModal({
         <div className="mt-4">
           <div className="flex items-center gap-x-2">
             <div>
-              <HiCalendar className="size-6 text-neutral-800" />
+              <HiOutlineCalendar className="size-6 text-neutral-800" />
             </div>
             <h2 className="text-h6 font-bold text-neutral-800">
               Date
@@ -624,23 +624,35 @@ export default function NewJobModal({
         </div>
 
         {/* Start time; end is derived from service line durations on the server */}
-        <div className="mt-2">
-          <label className="block text-p text-neutral-600">Start time</label>
+        <div className="mt-4">
+          <div className="flex items-center gap-x-2">
+            <div>
+              <HiOutlineClock className="size-6 text-neutral-800" />
+            </div>
+            <h2 className="text-h6 font-bold text-neutral-800">
+              Time
+            </h2>
+          </div>
           <input
             type="time"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="mt-1 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="mt-2 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
 
         {/* Services: Service Book → Category → ServiceItem */}
         <div className="mt-4">
-          <label className="block text-p text-neutral-600">
-            Services
-          </label>
+          <div className="flex items-center gap-x-2">
+            <div>
+              <HiOutlineBookOpen className="size-6 text-neutral-800" />
+            </div>
+            <h2 className="text-h6 font-bold text-neutral-800">
+              Services
+            </h2>
+          </div>
           {selectedServiceItems.length > 0 && (
-            <ul className="mt-1 flex flex-col gap-y-1">
+            <ul className="mt-2 flex flex-col gap-y-1">
               {selectedServiceItems.map((item) => (
                 <li
                   key={item.id}
@@ -674,7 +686,7 @@ export default function NewJobModal({
             <button
               type="button"
               onClick={() => setServicesPickerView("books")}
-              className="mt-1 rounded-lg border px-3 py-2 text-p bg-neutral-50 text-neutral-600 border-neutral-300 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="mt-2 rounded-lg border px-3 py-2 text-p bg-neutral-50 text-neutral-600 border-neutral-300 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary"
             >
               Open Service Books
             </button>
@@ -852,14 +864,16 @@ export default function NewJobModal({
 
         {/* Technician search & select (only available for chosen window) */}
         <div className="relative mt-4">
-          <label className="block text-p text-neutral-600">
-            Technician
-          </label>
-          <p className="text-small text-neutral-600">
-            Select date and time first.
-          </p>
+          <div className="flex items-center gap-x-2">
+            <div>
+              <HiOutlineWrench className="size-6 text-neutral-800" />
+            </div>
+            <h2 className="text-h6 font-bold text-neutral-800">
+              Technician
+            </h2>
+          </div>
           {selectedTechnician ? (
-            <div className="flex items-center justify-between rounded-lg border px-3 py-2 border-neutral-300 bg-neutral-50">
+            <div className="mt-2 flex items-center justify-between rounded-lg border px-3 py-2 border-neutral-300 bg-neutral-50">
               <span className="text-p text-neutral-900">
                 {displayEmployee(selectedTechnician)}
               </span>
@@ -894,7 +908,7 @@ export default function NewJobModal({
                     aria-hidden="true"
                     onClick={() => setTechnicianDropdownOpen(false)}
                   />
-                  <div className="absolute z-50 mt-1 w-full rounded-lg border border-neutral-300 bg-neutral-50 shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-50 mt-2 w-full rounded-lg border border-neutral-300 bg-neutral-50 shadow-lg max-h-48 overflow-y-auto">
                     {technicianLoading ? (
                       <p className="px-3 py-2 text-small text-neutral-600">
                         Searching...
@@ -933,12 +947,19 @@ export default function NewJobModal({
         </div>
 
         <div className="mt-4 flex flex-col">
-          <label htmlFor="notes" className="text-neutral-600 text-p">Notes</label>
+          <div className="flex items-center gap-x-2">
+            <div>
+              <HiOutlineDocumentText className="size-6 text-neutral-800" />
+            </div>
+            <h2 className="text-h6 font-bold text-neutral-800">
+              Notes
+            </h2>
+          </div>
           <textarea
             id="notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="mt-1 rounded-lg py-2 px-3 border text-neutral-800 bg-neutral-50 border-neutral-300 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="mt-2 rounded-lg py-2 px-3 border text-neutral-800 bg-neutral-50 border-neutral-300 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
       </div>
