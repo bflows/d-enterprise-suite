@@ -7,6 +7,7 @@ import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import Modal from "@/components/ui/Modal";
 import DatePicker from "@/components/ui/DatePicker";
+import TimePicker from "@/components/ui/TimePicker";
 import type { Job } from "@/lib/calendar/types";
 import { addMinutesToHhMm, jobOverlapsWindow } from "@/lib/calendar/types";
 import { searchCustomers } from "@/lib/api/customers";
@@ -628,11 +629,13 @@ export default function NewJobModal({
               Time
             </h2>
           </div>
-          <input
-            type="time"
+          <TimePicker
+            id="new-job-start-time"
             value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            className="mt-2 w-full rounded-lg border px-3 py-2 text-p bg-neutral-50 border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary"
+            onChange={setStartTime}
+            popoverRole="dialog"
+            emptyLabel="Pick start time"
+            aria-label="Job start time"
           />
         </div>
 
