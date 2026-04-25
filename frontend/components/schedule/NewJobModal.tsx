@@ -492,23 +492,18 @@ export default function NewJobModal({
           )}
         {/* Customer search & select */}
         <div className="relative">
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center gap-x-1.5">
             <div>
               <HiOutlineUser className="size-6 text-neutral-800" />
             </div>
-            <h2 className="text-h6 font-bold text-neutral-800">
+            <h2 className="text-p text-neutral-800">
               Customer
             </h2>
           </div>
           {selectedCustomer ? (
-            <div className="mt-2 flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2">
+            <div className="mt-2 flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3">
               <span className="text-p text-neutral-800">
                 {displayCustomer(selectedCustomer)}
-                {selectedCustomer.address && (
-                  <span className="text-neutral-600 text-small block truncate">
-                    {selectedCustomer.address}
-                  </span>
-                )}
               </span>
               {!isEditMode && (
                 <button
@@ -527,7 +522,7 @@ export default function NewJobModal({
             <>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center cursor-default">
-                  <HiSearch className="size-5 text-neutral-600" />
+                  <HiSearch className="size-4 text-neutral-400" />
                 </div>
                 <input
                   type="text"
@@ -538,7 +533,7 @@ export default function NewJobModal({
                   }}
                   onFocus={() => setCustomerDropdownOpen(true)}
                   placeholder="Search name or phone"
-                  className="mt-4 block w-full rounded-lg border pl-12 pr-4 py-4 text-p bg-neutral-50 border-neutral-300 text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="mt-2 block w-full rounded-lg border pl-10 pr-4 py-3 text-p bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               {customerDropdownOpen && (
@@ -548,7 +543,7 @@ export default function NewJobModal({
                     aria-hidden="true"
                     onClick={() => setCustomerDropdownOpen(false)}
                   />
-                  <div className="px-3 py-3 absolute z-50 mt-2 w-full rounded-lg border shadow-lg max-h-64 overflow-y-auto border-neutral-300 bg-neutral-50">
+                  <div className="px-4 py-3 absolute z-50 mt-2 w-full rounded-lg border shadow max-h-64 overflow-y-auto border-neutral-200 bg-neutral-50">
                     <button
                       type="button"
                       onClick={() => {
