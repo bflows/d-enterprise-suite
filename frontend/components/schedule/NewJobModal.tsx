@@ -641,11 +641,11 @@ export default function NewJobModal({
 
         {/* Services: Service Book → Category → ServiceItem */}
         <div className="mt-4">
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center gap-x-1.5">
             <div>
               <HiOutlineBookOpen className="size-6 text-neutral-800" />
             </div>
-            <h2 className="text-h6 font-bold text-neutral-800">
+            <h2 className="text-p text-neutral-800">
               Services
             </h2>
           </div>
