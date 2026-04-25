@@ -68,7 +68,7 @@ export default function NewJobServiceBookSection({
           {selectedServiceItems.map((item) => (
             <li
               key={item.id}
-              className="flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-p"
+              className="flex items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 text-p"
             >
               <span className="font-bold text-neutral-800">
                 {item.title}
@@ -83,7 +83,7 @@ export default function NewJobServiceBookSection({
                 onClick={() =>
                   setSelectedServiceItems((prev) => prev.filter((s) => s.id !== item.id))
                 }
-                className="text-small text-secondary hover:underline"
+                className="cursor-pointer text-secondary hover:underline"
                 aria-label={`Remove ${item.title}`}
               >
                 <HiXMark className="size-5" />
@@ -113,7 +113,7 @@ export default function NewJobServiceBookSection({
                         setSelectedCategory(null);
                         setServicesPickerView("categories");
                       }}
-                      className="w-full text-left px-3 py-2 rounded-lg border bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-200 hover:border-primary text-p"
+                      className="px-4 py-3 w-full text-p text-left rounded-lg border cursor-pointer bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-primary hover:text-neutral-50"
                     >
                       {book.name ?? "Unnamed Service Book"}
                     </button>
@@ -153,7 +153,7 @@ export default function NewJobServiceBookSection({
                         setSelectedCategory(cat);
                         setServicesPickerView("items");
                       }}
-                      className="w-full text-left px-3 py-2 rounded-lg border bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-200 hover:border-primary text-p"
+                      className="px-4 py-3 w-full text-p text-left rounded-lg border bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-primary hover:text-neutral-50"
                     >
                       {cat.name}
                     </button>
@@ -201,7 +201,7 @@ export default function NewJobServiceBookSection({
                           if (alreadyAdded) return;
                           setSelectedServiceItems((prev) => [...prev, item]);
                         }}
-                        className={`w-full text-left px-3 py-2 rounded-lg border flex items-center justify-between ${alreadyAdded
+                        className={`w-full text-left px-4 py-3 rounded-lg border flex items-center justify-between ${alreadyAdded
                           ? "bg-neutral-100 text-neutral-400 border-neutral-100 cursor-not-allowed"
                           : "group bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-primary hover:text-neutral-50"
                           }`}
@@ -209,7 +209,7 @@ export default function NewJobServiceBookSection({
                         <div>
                           <span className="text-p font-bold">{item.title}</span>
                           {item.price != null && (
-                            <span className="text-small ml-2 text-neutral-400">
+                            <span className="text-small ml-2 text-neutral-400 group-hover:text-neutral-200">
                               {formatUsdFromCents(item.price)}
                             </span>
                           )}
