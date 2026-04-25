@@ -210,11 +210,12 @@ export default function DatePicker({
             openPicker();
           }
         }}
-        className={`mt-2 flex w-full items-center gap-3 rounded-lg border bg-neutral-50 px-4 py-3 text-left text-p transition-shadow focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50 ${
-          parsedValue ? "border-neutral-300" : "border-neutral-200"
-        }`}
+        className={`mt-2 flex w-full items-center gap-3 rounded-lg border bg-neutral-50 px-4 py-3 text-left text-p transition-shadow focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50 ${parsedValue ? "border-neutral-300" : "border-neutral-200"
+          }`}
       >
-        <HiOutlineCalendar className="size-4 shrink-0 text-neutral-400" aria-hidden />
+        {parsedValue ? "" : (
+          <HiOutlineCalendar className="size-4 shrink-0 text-neutral-400" aria-hidden />
+        )}
         <span className={parsedValue ? "text-neutral-800" : "text-neutral-400"}>
           {formatDisplayLabel(value, emptyLabel)}
         </span>
