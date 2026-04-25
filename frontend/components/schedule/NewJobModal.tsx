@@ -9,26 +9,21 @@ import Modal from "@/components/ui/Modal";
 import DatePicker from "@/components/ui/DatePicker";
 import TimePicker from "@/components/ui/TimePicker";
 import type { Job } from "@/lib/calendar/types";
-import { addMinutesToHhMm, jobOverlapsWindow } from "@/lib/calendar/types";
+import { addMinutesToHhMm } from "@/lib/calendar/types";
 import { searchCustomers } from "@/lib/api/customers";
 import type { CustomerListItem } from "@/lib/api/customers";
 import type { EmployeeListItem } from "@/lib/api/company";
 import type { ServiceItemListItem } from "@/lib/api/service";
 import NewJobServiceBookSection from "@/components/schedule/NewJobServiceBookSection";
-import { getAvailableTechniciansForWindow } from "@/lib/api/availability";
+import TechnicianSearch from "@/components/schedule/TechnicianSearch";
 import { createJob, mapApiJobToJob, updateJob } from "@/lib/api/jobs";
-import { HiOutlineCalendar, HiOutlineClock, HiOutlineDocumentText, HiOutlineUser, HiOutlineWrench, HiPlus } from "react-icons/hi2";
+import { HiOutlineCalendar, HiOutlineClock, HiOutlineDocumentText, HiOutlineUser, HiPlus } from "react-icons/hi2";
 import { HiSearch } from "react-icons/hi";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
 function displayCustomer(c: CustomerListItem) {
   return [c.firstName, c.lastName].filter(Boolean).join(" ") || c.email || c.phone || "—";
-}
-
-function displayEmployee(emp: EmployeeListItem) {
-  const u = emp.user;
-  return [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email || "—";
 }
 
 function jobServiceLineToListItem(
@@ -119,11 +114,9 @@ export default function NewJobModal({
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerListItem | null>(null);
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
 
-  const [technicianSearch, setTechnicianSearch] = useState("");
-  const [allTechnicians, setAllTechnicians] = useState<EmployeeListItem[]>([]);
-  const [technicianLoading, setTechnicianLoading] = useState(false);
   const [selectedTechnician, setSelectedTechnician] = useState<EmployeeListItem | null>(null);
-  const [technicianDropdownOpen, setTechnicianDropdownOpen] = useState(false);
+  const [technicianFitsWindow, setTechnicianFitsWindow] = useState(true);
+  const [technicianListLoading, setTechnicianListLoading] = useState(false);
 
   const [selectedServiceItems, setSelectedServiceItems] = useState<ServiceItemListItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -131,7 +124,6 @@ export default function NewJobModal({
   const [notes, setNotes] = useState("");
 
   const customerDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const technicianDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jobToEditRef = useRef(jobToEdit);
   jobToEditRef.current = jobToEdit;
 
@@ -200,116 +192,15 @@ export default function NewJobModal({
     };
   }, [isOpen, customerSearch, fetchCustomers]);
 
-  const loadTechnicians = useCallback(() => {
-    if (!companyId) {
-      setAllTechnicians([]);
-      return;
-    }
-    const hasWindow = date && startTime && effectiveEndTime && totalServiceMins > 0;
-    if (!hasWindow) {
-      setAllTechnicians([]);
-      setTechnicianLoading(false);
-      return;
-    }
-    setTechnicianLoading(true);
-    const term = technicianSearch.trim();
-    getAvailableTechniciansForWindow({
-      startDate: date,
-      endDate: date,
-      startTime,
-      endTime: effectiveEndTime,
-      ...(term && { q: term }),
-    })
-      .then((res) => {
-        setAllTechnicians(res.employees ?? []);
-      })
-      .catch(() => setAllTechnicians([]))
-      .finally(() => setTechnicianLoading(false));
-  }, [companyId, date, startTime, effectiveEndTime, totalServiceMins, technicianSearch]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    if (technicianDebounceRef.current) {
-      clearTimeout(technicianDebounceRef.current);
-    }
-    technicianDebounceRef.current = setTimeout(() => {
-      technicianDebounceRef.current = null;
-      loadTechnicians();
-    }, SEARCH_DEBOUNCE_MS);
-    return () => {
-      if (technicianDebounceRef.current) {
-        clearTimeout(technicianDebounceRef.current);
-      }
-    };
-  }, [isOpen, date, startTime, totalServiceMins, technicianSearch, loadTechnicians]);
-
-  const availableTechnicians = React.useMemo(() => {
-    if (!date || !startTime || !effectiveEndTime || totalServiceMins <= 0) {
-      return allTechnicians;
-    }
-    return allTechnicians.filter((emp) => {
-      const techId = emp.id;
-      const overlaps = jobsForOverlap.some((job) =>
-        jobOverlapsWindow(
-          job,
-          date,
-          startTime,
-          date,
-          effectiveEndTime,
-          techId
-        )
-      );
-      return !overlaps;
-    });
-  }, [
-    allTechnicians,
-    jobsForOverlap,
-    date,
-    startTime,
-    effectiveEndTime,
-    totalServiceMins,
-  ]);
-
-  /** Edit mode keeps the assigned tech selected; re-check after date/time/services change. */
-  const selectedTechnicianFitsWindow = React.useMemo(() => {
-    if (!selectedTechnician) return true;
-    if (!date || !startTime || effectiveEndTime === "" || totalServiceMins <= 0) {
-      return true;
-    }
-    if (technicianLoading) return true;
-    const inWeeklyAvailability = allTechnicians.some((e) => e.id === selectedTechnician.id);
-    if (!inWeeklyAvailability) return false;
-    const overlapsOtherJob = jobsForOverlap.some((job) =>
-      jobOverlapsWindow(
-        job,
-        date,
-        startTime,
-        date,
-        effectiveEndTime,
-        selectedTechnician.id
-      )
-    );
-    return !overlapsOtherJob;
-  }, [
-    selectedTechnician,
-    date,
-    startTime,
-    effectiveEndTime,
-    totalServiceMins,
-    technicianLoading,
-    allTechnicians,
-    jobsForOverlap,
-  ]);
-
   const resetForm = useCallback(() => {
     setDate("");
     setStartTime("");
     setCustomerSearch("");
     setCustomerResults([]);
     setSelectedCustomer(null);
-    setTechnicianSearch("");
-    setAllTechnicians([]);
     setSelectedTechnician(null);
+    setTechnicianFitsWindow(true);
+    setTechnicianListLoading(false);
     setSelectedServiceItems([]);
     setNotes("");
     setSubmitError(null);
@@ -326,9 +217,6 @@ export default function NewJobModal({
     setSelectedCustomer(
       job.customerId ? jobToCustomerPlaceholder(job, cid) : null
     );
-    setTechnicianSearch("");
-    setAllTechnicians([]);
-    setTechnicianDropdownOpen(false);
     setSelectedTechnician(
       job.technicianId ? jobToTechnicianPlaceholder(job, cid) : null
     );
@@ -401,7 +289,7 @@ export default function NewJobModal({
     startTime &&
     selectedServiceItems.length > 0 &&
     totalServiceMins > 0 &&
-    selectedTechnicianFitsWindow &&
+    technicianFitsWindow &&
     !submitting
   );
 
@@ -432,8 +320,8 @@ export default function NewJobModal({
           </p>
         )}
         {selectedTechnician &&
-          !technicianLoading &&
-          !selectedTechnicianFitsWindow &&
+          !technicianListLoading &&
+          !technicianFitsWindow &&
           date &&
           startTime &&
           totalServiceMins > 0 && (
@@ -599,89 +487,19 @@ export default function NewJobModal({
           onChange={setSelectedServiceItems}
         />
 
-        {/* Technician search & select (only available for chosen window) */}
-        <div className="relative mt-4">
-          <div className="flex items-center gap-x-1.5">
-            <div>
-              <HiOutlineWrench className="size-6 text-neutral-800" />
-            </div>
-            <h2 className="text-p text-neutral-800">
-              Technician
-            </h2>
-          </div>
-          {selectedTechnician ? (
-            <div className="mt-2 flex items-center justify-between rounded-lg border px-4 py-3 border-neutral-200 bg-neutral-50">
-              <span className="text-p text-neutral-800">
-                {displayEmployee(selectedTechnician)}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedTechnician(null);
-                  setTechnicianSearch("");
-                }}
-                className="text-small text-primary hover:underline"
-              >
-                Clear
-              </button>
-            </div>
-          ) : (
-            <>
-              <input
-                type="text"
-                value={technicianSearch}
-                onChange={(e) => {
-                  setTechnicianSearch(e.target.value);
-                  setTechnicianDropdownOpen(true);
-                }}
-                onFocus={() => setTechnicianDropdownOpen(true)}
-                placeholder="Search name or phone"
-                className="mt-2 w-full rounded-lg border px-4 py-3 text-p bg-neutral-50 border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              {technicianDropdownOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    aria-hidden="true"
-                    onClick={() => setTechnicianDropdownOpen(false)}
-                  />
-                  <div className="absolute z-50 mt-2 w-full rounded-lg border border-neutral-200 bg-neutral-50 shadow-lg max-h-48 overflow-y-auto">
-                    {technicianLoading ? (
-                      <p className="px-4 py-3 text-small text-neutral-400">
-                        Searching...
-                      </p>
-                    ) : availableTechnicians.length === 0 ? (
-                      <p className="px-4 py-3 text-small text-neutral-400">
-                        {allTechnicians.length === 0
-                          ? date && startTime && totalServiceMins > 0
-                            ? "No technicians have availability for this date/time, try a different search."
-                            : "Select date, time, and at least one service to see available technicians."
-                          : "No technicians available for this date/time (already booked)."}
-                      </p>
-                    ) : (
-                      <div className="px-4 py-3 flex flex-col gap-y-1">
-                        {availableTechnicians.map((emp) => (
-                          <button
-                            key={emp.id}
-                            type="button"
-                            className="w-full text-left px-4 py-3 text-p rounded-lg text-neutral-600 hover:text-neutral-50 hover:bg-primary focus:bg-neutral-100 focus:outline-none"
-                            onClick={() => {
-                              setSelectedTechnician(emp);
-                              setTechnicianSearch("");
-                              setTechnicianDropdownOpen(false);
-                            }}
-                          >
-                            {displayEmployee(emp)}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </>
-          )}
-        </div>
+        <TechnicianSearch
+          isOpen={isOpen}
+          companyId={companyId}
+          date={date}
+          startTime={startTime}
+          effectiveEndTime={effectiveEndTime}
+          totalServiceMins={totalServiceMins}
+          jobsForOverlap={jobsForOverlap}
+          value={selectedTechnician}
+          onChange={setSelectedTechnician}
+          onFitsWindowChange={setTechnicianFitsWindow}
+          onLoadingChange={setTechnicianListLoading}
+        />
 
         <div className="mt-4 flex flex-col">
           <div className="flex items-center gap-x-2">
