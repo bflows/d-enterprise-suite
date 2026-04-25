@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import Modal from "@/components/ui/Modal";
+import DatePicker from "@/components/ui/DatePicker";
 import type { Job } from "@/lib/calendar/types";
 import { addMinutesToHhMm, jobOverlapsWindow } from "@/lib/calendar/types";
 import { searchCustomers } from "@/lib/api/customers";
@@ -338,8 +339,7 @@ export default function NewJobModal({
   ]);
 
   const resetForm = useCallback(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    setDate(today);
+    setDate("");
     setStartTime("09:00");
     setCustomerSearch("");
     setCustomerResults([]);
@@ -610,11 +610,11 @@ export default function NewJobModal({
               Date
             </h2>
           </div>
-          <input
-            type="date"
+          <DatePicker
+            id="new-job-date"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="mt-2 w-full rounded-lg border px-4 py-3 text-p bg-neutral-50 border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary"
+            onChange={setDate}
+            popoverRole="dialog"
           />
         </div>
 
