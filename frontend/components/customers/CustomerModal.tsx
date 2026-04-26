@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import { createCustomer, updateCustomer } from "@/lib/api/customers";
 import type { CreateCustomerBody, CustomerListItem, UpdateCustomerBody } from "@/lib/api/customers";
+import CustomerPhone from "@/components/customers/CustomerPhone";
 
 interface CustomerModalProps {
   isOpen: boolean;
@@ -223,21 +224,11 @@ export default function CustomerModal({
           </div>
         </div>
 
-        <div>
-          <label htmlFor="customer-phone" className="text-neutral-800 text-sm">
-            Phone <span className="text-red-600">*</span>
-          </label>
-          <input
-            id="customer-phone"
-            type="tel"
-            autoComplete="tel"
-            required
-            value={form.phone}
-            onChange={(e) => setField("phone", e.target.value)}
-            className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("phone")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
-            placeholder="(555) 123-4567"
-          />
-        </div>
+        <CustomerPhone
+          value={form.phone}
+          onChange={(value) => setField("phone", value)}
+          borderClassName={getFieldBorderClass("phone")}
+        />
 
         <div>
           <label htmlFor="customer-address" className="text-neutral-800 text-sm">
