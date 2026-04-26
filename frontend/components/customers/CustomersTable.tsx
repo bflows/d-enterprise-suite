@@ -8,8 +8,8 @@ import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import { getCustomers, searchCustomers, deleteCustomer } from "@/lib/api/customers";
 import type { CustomerListItem } from "@/lib/api/customers";
 import { useEffect, useState, useCallback, useRef } from "react";
-import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
 import CustomerModal from "@/components/customers/CustomerModal";
+import Modal from "@/components/ui/Modal";
 import Link from "next/link";
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -258,45 +258,46 @@ export default function CustomersTable() {
           }}
         />
 
-        <NewEmployeeModal
-          open={!!customerToDelete}
+        <Modal
+          isOpen={!!customerToDelete}
           onClose={() => !deleting && setCustomerToDelete(null)}
           title="Delete customer?"
+          hideCancelButton
+          footerStartContent={
+            <div className="flex w-full justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setCustomerToDelete(null)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg cursor-pointer border border-neutral-400 text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg cursor-pointer bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <span className="inline-block size-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
+              </button>
+            </div>
+          }
         >
           {customerToDelete ? (
-            <div className="space-y-4">
-              <p className="text-neutral-700 text-p">
-                Are you sure you want to delete{" "}
-                <strong>{displayName(customerToDelete)}</strong>? This cannot be undone.
-              </p>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCustomerToDelete(null)}
-                  disabled={deleting}
-                  className="px-4 py-2 rounded-lg cursor-pointer border border-neutral-400 text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmDelete}
-                  disabled={deleting}
-                  className="px-4 py-2 rounded-lg cursor-pointer bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {deleting ? (
-                    <>
-                      <span className="inline-block size-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
-                      Deleting...
-                    </>
-                  ) : (
-                    "Delete"
-                  )}
-                </button>
-              </div>
-            </div>
+            <p className="text-neutral-700 text-p">
+              Are you sure you want to delete{" "}
+              <strong>{displayName(customerToDelete)}</strong>? This cannot be undone.
+            </p>
           ) : null}
-        </NewEmployeeModal>
+        </Modal>
 
         {/* Data area: loading, error, or table/cards */}
         {effectiveLoading ? (
