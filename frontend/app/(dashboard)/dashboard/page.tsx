@@ -8,8 +8,7 @@ import { selectCurrentCompanyId, selectUser } from "@/features/auth/authSlice";
 import EmployeeDashboard from "@/components/dashboard/EmployeeDashboard";
 import Dashboard from "@/components/dashboard/Dashboard";
 import NewJobModal from "@/components/schedule/NewJobModal";
-import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
-import NewCustomerForm from "@/components/customers/NewCustomerForm";
+import CustomerModal from "@/components/customers/CustomerModal";
 import { listJobs } from "@/lib/api/jobs";
 import type { Job } from "@/lib/calendar/types";
 import { ROLE_SLUGS } from "@/types/auth";
@@ -99,20 +98,13 @@ export default function DashboardPage() {
         onSave={handleJobCreate}
         existingJobs={companyId ? jobs : []}
       />
-      <NewEmployeeModal
-        open={newCustomerModalOpen}
+      <CustomerModal
+        isOpen={newCustomerModalOpen}
         onClose={() => setNewCustomerModalOpen(false)}
+        companyId={companyId}
+        mode="create"
         title="New Customer"
-      >
-        {companyId ? (
-          <NewCustomerForm
-            companyId={companyId}
-            onClose={() => setNewCustomerModalOpen(false)}
-          />
-        ) : (
-          <p className="text-neutral-600 text-p">No company selected.</p>
-        )}
-      </NewEmployeeModal>
+      />
     </>
   );
 }

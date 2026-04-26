@@ -9,8 +9,7 @@ import { getCustomers, searchCustomers, deleteCustomer } from "@/lib/api/custome
 import type { CustomerListItem } from "@/lib/api/customers";
 import { useEffect, useState, useCallback, useRef } from "react";
 import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
-import NewCustomerForm from "@/components/customers/NewCustomerForm";
-import EditCustomerForm from "@/components/customers/EditCustomerForm";
+import CustomerModal from "@/components/customers/CustomerModal";
 import Link from "next/link";
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -236,40 +235,28 @@ export default function CustomersTable() {
           </button>
         </div>
 
-        <NewEmployeeModal
-          open={modalOpen}
+        <CustomerModal
+          isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
+          companyId={companyId}
+          mode="create"
           title="New Customer"
-        >
-          {companyId ? (
-            <NewCustomerForm
-              companyId={companyId}
-              onClose={() => setModalOpen(false)}
-              onSuccess={() => {
-                loadWithSearch(searchQuery.trim());
-              }}
-            />
-          ) : (
-            <p className="text-neutral-600 text-p">No company selected.</p>
-          )}
-        </NewEmployeeModal>
+          onSuccess={() => {
+            loadWithSearch(searchQuery.trim());
+          }}
+        />
 
-        <NewEmployeeModal
-          open={!!editingCustomer}
+        <CustomerModal
+          isOpen={!!editingCustomer}
           onClose={() => setEditingCustomer(null)}
+          companyId={companyId}
+          mode="edit"
+          customer={editingCustomer}
           title="Edit Customer"
-        >
-          {editingCustomer && companyId ? (
-            <EditCustomerForm
-              companyId={companyId}
-              customer={editingCustomer}
-              onClose={() => setEditingCustomer(null)}
-              onSuccess={() => {
-                loadWithSearch(searchQuery.trim());
-              }}
-            />
-          ) : null}
-        </NewEmployeeModal>
+          onSuccess={() => {
+            loadWithSearch(searchQuery.trim());
+          }}
+        />
 
         <NewEmployeeModal
           open={!!customerToDelete}

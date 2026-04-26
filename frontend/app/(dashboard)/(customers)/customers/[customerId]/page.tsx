@@ -1,7 +1,7 @@
 "use client";
 
 import RequireRole from "@/components/auth/RequireRole";
-import EditCustomerForm from "@/components/customers/EditCustomerForm";
+import CustomerModal from "@/components/customers/CustomerModal";
 import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
@@ -179,22 +179,17 @@ function CustomerDetailInner() {
 
   return (
     <div>
-      <NewEmployeeModal
-        open={editModalOpen}
+      <CustomerModal
+        isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
+        companyId={companyId}
+        mode="edit"
+        customer={customer}
         title="Customer Information"
-      >
-        {companyId ? (
-          <EditCustomerForm
-            companyId={companyId}
-            customer={customer}
-            onClose={() => setEditModalOpen(false)}
-            onSuccess={() => {
-              refetchCustomer();
-            }}
-          />
-        ) : null}
-      </NewEmployeeModal>
+        onSuccess={() => {
+          refetchCustomer();
+        }}
+      />
 
       <NewEmployeeModal
         open={deleteConfirmOpen}

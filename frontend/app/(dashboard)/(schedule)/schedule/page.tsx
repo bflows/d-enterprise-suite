@@ -9,8 +9,7 @@ import { LuPlus } from "react-icons/lu";
 import type { Job } from "@/lib/calendar/types";
 import Calendar from "@/components/schedule/Calendar";
 import NewJobModal from "@/components/schedule/NewJobModal";
-import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
-import NewCustomerForm from "@/components/customers/NewCustomerForm";
+import CustomerModal from "@/components/customers/CustomerModal";
 import { listJobs } from "@/lib/api/jobs";
 import { HiCalendar } from "react-icons/hi2";
 
@@ -116,20 +115,13 @@ export default function SchedulePage() {
         onSave={handleJobCreate}
         existingJobs={displayJobs}
       />
-      <NewEmployeeModal
-        open={newCustomerModalOpen}
+      <CustomerModal
+        isOpen={newCustomerModalOpen}
         onClose={() => setNewCustomerModalOpen(false)}
+        companyId={companyId}
+        mode="create"
         title="New Customer"
-      >
-        {companyId ? (
-          <NewCustomerForm
-            companyId={companyId}
-            onClose={() => setNewCustomerModalOpen(false)}
-          />
-        ) : (
-          <p className="text-neutral-600 text-p">No company selected.</p>
-        )}
-      </NewEmployeeModal>
+      />
     </div>
   );
 }
