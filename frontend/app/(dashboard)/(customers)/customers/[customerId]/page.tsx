@@ -2,7 +2,7 @@
 
 import RequireRole from "@/components/auth/RequireRole";
 import CustomerModal from "@/components/customers/CustomerModal";
-import NewEmployeeModal from "@/components/employees/NewEmployeeModal";
+import Modal from "@/components/ui/Modal";
 import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import { deleteCustomer, getCustomerDetails } from "@/lib/api/customers";
@@ -191,42 +191,23 @@ function CustomerDetailInner() {
         }}
       />
 
-      <NewEmployeeModal
-        open={deleteConfirmOpen}
+      <Modal
+        isOpen={deleteConfirmOpen}
         onClose={() => !deleteLoading && setDeleteConfirmOpen(false)}
         title="Delete customer?"
+        cancelLabel="Cancel"
+        primaryAction={{
+          label: deleteLoading ? "Deleting…" : "Delete",
+          onClick: handleConfirmDelete,
+          disabled: deleteLoading,
+        }}
       >
         <div className="space-y-4">
           <p className="text-neutral-700 text-p">
             Are you sure you want to delete <strong>{name}</strong>? This cannot be undone.
           </p>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setDeleteConfirmOpen(false)}
-              disabled={deleteLoading}
-              className="px-4 py-2 rounded-lg cursor-pointer border border-neutral-400 text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmDelete}
-              disabled={deleteLoading}
-              className="px-4 py-2 rounded-lg cursor-pointer bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
-            >
-              {deleteLoading ? (
-                <>
-                  <span className="inline-block size-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </button>
-          </div>
         </div>
-      </NewEmployeeModal>
+      </Modal>
 
       <Link
         href="/customers"
