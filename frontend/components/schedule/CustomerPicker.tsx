@@ -9,8 +9,25 @@ import { HiSearch } from "react-icons/hi";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
+function formatCustomerPhone(phone: string | null | undefined) {
+  if (!phone) return "";
+
+  const normalized = phone.trim();
+  const usMatch = normalized.match(/^\+1(\d{3})(\d{3})(\d{4})$/);
+  if (usMatch) {
+    return `(${usMatch[1]}) ${usMatch[2]}-${usMatch[3]}`;
+  }
+
+  return normalized;
+}
+
 function displayCustomer(c: CustomerListItem) {
-  return [c.firstName, c.lastName].filter(Boolean).join(" ") || c.email || c.phone || "—";
+  return (
+    [c.firstName, c.lastName].filter(Boolean).join(" ") ||
+    c.email ||
+    formatCustomerPhone(c.phone) ||
+    "—"
+  );
 }
 
 export interface CustomerPickerProps {
@@ -173,7 +190,7 @@ export default function CustomerPicker({
                         </span>
                         {c.address && (
                           <span className="text-neutral-600 text-small block truncate transition-colors duration-300 ease-in-out group-hover:text-neutral-800">
-                            {c.phone}
+                            {formatCustomerPhone(c.phone)}
                           </span>
                         )}
                       </button>
