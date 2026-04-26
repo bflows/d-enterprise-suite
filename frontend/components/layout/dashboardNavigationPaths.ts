@@ -28,3 +28,25 @@ export function getDashboardPreviousPathname(): string | null {
   if (typeof window === "undefined") return null;
   return sessionStorage.getItem(KEY_PREV);
 }
+
+function normalizePathname(p: string): string {
+  if (p.length > 1 && p.endsWith("/")) return p.slice(0, -1);
+  return p;
+}
+
+/**
+ * Target for the mobile navbar back chevron: the last in-app page before the
+ * current route, ignoring query-only navigations. Use this instead of
+ * `router.back()` so flows like "Update customer" (push+replace) do not
+ * require multiple back taps.
+ */
+export function getPreferredMobileBackPathname(
+  currentPathname: string
+): string | null {
+  const prev = getDashboardPreviousPathname();
+  if (!prev) return null;
+  const nCurrent = normalizePathname(currentPathname);
+  const nPrev = normalizePathname(prev);
+  if (nPrev === nCurrent) return null;
+  return nPrev;
+}

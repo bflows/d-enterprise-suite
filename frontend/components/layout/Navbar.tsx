@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { getPreferredMobileBackPathname } from "./dashboardNavigationPaths";
 import {
   resolveMobileNavbarLeft,
   resolveOverflowMenuItems,
@@ -75,11 +76,11 @@ export default function Navbar() {
       disabled,
       onClick: () => {
         if (d.action === "createJob") {
-          router.push(`${pathname}?newJob=1`);
+          router.replace(`${pathname}?newJob=1`);
         } else if (d.action === "createCustomer") {
-          router.push(`${pathname}?newCustomer=1`);
+          router.replace(`${pathname}?newCustomer=1`);
         } else {
-          router.push(`${pathname}?action=${encodeURIComponent(d.action)}`);
+          router.replace(`${pathname}?action=${encodeURIComponent(d.action)}`);
         }
       },
     };
@@ -93,8 +94,11 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => {
-                // Prefer a true history "back" (customer → job → back to customer).
-                // Fallback to the configured href when there's no prior history (direct deep-link).
+                const preferred = getPreferredMobileBackPathname(pathname);
+                if (preferred) {
+                  router.push(preferred);
+                  return;
+                }
                 if (typeof window !== "undefined" && window.history.length > 1) {
                   router.back();
                 } else {
