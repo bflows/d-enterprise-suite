@@ -4,7 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import { createCustomer, updateCustomer } from "@/lib/api/customers";
 import type { CreateCustomerBody, CustomerListItem, UpdateCustomerBody } from "@/lib/api/customers";
-import CustomerPhone from "@/components/customers/CustomerPhone";
+import CustomerPhone, {
+  formatCustomerPhoneInput,
+  isCompleteUsPhone,
+  toUsE164Phone,
+} from "@/components/customers/CustomerPhone";
 
 interface CustomerModalProps {
   isOpen: boolean;
@@ -32,7 +36,7 @@ interface CustomerFormState {
 const EMPTY_FORM: CustomerFormState = {
   firstName: "",
   lastName: "",
-  phone: "",
+  phone: formatCustomerPhoneInput(""),
   address: "",
   address2: "",
   city: "",
@@ -47,7 +51,7 @@ function toFormState(customer?: CustomerListItem | null): CustomerFormState {
   return {
     firstName: customer.firstName ?? "",
     lastName: customer.lastName ?? "",
-    phone: customer.phone ?? "",
+    phone: formatCustomerPhoneInput(customer.phone ?? ""),
     address: customer.address ?? "",
     address2: customer.address2 ?? "",
     city: customer.city ?? "",
@@ -89,10 +93,19 @@ export default function CustomerModal({
     return Boolean(
       form.firstName.trim() &&
       form.lastName.trim() &&
-      form.phone.trim() &&
+      isCompleteUsPhone(form.phone) &&
       form.address.trim()
     );
-  }, [companyId, customer, form.address, form.firstName, form.lastName, form.phone, isEditMode, isSubmitting]);
+  }, [
+    companyId,
+    customer,
+    form.address,
+    form.firstName,
+    form.lastName,
+    form.phone,
+    isEditMode,
+    isSubmitting,
+  ]);
 
   const setField = (field: keyof CustomerFormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -110,17 +123,23 @@ export default function CustomerModal({
       setError("Customer not found.");
       return;
     }
+    if (!isCompleteUsPhone(form.phone)) {
+      setError("Phone number must be a complete US number.");
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
     try {
+      const normalizedPhone = toUsE164Phone(form.phone);
+
       if (isEditMode && customer) {
         const body: UpdateCustomerBody = {
           companyId,
           id: customer.id,
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
-          phone: form.phone.trim(),
+          phone: normalizedPhone,
           address: form.address.trim(),
           email: form.email.trim() || null,
           leadSource: form.leadSource.trim() || null,
@@ -135,7 +154,7 @@ export default function CustomerModal({
           companyId,
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
-          phone: form.phone.trim(),
+          phone: normalizedPhone,
           address: form.address.trim(),
         };
         if (form.email.trim()) body.email = form.email.trim();
