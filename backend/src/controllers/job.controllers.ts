@@ -286,10 +286,8 @@ export const createJob = async (
     }
     const endTime = addMinutesToDateTime(startTime, totalMinutes);
 
-    const status: JobStatusType =
-      statusFromBody !== undefined && STATUS_MAP[statusFromBody]
-        ? STATUS_MAP[statusFromBody]
-        : "SCHEDULED";
+    const mappedStatus = statusFromBody !== undefined ? STATUS_MAP[statusFromBody] : undefined;
+    const status: JobStatusType = mappedStatus ?? "SCHEDULED";
 
     const actorUserId = req.user?.id ?? null;
     const dayLabel = `${day.getMonth() + 1}/${day.getDate()}`;
