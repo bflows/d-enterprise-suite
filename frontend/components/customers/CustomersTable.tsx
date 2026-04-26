@@ -18,6 +18,13 @@ function displayName(c: CustomerListItem) {
   return [c.firstName, c.lastName].filter(Boolean).join(" ") || "—";
 }
 
+function formatPhoneNumber(phone: string) {
+  const match = phone.match(/^\+1(\d{3})(\d{3})(\d{4})$/);
+  if (!match) return phone;
+  const [, areaCode, prefix, lineNumber] = match;
+  return `+1 (${areaCode}) ${prefix}-${lineNumber}`;
+}
+
 function CustomerCard({
   customer,
   onEdit,
@@ -82,7 +89,7 @@ function CustomerCard({
           onClick={(e) => e.stopPropagation()}
           className="hover:text-primary underline"
         >
-          {customer.phone}
+          {formatPhoneNumber(customer.phone)}
         </a>
       </p>
       <p className="text-neutral-700 text-p mt-1">{customer.address}</p>
@@ -388,7 +395,7 @@ export default function CustomersTable() {
                             href={`tel:${customer.phone}`}
                             className="hover:text-primary underline"
                           >
-                            {customer.phone}
+                            {formatPhoneNumber(customer.phone)}
                           </a>
                         </td>
                         <td className="text-neutral-800 text-p py-2">
