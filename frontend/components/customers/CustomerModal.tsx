@@ -25,7 +25,7 @@ interface CustomerFormState {
   lastName: string;
   phone: string;
   address: string;
-  address2: string;
+  // address2: string;
   city: string;
   zipCode: string;
   email: string;
@@ -38,7 +38,7 @@ const EMPTY_FORM: CustomerFormState = {
   lastName: "",
   phone: formatCustomerPhoneInput(""),
   address: "",
-  address2: "",
+  // address2: "",
   city: "",
   zipCode: "",
   email: "",
@@ -53,7 +53,7 @@ function toFormState(customer?: CustomerListItem | null): CustomerFormState {
     lastName: customer.lastName ?? "",
     phone: formatCustomerPhoneInput(customer.phone ?? ""),
     address: customer.address ?? "",
-    address2: customer.address2 ?? "",
+    // address2: customer.address2 ?? "",
     city: customer.city ?? "",
     zipCode: customer.zipCode ?? "",
     email: customer.email ?? "",
@@ -143,7 +143,7 @@ export default function CustomerModal({
           address: form.address.trim(),
           email: form.email.trim() || null,
           leadSource: form.leadSource.trim() || null,
-          address2: form.address2.trim() || null,
+          // address2: form.address2.trim() || null,
           city: form.city.trim() || null,
           zipCode: form.zipCode.trim() || null,
           notes: form.notes.trim() || null,
@@ -159,7 +159,7 @@ export default function CustomerModal({
         };
         if (form.email.trim()) body.email = form.email.trim();
         if (form.leadSource.trim()) body.leadSource = form.leadSource.trim();
-        if (form.address2.trim()) body.address2 = form.address2.trim();
+        // if (form.address2.trim()) body.address2 = form.address2.trim();
         if (form.city.trim()) body.city = form.city.trim();
         if (form.zipCode.trim()) body.zipCode = form.zipCode.trim();
         if (form.notes.trim()) body.notes = form.notes.trim();
@@ -265,7 +265,7 @@ export default function CustomerModal({
           />
         </div>
 
-        <div>
+        {/* <div>
           <label htmlFor="customer-address2" className="text-neutral-800 text-sm">
             Address line 2 <span className="text-neutral-400">(optional)</span>
           </label>
@@ -278,7 +278,7 @@ export default function CustomerModal({
             className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("address2")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
             placeholder="Apt 4B"
           />
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
