@@ -23,6 +23,18 @@ function displayName(c: Pick<CustomerDetail, "firstName" | "lastName">) {
   return [c.firstName, c.lastName].filter(Boolean).join(" ") || "—";
 }
 
+function formatPhoneForDisplay(phone: string | null | undefined) {
+  if (!phone) return "—";
+
+  const normalized = phone.trim();
+  const usMatch = normalized.match(/^\+1(\d{3})(\d{3})(\d{4})$/);
+  if (usMatch) {
+    return `+1 (${usMatch[1]}) ${usMatch[2]}-${usMatch[3]}`;
+  }
+
+  return normalized;
+}
+
 function CustomerDetailInner() {
   const params = useParams();
   const router = useRouter();
@@ -176,6 +188,7 @@ function CustomerDetailInner() {
   }
 
   const name = displayName(customer);
+  const displayPhone = formatPhoneForDisplay(customer.phone);
 
   return (
     <div>
@@ -229,7 +242,7 @@ function CustomerDetailInner() {
             </div>
           )}
           <div className="flex items-center justify-between">
-            <p className="text-p text-neutral-800">{customer.phone}</p>
+            <p className="text-p text-neutral-800">{displayPhone}</p>
             <div className="flex gap-x-1">
               <Link href={`sms:${customer.phone}`} className="p-2 rounded-full w-fit bg-primary/20">
                 <HiChatBubbleBottomCenterText className="size-6 text-primary" />
