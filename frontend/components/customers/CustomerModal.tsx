@@ -67,6 +67,10 @@ export default function CustomerModal({
   title,
 }: CustomerModalProps) {
   const isEditMode = mode === "edit";
+  const initialForm = useMemo(
+    () => toFormState(isEditMode ? customer : null),
+    [customer, isEditMode]
+  );
   const [form, setForm] = useState<CustomerFormState>(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,8 +79,8 @@ export default function CustomerModal({
     if (!isOpen) return;
     setError(null);
     setIsSubmitting(false);
-    setForm(toFormState(isEditMode ? customer : null));
-  }, [isOpen, isEditMode, customer]);
+    setForm(initialForm);
+  }, [initialForm, isOpen]);
 
   const canSubmit = useMemo(() => {
     if (isSubmitting || !companyId) return false;
@@ -92,6 +96,9 @@ export default function CustomerModal({
   const setField = (field: keyof CustomerFormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
+
+  const getFieldBorderClass = (field: keyof CustomerFormState) =>
+    form[field] !== initialForm[field] ? "border-neutral-300" : "border-neutral-200";
 
   const handleSubmit = async () => {
     if (!companyId) {
@@ -195,7 +202,7 @@ export default function CustomerModal({
               required
               value={form.firstName}
               onChange={(e) => setField("firstName", e.target.value)}
-              className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("firstName")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
               placeholder="John"
             />
           </div>
@@ -210,7 +217,7 @@ export default function CustomerModal({
               required
               value={form.lastName}
               onChange={(e) => setField("lastName", e.target.value)}
-              className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("lastName")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
               placeholder="Doe"
             />
           </div>
@@ -227,7 +234,7 @@ export default function CustomerModal({
             required
             value={form.phone}
             onChange={(e) => setField("phone", e.target.value)}
-            className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("phone")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
             placeholder="(555) 123-4567"
           />
         </div>
@@ -243,7 +250,7 @@ export default function CustomerModal({
             required
             value={form.address}
             onChange={(e) => setField("address", e.target.value)}
-            className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("address")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
             placeholder="123 Main St"
           />
         </div>
@@ -258,7 +265,7 @@ export default function CustomerModal({
             autoComplete="address-line2"
             value={form.address2}
             onChange={(e) => setField("address2", e.target.value)}
-            className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("address2")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
             placeholder="Apt 4B"
           />
         </div>
@@ -274,7 +281,7 @@ export default function CustomerModal({
               autoComplete="address-level2"
               value={form.city}
               onChange={(e) => setField("city", e.target.value)}
-              className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("city")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
               placeholder="Springfield"
             />
           </div>
@@ -288,7 +295,7 @@ export default function CustomerModal({
               autoComplete="postal-code"
               value={form.zipCode}
               onChange={(e) => setField("zipCode", e.target.value)}
-              className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("zipCode")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
               placeholder="62701"
             />
           </div>
@@ -304,7 +311,7 @@ export default function CustomerModal({
             autoComplete="email"
             value={form.email}
             onChange={(e) => setField("email", e.target.value)}
-            className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("email")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
             placeholder="john@example.com"
           />
         </div>
@@ -318,7 +325,7 @@ export default function CustomerModal({
             type="text"
             value={form.leadSource}
             onChange={(e) => setField("leadSource", e.target.value)}
-            className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("leadSource")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary`}
             placeholder="Website, referral, etc."
           />
         </div>
@@ -332,7 +339,7 @@ export default function CustomerModal({
             rows={3}
             value={form.notes}
             onChange={(e) => setField("notes", e.target.value)}
-            className="mt-1 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-y"
+            className={`mt-1 w-full rounded-lg border ${getFieldBorderClass("notes")} bg-neutral-50 px-3 py-2 text-neutral-800 text-p focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-y`}
             placeholder="Internal notes..."
           />
         </div>
