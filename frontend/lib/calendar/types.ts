@@ -63,6 +63,17 @@ export interface Job {
   }[];
 }
 
+export function formatJobStatus(status: JobStatus): string {
+  const labels: Record<JobStatus, string> = {
+    scheduled: "Scheduled",
+    en_route: "En route",
+    in_progress: "In progress",
+    completed: "Completed",
+    cancelled: "Cancelled",
+  };
+  return labels[status] ?? status;
+}
+
 export function formatInvoiceStatus(status: InvoiceStatus): string {
   const labels: Record<InvoiceStatus, string> = {
     invoiced: "Invoiced",
