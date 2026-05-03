@@ -252,15 +252,15 @@ export default function Calendar({ jobs }: CalendarProps) {
               key={key}
               data-date={key}
               className={`
-                rounded-lg ring-2 overflow-hidden
+                rounded-lg border border-neutral-200 overflow-hidden
                 
-                ${isToday ? "bg-neutral-50 ring-primary" : "ring-neutral-300 bg-neutral-50"}
+                ${isToday ? "bg-neutral-50 ring-primary" : "bg-neutral-50"}
               `}
             >
               <div
                 className={`
                   px-3 py-2 border-b font-bold text-small
-                  ${isToday ? "bg-primary/10 text-primary border-primary/10" : "bg-neutral-100 border-neutral-200 text-neutral-600"}
+                  ${isToday ? "bg-primary/10 text-primary border-primary/10" : "bg-neutral-200 border-neutral-200 text-neutral-600"}
                 `}
               >
                 {dayLabel}
@@ -270,9 +270,9 @@ export default function Calendar({ jobs }: CalendarProps) {
                   </span>
                 )}
               </div>
-              <div className="flex flex-col gap-y-1 px-2 py-2">
+              <div className="flex flex-col gap-y-1">
                 {dayJobs.length === 0 ? (
-                  <p className="text-small text-neutral-400">No jobs scheduled</p>
+                  <p className="text-small text-neutral-400 px-3 py-2">No jobs scheduled</p>
                 ) : (
                   dayJobs.map((job) => (
                     <JobCard key={job.id} job={job} onClick={() => handleJobClick(job)} />
