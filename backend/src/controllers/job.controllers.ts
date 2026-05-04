@@ -139,6 +139,7 @@ async function technicianHasScheduleConflict(
       companyId,
       technicianId,
       id: { not: excludeJobId },
+      status: { notIn: ["COMPLETED", "CANCELLED"] },
     },
     select: {
       startTime: true,
