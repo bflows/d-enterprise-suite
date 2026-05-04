@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import type { Job } from "@/lib/calendar/types";
-import { jobOverlapsWindow } from "@/lib/calendar/types";
+import { jobBlocksTechnicianOverlap, jobOverlapsWindow } from "@/lib/calendar/types";
 import type { EmployeeListItem } from "@/lib/api/company";
 import { getAvailableTechniciansForWindow } from "@/lib/api/availability";
 import { HiOutlineWrench, HiXMark } from "react-icons/hi2";
@@ -100,15 +100,17 @@ export default function TechnicianSearch({
     }
     return allTechnicians.filter((emp) => {
       const techId = emp.id;
-      const overlaps = jobsForOverlap.some((job) =>
-        jobOverlapsWindow(
-          job,
-          date,
-          startTime,
-          date,
-          effectiveEndTime,
-          techId
-        )
+      const overlaps = jobsForOverlap.some(
+        (job) =>
+          jobBlocksTechnicianOverlap(job) &&
+          jobOverlapsWindow(
+            job,
+            date,
+            startTime,
+            date,
+            effectiveEndTime,
+            techId
+          )
       );
       return !overlaps;
     });
@@ -129,15 +131,17 @@ export default function TechnicianSearch({
     if (technicianLoading) return true;
     const inWeeklyAvailability = allTechnicians.some((e) => e.id === selectedTechnician.id);
     if (!inWeeklyAvailability) return false;
-    const overlapsOtherJob = jobsForOverlap.some((job) =>
-      jobOverlapsWindow(
-        job,
-        date,
-        startTime,
-        date,
-        effectiveEndTime,
-        selectedTechnician.id
-      )
+    const overlapsOtherJob = jobsForOverlap.some(
+      (job) =>
+        jobBlocksTechnicianOverlap(job) &&
+        jobOverlapsWindow(
+          job,
+          date,
+          startTime,
+          date,
+          effectiveEndTime,
+          selectedTechnician.id
+        )
     );
     return !overlapsOtherJob;
   }, [

@@ -196,6 +196,11 @@ export function jobServiceDurationMinutes(job: Job): number {
   }, 0);
 }
 
+/** Active jobs that still occupy a technician for calendar overlap; completed/cancelled do not. */
+export function jobBlocksTechnicianOverlap(job: Job): boolean {
+  return job.status !== "completed" && job.status !== "cancelled";
+}
+
 /** End time (HH:mm) for overlap checks: derived from services when possible, else stored endTime. */
 export function jobBlockEndHhMm(job: Job): string {
   const mins = jobServiceDurationMinutes(job);
