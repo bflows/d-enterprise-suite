@@ -232,7 +232,7 @@ export default function DatePicker({
             id={listId}
             role={popoverRole}
             aria-labelledby={`${id}-title`}
-            className="absolute left-0 right-0 z-50 mt-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3 shadow"
+            className="absolute left-0 right-0 z-50 mt-2 max-w-xs rounded-lg border border-neutral-200 bg-neutral-50 p-3 shadow"
           >
             <div className="mb-2 flex items-center justify-between gap-2">
               <button
