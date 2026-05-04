@@ -32,9 +32,9 @@ function formatDisplayLabel(ymd: string, emptyLabel: string): string {
   if (!p) return emptyLabel;
   const date = new Date(p.y, p.m0, p.d);
   return date.toLocaleDateString(undefined, {
-    weekday: "short",
+    weekday: "long",
     year: "numeric",
-    month: "short",
+    month: "long",
     day: "numeric",
   });
 }
