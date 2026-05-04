@@ -272,14 +272,14 @@ export default function DatePicker({
             >
               {cells.map((cell, index) => {
                 const ymd = toYmd(cell.y, cell.m0, cell.d);
-                const t = cell.y * 1e4 + cell.m0 * 100 + cell.d;
-                const isBeforeToday = t < todayInt;
                 const isSelected = Boolean(parsedValue && ymd === value);
-                const isToday =
-                  cell.y === now.getFullYear() &&
-                  cell.m0 === now.getMonth() &&
-                  cell.d === now.getDate();
                 const off = isDisabledDay(cell.y, cell.m0, cell.d, todayInt);
+                const dayTone =
+                  isSelected
+                    ? "bg-primary text-neutral-50"
+                    : !cell.inMonth || off
+                      ? "text-neutral-400"
+                      : "text-neutral-600";
                 return (
                   <button
                     type="button"
@@ -289,21 +289,7 @@ export default function DatePicker({
                       onChange(ymd);
                       setOpen(false);
                     }}
-                    className={[
-                      "min-h-9 rounded-full text-sm",
-                      isSelected && "bg-primary font-bold text-neutral-50",
-                      !isSelected && !cell.inMonth && "text-neutral-300",
-                      !isSelected && cell.inMonth && "text-neutral-600",
-                      !isSelected &&
-                      isToday &&
-                      cell.inMonth &&
-                      "ring-1 ring-inset ring-primary/40",
-                      !isSelected && cell.inMonth && !isToday && "hover:bg-neutral-200",
-                      isBeforeToday && "line-through decoration-neutral-500",
-                      off && "cursor-not-allowed opacity-30",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
+                    className={`min-h-9 rounded-full text-sm ${dayTone}`}
                   >
                     {cell.d}
                   </button>
