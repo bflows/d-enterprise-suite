@@ -164,9 +164,9 @@ export function formatTimeLabel(time: string): string {
   const minutes = match[2];
   if (!Number.isInteger(hours) || hours < 0 || hours > 23) return time;
 
-  const period = hours >= 12 ? "pm" : "am";
+  const period = hours >= 12 ? "PM" : "AM";
   const hour12 = hours % 12 || 12;
-  return `${hour12}:${minutes}${period}`;
+  return `${hour12}:${minutes} ${period}`;
 }
 
 /** `HH:mm` on `dateYmd` plus `addMinutes` (local). */
