@@ -270,13 +270,15 @@ export default function Calendar({ jobs }: CalendarProps) {
                   </span>
                 )}
               </div>
-              <div className="flex flex-col gap-y-1">
+              <div>
                 {dayJobs.length === 0 ? (
                   <p className="text-small text-neutral-400 px-3 py-2">No jobs scheduled</p>
                 ) : (
-                  dayJobs.map((job) => (
-                    <JobCard key={job.id} job={job} onClick={() => handleJobClick(job)} />
-                  ))
+                  <div className="flex flex-col">
+                    {dayJobs.map((job) => (
+                      <JobCard key={job.id} job={job} onClick={() => handleJobClick(job)} />
+                    ))}
+                  </div>
                 )}
               </div>
             </section>

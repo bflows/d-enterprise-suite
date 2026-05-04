@@ -34,7 +34,7 @@ export default function JobCard({ job, onClick }: JobCardProps) {
         e.stopPropagation();
         onClick();
       }}
-      className="m-1 rounded-lg border px-3 py-2 cursor-pointer border-neutral-200 bg-neutral-50"
+      className="px-3 py-2 cursor-pointer"
     >
       <div className="flex items-start justify-between gap-2 min-w-0">
         <span className="font-bold text-p block truncate text-neutral-800" title={displayTitle}>
