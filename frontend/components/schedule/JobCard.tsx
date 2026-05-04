@@ -2,7 +2,6 @@
 
 import type { Job } from "@/lib/calendar/types";
 import { formatJobStatus, formatTimeLabel } from "@/lib/calendar/types";
-import { HiOutlineClock } from "react-icons/hi2";
 
 export interface JobCardProps {
   job: Job;
