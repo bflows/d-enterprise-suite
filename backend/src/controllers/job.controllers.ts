@@ -10,7 +10,7 @@ import {
   sendJobScheduledConfirmationEmail,
 } from "../services/jobConfirmationEmail";
 import type { JobConfirmationEmailPayload } from "../services/jobConfirmationEmail";
-import { sendJobCreatedCustomerSms } from "../services/jobScheduledSms";
+import { sendJobCreatedCustomerSms, sendJobRescheduleCustomerSms } from "../services/jobScheduledSms";
 
 /** Request body for updating a job. Only provided fields are updated. */
 interface UpdateJobBody {
@@ -542,6 +542,9 @@ export const updateJob = async (
         };
         void sendJobRescheduleReminderEmail(emailPayload).catch((err) => {
           console.error("Job reschedule reminder email error:", err);
+        });
+        void sendJobRescheduleCustomerSms(emailPayload).catch((err) => {
+          console.error("Job reschedule reminder SMS error:", err);
         });
       }
     }
