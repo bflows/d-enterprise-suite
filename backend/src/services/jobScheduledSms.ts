@@ -25,31 +25,29 @@ export function normalizePhoneToE164(raw: string): string | null {
   return null;
 }
 
-function buildJobScheduledSmsBody(job: JobConfirmationEmailPayload): string {
+type JobScheduleSmsKind = "confirmation" | "reschedule";
+
+function buildJobScheduleSmsBody(job: JobConfirmationEmailPayload, kind: JobScheduleSmsKind): string {
   const customerFirst = job.customer.firstName.trim();
   const { dateLine, timeLine } = formatJobDateTime(job);
-  const tech = `${job.technician.user.firstName} ${job.technician.user.lastName}`.trim();
-  const serviceSummary =
-    job.services.length > 0
-      ? job.services.map((x) => x.title).join(", ")
-      : "services TBD";
+  // const tech = `${job.technician.user.firstName} ${job.technician.user.lastName}`.trim();
+
+  const intro =
+    kind === "confirmation"
+      ? `Hi ${customerFirst}, your appointment with ${job.company.name} is scheduled.`
+      : `Hi ${customerFirst}, your appointment with ${job.company.name} has been rescheduled.`;
 
   return [
-    `Hi ${customerFirst}, your appointment with ${job.company.name} is scheduled.`,
-    `When: ${dateLine}, ${timeLine}`,
-    `Technician: ${tech}`,
-    `Services: ${serviceSummary}`,
-    "Contact the office to reschedule.",
+    intro,
+    `When: ${dateLine}, ${timeLine}.`,
+    "See you then.",
   ].join(" ");
 }
 
-/**
- * Sends a Programmable SMS to the customer when a scheduled job is created.
- * Requires `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and either `TWILIO_MESSAGING_SERVICE_SID`
- * or `TWILIO_PHONE_NUMBER` / `TWILIO_FROM_NUMBER` (E.164). Optional `APP_TIMEZONE` matches email formatting.
- * No-ops when Twilio is not configured or the phone cannot be normalized.
- */
-export async function sendJobCreatedCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
+async function sendJobScheduleCustomerSms(
+  job: JobConfirmationEmailPayload,
+  kind: JobScheduleSmsKind
+): Promise<void> {
   if (!isTwilioMessagingConfigured()) {
     console.warn("Twilio: credentials or sender not set; skipping job SMS.");
     return;
@@ -67,10 +65,47 @@ export async function sendJobCreatedCustomerSms(job: JobConfirmationEmailPayload
     return;
   }
 
-  const body = buildJobScheduledSmsBody(job);
-  await client.messages.create({
-    to,
-    body,
-    ...fromFields,
-  });
+  const body = buildJobScheduleSmsBody(job, kind);
+  try {
+    const message = await client.messages.create({
+      to,
+      body,
+      ...fromFields,
+    });
+    if (message.errorCode != null || message.status === "failed" || message.status === "undelivered") {
+      console.error("Twilio SMS failed:", {
+        sid: message.sid,
+        status: message.status,
+        errorCode: message.errorCode,
+        errorMessage: message.errorMessage,
+        to: message.to,
+        from: message.from,
+        messagingServiceSid: message.messagingServiceSid,
+      });
+    }
+  } catch (err: unknown) {
+    const twilioErr = err as { code?: number; message?: string; moreInfo?: string; status?: number };
+    console.error("Twilio SMS API error:", {
+      code: twilioErr.code,
+      message: twilioErr.message,
+      moreInfo: twilioErr.moreInfo,
+      status: twilioErr.status,
+    });
+    throw err;
+  }
+}
+
+/**
+ * Sends a Programmable SMS to the customer when a scheduled job is created.
+ * Requires `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and either `TWILIO_MESSAGING_SERVICE_SID`
+ * or `TWILIO_PHONE_NUMBER` / `TWILIO_FROM_NUMBER` (E.164). Optional `APP_TIMEZONE` matches email formatting.
+ * No-ops when Twilio is not configured or the phone cannot be normalized.
+ */
+export async function sendJobCreatedCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
+  await sendJobScheduleCustomerSms(job, "confirmation");
+}
+
+/** SMS when date/time changes on an existing job (matches reschedule email). */
+export async function sendJobRescheduleCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
+  await sendJobScheduleCustomerSms(job, "reschedule");
 }
