@@ -186,7 +186,9 @@ export default function JobDetailPage() {
     }
 
     if (!job.customerEmail?.trim()) {
-      setInvoiceError("Add a customer email on this job before sending an invoice (Stripe emails the hosted invoice).");
+      setInvoiceError(
+        "Add a customer email on this job before sending an invoice (Stripe emails the invoice; a text with the payment link is sent when the customer has a phone number)."
+      );
       return;
     }
 
