@@ -9,6 +9,7 @@ import {
   getStripePublishableKey,
 } from "../lib/stripe";
 import { syncInvoiceFromStripe } from "../lib/stripeInvoiceJobSync";
+import { sendJobInvoiceCustomerSms } from "../services/jobScheduledSms";
 
 interface JobInvoiceBody {
   jobId: string;
@@ -302,9 +303,28 @@ export const createJobInvoice = async (
       });
     });
 
+    const hostedInvoiceUrl = sent.hosted_invoice_url?.trim();
+    if (hostedInvoiceUrl) {
+      void sendJobInvoiceCustomerSms({
+        customer: {
+          id: job.customer.id,
+          firstName: job.customer.firstName,
+          phone: job.customer.phone,
+        },
+        company: { name: job.company.name },
+        hostedInvoiceUrl,
+        invoiceNumber: sent.number,
+        amountDueCents: sent.amount_due,
+        currency: sent.currency,
+      }).catch((err) => {
+        console.error("Job invoice SMS error:", err);
+      });
+    }
+
     res.status(201).json({
       success: true,
-      message: "Invoice created and emailed to the customer (Stripe hosted invoice).",
+      message:
+        "Invoice created and emailed to the customer (Stripe hosted invoice). A text with the payment link was sent when the customer has a valid phone number.",
       invoice: serializeInvoice(sent),
       jobId: job.id,
     });

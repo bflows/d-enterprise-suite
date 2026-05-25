@@ -206,3 +206,51 @@ export async function sendJobEnRouteCustomerSms(job: JobConfirmationEmailPayload
   const body = buildJobEnRouteSmsBody(job);
   await sendCustomerSms(job.customer.id, job.customer.phone, body);
 }
+
+export type JobInvoiceSmsPayload = {
+  customer: { id: string; firstName: string; phone: string };
+  company: { name: string };
+  hostedInvoiceUrl: string;
+  invoiceNumber?: string | null;
+  amountDueCents?: number | null;
+  currency?: string | null;
+};
+
+function formatInvoiceAmountCents(cents: number, currency: string): string {
+  const amount = cents / 100;
+  const code = currency.trim().toUpperCase() || "USD";
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: code }).format(amount);
+  } catch {
+    return `$${amount.toFixed(2)}`;
+  }
+}
+
+function buildJobInvoiceSmsBody(payload: JobInvoiceSmsPayload): string {
+  const customerFirst = payload.customer.firstName.trim() || "there";
+  const companyName = payload.company.name.trim() || "us";
+  const url = payload.hostedInvoiceUrl.trim();
+  const number = payload.invoiceNumber?.trim();
+  const cents = payload.amountDueCents;
+  const currency = payload.currency?.trim() || "usd";
+
+  const amountPart =
+    cents != null && cents > 0 ? ` for ${formatInvoiceAmountCents(cents, currency)}` : "";
+  const numberPart = number ? ` #${number}` : "";
+
+  return [
+    `Hi ${customerFirst}, your invoice${numberPart} from ${companyName}${amountPart} is ready.`,
+    `Pay here: ${url}`,
+  ].join(" ");
+}
+
+/** SMS with the Stripe hosted invoice link when an invoice is sent from a job. */
+export async function sendJobInvoiceCustomerSms(payload: JobInvoiceSmsPayload): Promise<void> {
+  const url = payload.hostedInvoiceUrl?.trim();
+  if (!url) {
+    console.warn("Twilio: no hosted invoice URL; skipping invoice SMS.");
+    return;
+  }
+  const body = buildJobInvoiceSmsBody({ ...payload, hostedInvoiceUrl: url });
+  await sendCustomerSms(payload.customer.id, payload.customer.phone, body);
+}
