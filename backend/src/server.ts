@@ -53,13 +53,17 @@ app.use('/api/time-cards', timeCardRoutes);
 app.use('/api/job-activity', jobActivityRoutes);
 app.use('/api/invoices', invoiceRoutes);
 
+app.get('/', (_req: Request, res: Response) => {
+  res.json({ status: 'ok' });
+});
+
 let isShuttingDown = false;
 
 const startServer = async () => {
   try {
     await prisma.$connect();
 
-    const server = app.listen(PORT, () => {
+    const server = app.listen(Number(PORT), '0.0.0.0', () => {
       console.log("Server is running on PORT:", PORT);
       startJob24hReminderCron();
     });

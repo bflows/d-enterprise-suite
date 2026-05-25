@@ -1,1 +1,1 @@
-web: npm start
+web: /app/.heroku/node/bin/node /app/node_modules/tsx/dist/cli.mjs /app/src/server.ts
