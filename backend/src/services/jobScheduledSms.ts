@@ -118,3 +118,59 @@ export async function sendJobRescheduleCustomerSms(job: JobConfirmationEmailPayl
 export async function sendJob24hReminderCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
   await sendJobScheduleCustomerSms(job, "reminder");
 }
+
+function buildJobEnRouteSmsBody(job: JobConfirmationEmailPayload): string {
+  const customerFirst = job.customer.firstName.trim();
+  const techName =
+    `${job.technician.user.firstName} ${job.technician.user.lastName}`.trim();
+  return `Hi ${customerFirst}, this is ${techName} with ${job.company.name}. I'm on the way now and will see you shortly.`;
+}
+
+/** SMS when a technician marks the job as en route ("On the way"). */
+export async function sendJobEnRouteCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
+  if (!isTwilioMessagingConfigured()) {
+    console.warn("Twilio: credentials or sender not set; skipping en route job SMS.");
+    return;
+  }
+  const client = getTwilioClient();
+  const fromFields = getTwilioMessageFromFields();
+  if (!client || !fromFields) {
+    console.warn("Twilio: client or sender not available; skipping en route job SMS.");
+    return;
+  }
+
+  const to = normalizePhoneToE164(job.customer.phone);
+  if (!to) {
+    console.warn("Twilio: customer phone missing or not E.164-normalizable; skipping en route job SMS.");
+    return;
+  }
+
+  const body = buildJobEnRouteSmsBody(job);
+  try {
+    const message = await client.messages.create({
+      to,
+      body,
+      ...fromFields,
+    });
+    if (message.errorCode != null || message.status === "failed" || message.status === "undelivered") {
+      console.error("Twilio en route SMS failed:", {
+        sid: message.sid,
+        status: message.status,
+        errorCode: message.errorCode,
+        errorMessage: message.errorMessage,
+        to: message.to,
+        from: message.from,
+        messagingServiceSid: message.messagingServiceSid,
+      });
+    }
+  } catch (err: unknown) {
+    const twilioErr = err as { code?: number; message?: string; moreInfo?: string; status?: number };
+    console.error("Twilio en route SMS API error:", {
+      code: twilioErr.code,
+      message: twilioErr.message,
+      moreInfo: twilioErr.moreInfo,
+      status: twilioErr.status,
+    });
+    throw err;
+  }
+}
