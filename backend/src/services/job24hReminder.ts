@@ -23,6 +23,7 @@ function toJobConfirmationPayload(job: JobForReminder): JobConfirmationEmailPayl
     id: job.id,
     company: job.company,
     customer: {
+      id: job.customer.id,
       firstName: job.customer.firstName,
       lastName: job.customer.lastName,
       email: job.customer.email,

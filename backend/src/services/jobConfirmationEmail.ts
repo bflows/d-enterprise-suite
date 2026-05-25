@@ -4,6 +4,7 @@ export type JobConfirmationEmailPayload = {
   id: string;
   company: { name: string };
   customer: {
+    id: string;
     firstName: string;
     lastName: string;
     email: string | null;

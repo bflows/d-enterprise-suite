@@ -1,5 +1,10 @@
 import { getTwilioClient, getTwilioMessageFromFields, isTwilioMessagingConfigured } from "../lib/twilio";
+import { prisma } from "../lib/prisma";
 import { formatJobDateTime, type JobConfirmationEmailPayload } from "./jobConfirmationEmail";
+
+/** TCPA / carrier compliance notice sent once per customer phone (E.164). */
+export const SMS_COMPLIANCE_NOTICE_BODY =
+  "Duct Daddy will send job updates. HELP=Help, STOP=Stop. Msg freq varies. Msg&Data rates may apply.";
 
 /**
  * Normalize a stored phone string toward E.164 for Twilio.
@@ -25,12 +30,110 @@ export function normalizePhoneToE164(raw: string): string | null {
   return null;
 }
 
+async function createTwilioMessage(to: string, body: string): Promise<void> {
+  const client = getTwilioClient();
+  const fromFields = getTwilioMessageFromFields();
+  if (!client || !fromFields) {
+    console.warn("Twilio: client or sender not available; skipping SMS.");
+    return;
+  }
+
+  const message = await client.messages.create({
+    to,
+    body,
+    ...fromFields,
+  });
+  if (message.errorCode != null || message.status === "failed" || message.status === "undelivered") {
+    console.error("Twilio SMS failed:", {
+      sid: message.sid,
+      status: message.status,
+      errorCode: message.errorCode,
+      errorMessage: message.errorMessage,
+      to: message.to,
+      from: message.from,
+      messagingServiceSid: message.messagingServiceSid,
+    });
+  }
+}
+
+function logTwilioApiError(err: unknown, context: string): void {
+  const twilioErr = err as { code?: number; message?: string; moreInfo?: string; status?: number };
+  console.error(`${context}:`, {
+    code: twilioErr.code,
+    message: twilioErr.message,
+    moreInfo: twilioErr.moreInfo,
+    status: twilioErr.status,
+  });
+}
+
+/**
+ * Sends the first-time compliance notice when this customer has not yet received it
+ * for the normalized destination number, then sends the requested message.
+ */
+async function sendCustomerSms(customerId: string, rawPhone: string, body: string): Promise<void> {
+  if (!isTwilioMessagingConfigured()) {
+    console.warn("Twilio: credentials or sender not set; skipping customer SMS.");
+    return;
+  }
+
+  const to = normalizePhoneToE164(rawPhone);
+  if (!to) {
+    console.warn("Twilio: customer phone missing or not E.164-normalizable; skipping customer SMS.");
+    return;
+  }
+
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+    select: { smsComplianceNoticeSentAt: true, smsComplianceNoticePhone: true },
+  });
+  if (!customer) {
+    console.warn("Twilio: customer not found; skipping customer SMS.", { customerId });
+    return;
+  }
+
+  const alreadySentForPhone =
+    customer.smsComplianceNoticeSentAt != null && customer.smsComplianceNoticePhone === to;
+
+  if (!alreadySentForPhone) {
+    const claimedAt = new Date();
+    const claim = await prisma.customer.updateMany({
+      where: {
+        id: customerId,
+        OR: [{ smsComplianceNoticeSentAt: null }, { smsComplianceNoticePhone: { not: to } }],
+      },
+      data: {
+        smsComplianceNoticeSentAt: claimedAt,
+        smsComplianceNoticePhone: to,
+      },
+    });
+
+    if (claim.count > 0) {
+      try {
+        await createTwilioMessage(to, SMS_COMPLIANCE_NOTICE_BODY);
+      } catch (err: unknown) {
+        await prisma.customer.update({
+          where: { id: customerId },
+          data: { smsComplianceNoticeSentAt: null, smsComplianceNoticePhone: null },
+        });
+        logTwilioApiError(err, "Twilio SMS compliance notice API error");
+        throw err;
+      }
+    }
+  }
+
+  try {
+    await createTwilioMessage(to, body);
+  } catch (err: unknown) {
+    logTwilioApiError(err, "Twilio SMS API error");
+    throw err;
+  }
+}
+
 type JobScheduleSmsKind = "confirmation" | "reschedule" | "reminder";
 
 function buildJobScheduleSmsBody(job: JobConfirmationEmailPayload, kind: JobScheduleSmsKind): string {
   const customerFirst = job.customer.firstName.trim();
   const { dateLine, timeLine } = formatJobDateTime(job);
-  // const tech = `${job.technician.user.firstName} ${job.technician.user.lastName}`.trim();
 
   const intro =
     kind === "confirmation"
@@ -52,51 +155,8 @@ async function sendJobScheduleCustomerSms(
   job: JobConfirmationEmailPayload,
   kind: JobScheduleSmsKind
 ): Promise<void> {
-  if (!isTwilioMessagingConfigured()) {
-    console.warn("Twilio: credentials or sender not set; skipping job SMS.");
-    return;
-  }
-  const client = getTwilioClient();
-  const fromFields = getTwilioMessageFromFields();
-  if (!client || !fromFields) {
-    console.warn("Twilio: client or sender not available; skipping job SMS.");
-    return;
-  }
-
-  const to = normalizePhoneToE164(job.customer.phone);
-  if (!to) {
-    console.warn("Twilio: customer phone missing or not E.164-normalizable; skipping job SMS.");
-    return;
-  }
-
   const body = buildJobScheduleSmsBody(job, kind);
-  try {
-    const message = await client.messages.create({
-      to,
-      body,
-      ...fromFields,
-    });
-    if (message.errorCode != null || message.status === "failed" || message.status === "undelivered") {
-      console.error("Twilio SMS failed:", {
-        sid: message.sid,
-        status: message.status,
-        errorCode: message.errorCode,
-        errorMessage: message.errorMessage,
-        to: message.to,
-        from: message.from,
-        messagingServiceSid: message.messagingServiceSid,
-      });
-    }
-  } catch (err: unknown) {
-    const twilioErr = err as { code?: number; message?: string; moreInfo?: string; status?: number };
-    console.error("Twilio SMS API error:", {
-      code: twilioErr.code,
-      message: twilioErr.message,
-      moreInfo: twilioErr.moreInfo,
-      status: twilioErr.status,
-    });
-    throw err;
-  }
+  await sendCustomerSms(job.customer.id, job.customer.phone, body);
 }
 
 /**
@@ -137,98 +197,12 @@ function buildJobCompletedSmsBody(job: JobConfirmationEmailPayload): string {
 
 /** SMS when a technician marks the job as completed. */
 export async function sendJobCompletedCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
-  if (!isTwilioMessagingConfigured()) {
-    console.warn("Twilio: credentials or sender not set; skipping completed job SMS.");
-    return;
-  }
-  const client = getTwilioClient();
-  const fromFields = getTwilioMessageFromFields();
-  if (!client || !fromFields) {
-    console.warn("Twilio: client or sender not available; skipping completed job SMS.");
-    return;
-  }
-
-  const to = normalizePhoneToE164(job.customer.phone);
-  if (!to) {
-    console.warn("Twilio: customer phone missing or not E.164-normalizable; skipping completed job SMS.");
-    return;
-  }
-
   const body = buildJobCompletedSmsBody(job);
-  try {
-    const message = await client.messages.create({
-      to,
-      body,
-      ...fromFields,
-    });
-    if (message.errorCode != null || message.status === "failed" || message.status === "undelivered") {
-      console.error("Twilio completed job SMS failed:", {
-        sid: message.sid,
-        status: message.status,
-        errorCode: message.errorCode,
-        errorMessage: message.errorMessage,
-        to: message.to,
-        from: message.from,
-        messagingServiceSid: message.messagingServiceSid,
-      });
-    }
-  } catch (err: unknown) {
-    const twilioErr = err as { code?: number; message?: string; moreInfo?: string; status?: number };
-    console.error("Twilio completed job SMS API error:", {
-      code: twilioErr.code,
-      message: twilioErr.message,
-      moreInfo: twilioErr.moreInfo,
-      status: twilioErr.status,
-    });
-    throw err;
-  }
+  await sendCustomerSms(job.customer.id, job.customer.phone, body);
 }
 
 /** SMS when a technician marks the job as en route ("On the way"). */
 export async function sendJobEnRouteCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
-  if (!isTwilioMessagingConfigured()) {
-    console.warn("Twilio: credentials or sender not set; skipping en route job SMS.");
-    return;
-  }
-  const client = getTwilioClient();
-  const fromFields = getTwilioMessageFromFields();
-  if (!client || !fromFields) {
-    console.warn("Twilio: client or sender not available; skipping en route job SMS.");
-    return;
-  }
-
-  const to = normalizePhoneToE164(job.customer.phone);
-  if (!to) {
-    console.warn("Twilio: customer phone missing or not E.164-normalizable; skipping en route job SMS.");
-    return;
-  }
-
   const body = buildJobEnRouteSmsBody(job);
-  try {
-    const message = await client.messages.create({
-      to,
-      body,
-      ...fromFields,
-    });
-    if (message.errorCode != null || message.status === "failed" || message.status === "undelivered") {
-      console.error("Twilio en route SMS failed:", {
-        sid: message.sid,
-        status: message.status,
-        errorCode: message.errorCode,
-        errorMessage: message.errorMessage,
-        to: message.to,
-        from: message.from,
-        messagingServiceSid: message.messagingServiceSid,
-      });
-    }
-  } catch (err: unknown) {
-    const twilioErr = err as { code?: number; message?: string; moreInfo?: string; status?: number };
-    console.error("Twilio en route SMS API error:", {
-      code: twilioErr.code,
-      message: twilioErr.message,
-      moreInfo: twilioErr.moreInfo,
-      status: twilioErr.status,
-    });
-    throw err;
-  }
+  await sendCustomerSms(job.customer.id, job.customer.phone, body);
 }
