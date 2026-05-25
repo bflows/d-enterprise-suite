@@ -1,9 +1,10 @@
-import cron from "node-cron";
+import cron, { type ScheduledTask } from "node-cron";
 import { processJob24hReminders } from "./job24hReminder";
 
 const DEFAULT_CRON = "*/15 * * * *";
 
 let reminderRunInProgress = false;
+let reminderCronTask: ScheduledTask | null = null;
 
 async function runJob24hReminders(): Promise<void> {
   if (reminderRunInProgress) {
@@ -38,9 +39,16 @@ export function startJob24hReminderCron(): void {
     return;
   }
 
-  cron.schedule(schedule, () => {
+  reminderCronTask?.stop();
+  reminderCronTask = cron.schedule(schedule, () => {
     void runJob24hReminders();
   });
 
   console.log("Job 24h reminder cron scheduled:", schedule);
+}
+
+/** Stop scheduled ticks before closing the DB pool (e.g. nodemon restart). */
+export function stopJob24hReminderCron(): void {
+  reminderCronTask?.stop();
+  reminderCronTask = null;
 }

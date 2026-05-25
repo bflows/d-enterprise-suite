@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+import { disconnectPrisma } from "../lib/prisma";
 import { processJob24hReminders } from "../services/job24hReminder";
 
 async function main() {
@@ -12,5 +12,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await disconnectPrisma();
   });

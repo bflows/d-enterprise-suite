@@ -2,7 +2,7 @@ import express, { type Request, type Response } from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { prisma } from './lib/prisma';
+import { prisma, disconnectPrisma } from './lib/prisma';
 import authRoutes from './routes/auth.routes';
 import companyRoutes from './routes/company.routes';
 import customerRoutes from './routes/customer.routes';
@@ -14,7 +14,7 @@ import timeCardRoutes from './routes/timeCard.routes';
 import jobActivityRoutes from './routes/jobActivity.routes';
 import invoiceRoutes from './routes/invoice.routes';
 import { handleStripeWebhook } from './controllers/stripe.webhook.controllers';
-import { startJob24hReminderCron } from './services/job24hReminderCron';
+import { startJob24hReminderCron, stopJob24hReminderCron } from './services/job24hReminderCron';
 
 dotenv.config();
 
@@ -53,6 +53,8 @@ app.use('/api/time-cards', timeCardRoutes);
 app.use('/api/job-activity', jobActivityRoutes);
 app.use('/api/invoices', invoiceRoutes);
 
+let isShuttingDown = false;
+
 const startServer = async () => {
   try {
     await prisma.$connect();
@@ -62,10 +64,15 @@ const startServer = async () => {
       startJob24hReminderCron();
     });
 
-    const shutdownServer = async (signal: any) => {
+    const shutdownServer = async (signal: string) => {
+      if (isShuttingDown) {
+        return;
+      }
+      isShuttingDown = true;
       console.log(`Received ${signal}, shutting down...`);
+      stopJob24hReminderCron();
       server.close(async () => {
-        await prisma.$disconnect();
+        await disconnectPrisma();
         process.exit(0);
       });
     };
@@ -74,7 +81,7 @@ const startServer = async () => {
     process.on('SIGTERM', shutdownServer);
   } catch (error) {
     console.error("Failed to start server:", error);
-    await prisma.$disconnect();
+    await disconnectPrisma();
     process.exit(1);
   }
 };
