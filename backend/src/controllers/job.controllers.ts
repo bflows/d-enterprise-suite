@@ -12,6 +12,7 @@ import {
 import type { JobConfirmationEmailPayload } from "../services/jobConfirmationEmail";
 import {
   sendJobCreatedCustomerSms,
+  sendJobCompletedCustomerSms,
   sendJobEnRouteCustomerSms,
   sendJobRescheduleCustomerSms,
 } from "../services/jobScheduledSms";
@@ -868,29 +869,36 @@ export const updateJobStatus = async (
       return updatedJob;
     });
 
+    const smsPayload: JobConfirmationEmailPayload = {
+      id: job.id,
+      company: job.company,
+      customer: {
+        firstName: job.customer.firstName,
+        lastName: job.customer.lastName,
+        email: job.customer.email,
+        phone: job.customer.phone,
+      },
+      technician: {
+        user: {
+          firstName: job.technician.user.firstName,
+          lastName: job.technician.user.lastName,
+        },
+      },
+      services: job.services.map((s) => ({ title: s.title })),
+      date: job.date,
+      startTime: job.startTime,
+      endTime: job.endTime,
+    };
+
     if (status === "EN_ROUTE" && existing.status === "SCHEDULED") {
-      const smsPayload: JobConfirmationEmailPayload = {
-        id: job.id,
-        company: job.company,
-        customer: {
-          firstName: job.customer.firstName,
-          lastName: job.customer.lastName,
-          email: job.customer.email,
-          phone: job.customer.phone,
-        },
-        technician: {
-          user: {
-            firstName: job.technician.user.firstName,
-            lastName: job.technician.user.lastName,
-          },
-        },
-        services: job.services.map((s) => ({ title: s.title })),
-        date: job.date,
-        startTime: job.startTime,
-        endTime: job.endTime,
-      };
       void sendJobEnRouteCustomerSms(smsPayload).catch((err) => {
         console.error("Job en route SMS error:", err);
+      });
+    }
+
+    if (status === "COMPLETED" && existing.status !== "COMPLETED") {
+      void sendJobCompletedCustomerSms(smsPayload).catch((err) => {
+        console.error("Job completed SMS error:", err);
       });
     }
 

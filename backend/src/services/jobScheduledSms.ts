@@ -126,6 +126,64 @@ function buildJobEnRouteSmsBody(job: JobConfirmationEmailPayload): string {
   return `Hi ${customerFirst}, this is ${techName} with ${job.company.name}. I'm on the way now and will see you shortly.`;
 }
 
+function buildJobCompletedSmsBody(job: JobConfirmationEmailPayload): string {
+  const customerFirst = job.customer.firstName.trim();
+  return [
+    `All set! Thanks for choosing ${job.company.name}, ${customerFirst}.`,
+    `We're a small local business and reviews help us grow. If you were happy with the service, we'd truly appreciate a quick review here:`,
+    `https://g.page/r/CXTywCBRvFILEBE/review`,
+  ].join(" ");
+}
+
+/** SMS when a technician marks the job as completed. */
+export async function sendJobCompletedCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
+  if (!isTwilioMessagingConfigured()) {
+    console.warn("Twilio: credentials or sender not set; skipping completed job SMS.");
+    return;
+  }
+  const client = getTwilioClient();
+  const fromFields = getTwilioMessageFromFields();
+  if (!client || !fromFields) {
+    console.warn("Twilio: client or sender not available; skipping completed job SMS.");
+    return;
+  }
+
+  const to = normalizePhoneToE164(job.customer.phone);
+  if (!to) {
+    console.warn("Twilio: customer phone missing or not E.164-normalizable; skipping completed job SMS.");
+    return;
+  }
+
+  const body = buildJobCompletedSmsBody(job);
+  try {
+    const message = await client.messages.create({
+      to,
+      body,
+      ...fromFields,
+    });
+    if (message.errorCode != null || message.status === "failed" || message.status === "undelivered") {
+      console.error("Twilio completed job SMS failed:", {
+        sid: message.sid,
+        status: message.status,
+        errorCode: message.errorCode,
+        errorMessage: message.errorMessage,
+        to: message.to,
+        from: message.from,
+        messagingServiceSid: message.messagingServiceSid,
+      });
+    }
+  } catch (err: unknown) {
+    const twilioErr = err as { code?: number; message?: string; moreInfo?: string; status?: number };
+    console.error("Twilio completed job SMS API error:", {
+      code: twilioErr.code,
+      message: twilioErr.message,
+      moreInfo: twilioErr.moreInfo,
+      status: twilioErr.status,
+    });
+    throw err;
+  }
+}
+
 /** SMS when a technician marks the job as en route ("On the way"). */
 export async function sendJobEnRouteCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
   if (!isTwilioMessagingConfigured()) {
