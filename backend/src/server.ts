@@ -14,6 +14,7 @@ import timeCardRoutes from './routes/timeCard.routes';
 import jobActivityRoutes from './routes/jobActivity.routes';
 import invoiceRoutes from './routes/invoice.routes';
 import { handleStripeWebhook } from './controllers/stripe.webhook.controllers';
+import { startJob24hReminderCron } from './services/job24hReminderCron';
 
 dotenv.config();
 
@@ -58,6 +59,7 @@ const startServer = async () => {
 
     const server = app.listen(PORT, () => {
       console.log("Server is running on PORT:", PORT);
+      startJob24hReminderCron();
     });
 
     const shutdownServer = async (signal: any) => {

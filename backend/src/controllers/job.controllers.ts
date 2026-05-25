@@ -398,6 +398,7 @@ export const updateJob = async (
       startTime?: Date;
       endTime?: Date;
       technicianId?: string;
+      reminder24hSentAt?: null;
     } = {};
     if (body.title !== undefined) data.title = body.title ?? null;
     if (body.notes !== undefined) data.notes = body.notes ?? null;
@@ -504,6 +505,10 @@ export const updateJob = async (
       effectiveDate.getTime() !== existing.date.getTime() ||
       effectiveStartTime.getTime() !== existing.startTime.getTime() ||
       effectiveEndTime.getTime() !== existing.endTime.getTime();
+
+    if (scheduleChanged) {
+      data.reminder24hSentAt = null;
+    }
 
     const job = await prisma.job.update({
       where: { id },

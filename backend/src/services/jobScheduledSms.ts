@@ -25,7 +25,7 @@ export function normalizePhoneToE164(raw: string): string | null {
   return null;
 }
 
-type JobScheduleSmsKind = "confirmation" | "reschedule";
+type JobScheduleSmsKind = "confirmation" | "reschedule" | "reminder";
 
 function buildJobScheduleSmsBody(job: JobConfirmationEmailPayload, kind: JobScheduleSmsKind): string {
   const customerFirst = job.customer.firstName.trim();
@@ -35,12 +35,16 @@ function buildJobScheduleSmsBody(job: JobConfirmationEmailPayload, kind: JobSche
   const intro =
     kind === "confirmation"
       ? `Hi ${customerFirst}, your appointment with ${job.company.name} is scheduled.`
-      : `Hi ${customerFirst}, your appointment with ${job.company.name} has been rescheduled.`;
+      : kind === "reschedule"
+        ? `Hi ${customerFirst}, your appointment with ${job.company.name} has been rescheduled.`
+        : `Hi ${customerFirst}, reminder: your appointment with ${job.company.name} is tomorrow.`;
+
+  const closing = kind === "reminder" ? "See you then!" : "See you then.";
 
   return [
     intro,
     `When: ${dateLine}, ${timeLine}.`,
-    "See you then.",
+    closing,
   ].join(" ");
 }
 
@@ -108,4 +112,9 @@ export async function sendJobCreatedCustomerSms(job: JobConfirmationEmailPayload
 /** SMS when date/time changes on an existing job (matches reschedule email). */
 export async function sendJobRescheduleCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
   await sendJobScheduleCustomerSms(job, "reschedule");
+}
+
+/** SMS ~24 hours before the job start time (scheduled by the reminder processor). */
+export async function sendJob24hReminderCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
+  await sendJobScheduleCustomerSms(job, "reminder");
 }

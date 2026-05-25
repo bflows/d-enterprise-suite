@@ -237,6 +237,9 @@ model Job {
   /// Set by the API: start time plus total minutes from linked service items (duration × unit × quantity per item).
   endTime   DateTime
 
+  /// Set when the 24-hour-before-start Twilio reminder SMS is sent (idempotency).
+  reminder24hSentAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -252,6 +255,7 @@ model Job {
   @@index([customerId])
   @@index([technicianId])
   @@index([date])
+  @@index([status, reminder24hSentAt, startTime])
 }
 
 /// At most one invoice row per job; `stripeInvoiceId` is set when a Stripe invoice exists.
