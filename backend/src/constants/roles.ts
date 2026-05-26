@@ -17,3 +17,14 @@ export const ALL_ROLE_SLUGS: readonly RoleSlug[] = [
   ROLE_SLUGS.DISPATCHER,
   ROLE_SLUGS.ADMIN,
 ];
+
+/** Roles that may be assigned to jobs and appear in schedule availability pickers. */
+export const SCHEDULABLE_ROLE_SLUGS: readonly RoleSlug[] = [
+  ROLE_SLUGS.TECHNICIAN,
+  ROLE_SLUGS.ADMIN,
+];
+
+export function isSchedulableRoleSlug(roleSlug: string): roleSlug is RoleSlug {
+  const normalized = roleSlug.trim().toLowerCase();
+  return (SCHEDULABLE_ROLE_SLUGS as readonly string[]).includes(normalized);
+}

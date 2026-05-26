@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { isSchedulableRoleSlug, ROLE_SLUGS } from "../constants/roles";
 import { prisma } from "../lib/prisma";
 
 /** Query params for listing availabilities by employee. */
@@ -65,6 +66,57 @@ function parseTimeToMinutes(timeStr: string): number {
   return hours * 60 + minutes;
 }
 
+function parseYmd(ymd: string): { y: number; m0: number; d: number } | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
+  if (!m) return null;
+  const y = Number(m[1]);
+  const m0 = Number(m[2]) - 1;
+  const d = Number(m[3]);
+  if (m0 < 0 || m0 > 11 || d < 1 || d > 31) return null;
+  const check = new Date(y, m0, d);
+  if (check.getFullYear() !== y || check.getMonth() !== m0 || check.getDate() !== d) {
+    return null;
+  }
+  return { y, m0, d };
+}
+
+function formatYmdLocal(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/** Inclusive local calendar dates from startYmd through endYmd (YYYY-MM-DD). */
+function enumerateLocalDates(startYmd: string, endYmd: string): string[] {
+  const start = parseYmd(startYmd);
+  const end = parseYmd(endYmd);
+  if (!start || !end) return startYmd ? [startYmd] : [];
+  const cursor = new Date(start.y, start.m0, start.d);
+  const endDate = new Date(end.y, end.m0, end.d);
+  const dates: string[] = [];
+  while (cursor <= endDate) {
+    dates.push(formatYmdLocal(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return dates;
+}
+
+function slotAppliesOnDate(
+  slot: { effectiveFrom: Date | null; effectiveTo: Date | null },
+  dateStr: string
+): boolean {
+  if (slot.effectiveFrom != null) {
+    const fromYmd = formatYmdLocal(new Date(slot.effectiveFrom));
+    if (fromYmd > dateStr) return false;
+  }
+  if (slot.effectiveTo != null) {
+    const toYmd = formatYmdLocal(new Date(slot.effectiveTo));
+    if (toYmd < dateStr) return false;
+  }
+  return true;
+}
+
 /** Check if a technician's availability slots cover the job window for every day in the range. */
 function technicianCoversWindow(
   slots: Array<{
@@ -83,13 +135,10 @@ function technicianCoversWindow(
     const d = new Date(dateStr + "T12:00:00");
     if (isNaN(d.getTime())) return false;
     const dayOfWeek = d.getDay();
-    const dayStart = new Date(dateStr + "T00:00:00").getTime();
-    const dayEnd = new Date(dateStr + "T23:59:59.999").getTime();
     const hasMatchingSlot = slots.some((slot) => {
       if (slot.dayOfWeek !== dayOfWeek) return false;
       if (slot.endTimeMinutes <= slot.startTimeMinutes) return false;
-      if (slot.effectiveFrom != null && new Date(slot.effectiveFrom).getTime() > dayStart) return false;
-      if (slot.effectiveTo != null && new Date(slot.effectiveTo).getTime() < dayEnd) return false;
+      if (!slotAppliesOnDate(slot, dateStr)) return false;
       return slot.startTimeMinutes <= jobStartMinutes && slot.endTimeMinutes >= jobEndMinutes;
     });
     if (!hasMatchingSlot) return false;
@@ -156,7 +205,7 @@ export const listByEmployee = async (
 /**
  * List technicians who have availability that matches the given start/end date and time window.
  * GET /api/availability/available-for-window?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&startTime=HH:mm&endTime=HH:mm&q=optionalSearch
- * Returns employees (same shape as company employees) that are technicians and whose schedule covers the window.
+ * Returns schedulable employees (technician + admin) with coversWindow when weekly availability matches the window.
  */
 export const listAvailableTechniciansForWindow = async (
   req: Request<{}, {}, {}, AvailableForWindowQuery>,
@@ -200,20 +249,12 @@ export const listAvailableTechniciansForWindow = async (
       });
     }
 
-    const start = new Date(startDate + "T12:00:00");
-    const end = new Date(endDate + "T12:00:00");
-    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
+    const dateStrings = enumerateLocalDates(startDate, endDate);
+    if (dateStrings.length === 0) {
       return res.status(400).json({
         success: false,
         message: "startDate and endDate must be valid and endDate >= startDate",
       });
-    }
-
-    const dateStrings: string[] = [];
-    const cursor = new Date(start);
-    while (cursor <= end) {
-      dateStrings.push(cursor.toISOString().slice(0, 10));
-      cursor.setDate(cursor.getDate() + 1);
     }
 
     const searchTerm = typeof q === "string" ? q.trim() : "";
@@ -222,7 +263,10 @@ export const listAvailableTechniciansForWindow = async (
     const technicians = await prisma.employee.findMany({
       where: {
         companyId,
-        roleSlug: "technician",
+        OR: [
+          { roleSlug: ROLE_SLUGS.TECHNICIAN },
+          { roleSlug: ROLE_SLUGS.ADMIN },
+        ],
         ...(hasSearch && {
           user: {
             OR: [
@@ -239,31 +283,28 @@ export const listAvailableTechniciansForWindow = async (
       },
     });
 
-    const slotsByEmployee = technicians.map((emp) => ({
-      employee: emp,
-      slots: emp.technicianAvailabilities.map((a) => ({
+    const result = technicians.map((e) => {
+      const slots = e.technicianAvailabilities.map((a) => ({
         dayOfWeek: a.dayOfWeek,
         startTimeMinutes: a.startTimeMinutes,
         endTimeMinutes: a.endTimeMinutes,
         effectiveFrom: a.effectiveFrom,
         effectiveTo: a.effectiveTo,
-      })),
-    }));
-
-    const available = slotsByEmployee
-      .filter(({ slots }) =>
+      }));
+      const coversWindow =
+        isSchedulableRoleSlug(e.roleSlug) &&
         technicianCoversWindow(
           slots,
           jobStartMinutes,
           jobEndMinutes,
           dateStrings
-        )
-      )
-      .map(({ employee }) => employee);
-
-    const result = available.map((e) => {
+        );
       const { technicianAvailabilities: _t, ...emp } = e;
-      return { ...emp, user: sanitizeUserForAvailability(e.user) };
+      return {
+        ...emp,
+        user: sanitizeUserForAvailability(e.user),
+        coversWindow,
+      };
     });
 
     return res.status(200).json({
