@@ -17,6 +17,17 @@ export const ALL_ROLE_SLUGS: readonly RoleSlug[] = [
   ROLE_SLUGS.ADMIN,
 ];
 
+/** Roles that may be assigned to jobs and use technician field-work flows. */
+export const SCHEDULABLE_ROLE_SLUGS: readonly RoleSlug[] = [
+  ROLE_SLUGS.TECHNICIAN,
+  ROLE_SLUGS.ADMIN,
+];
+
+export function isSchedulableRoleSlug(roleSlug: string): roleSlug is RoleSlug {
+  const normalized = roleSlug.trim().toLowerCase();
+  return (SCHEDULABLE_ROLE_SLUGS as readonly string[]).includes(normalized);
+}
+
 /** Roles that may clock in/out and load active time card state (aligned with time-card API). */
 export const TIME_CARD_CLOCK_ROLE_SLUGS: readonly RoleSlug[] = [
   ROLE_SLUGS.EMPLOYEE,

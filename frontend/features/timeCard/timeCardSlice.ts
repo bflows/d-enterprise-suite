@@ -169,9 +169,10 @@ export const selectIsClockedIn = (state: RootState): boolean => {
   return Boolean(card && !card.clockedOutAt);
 };
 
-/** Open time card for a technician in the current company context (for feature gating). */
+/** Open time card for a schedulable role (technician or admin) in the current company context. */
 export const selectIsClockedInTechnician = (state: RootState): boolean => {
-  if (state.auth.user?.role !== ROLE_SLUGS.TECHNICIAN) return false;
+  const role = state.auth.user?.role;
+  if (role !== ROLE_SLUGS.TECHNICIAN && role !== ROLE_SLUGS.ADMIN) return false;
   return selectIsClockedIn(state);
 };
 

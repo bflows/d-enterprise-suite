@@ -4,15 +4,30 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import type { Job } from "@/lib/calendar/types";
 import { jobBlocksTechnicianOverlap, jobOverlapsWindow } from "@/lib/calendar/types";
 import type { EmployeeListItem } from "@/lib/api/company";
-import { getAvailableTechniciansForWindow } from "@/lib/api/availability";
+import { searchEmployees } from "@/lib/api/company";
+import {
+  listAvailabilityByEmployee,
+  type AvailableTechnicianListItem,
+} from "@/lib/api/availability";
+import {
+  jobWindowCoversFromStrings,
+  technicianCoversWindow,
+} from "@/lib/availability/schedulingWindow";
+import { isSchedulableRoleSlug } from "@/types/auth";
 import { HiOutlineWrench, HiXMark } from "react-icons/hi2";
 import { HiSearch } from "react-icons/hi";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
+type SchedulableEmployee = EmployeeListItem & Pick<AvailableTechnicianListItem, "coversWindow">;
+
 function displayEmployee(emp: EmployeeListItem) {
   const u = emp.user;
   return [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email || "—";
+}
+
+function employeeCoversWindow(emp: SchedulableEmployee): boolean {
+  return emp.coversWindow === true;
 }
 
 export interface TechnicianSearchProps {
@@ -25,9 +40,7 @@ export interface TechnicianSearchProps {
   jobsForOverlap: Job[];
   value: EmployeeListItem | null;
   onChange: (technician: EmployeeListItem | null) => void;
-  /** Fired when availability vs. schedule window for the current selection changes. */
   onFitsWindowChange?: (fits: boolean) => void;
-  /** Fired when the list query loading state changes (e.g. for unavailability messages). */
   onLoadingChange?: (loading: boolean) => void;
 }
 
@@ -45,13 +58,13 @@ export default function TechnicianSearch({
   onLoadingChange,
 }: TechnicianSearchProps) {
   const [technicianSearch, setTechnicianSearch] = useState("");
-  const [allTechnicians, setAllTechnicians] = useState<EmployeeListItem[]>([]);
+  const [allTechnicians, setAllTechnicians] = useState<SchedulableEmployee[]>([]);
   const [technicianLoading, setTechnicianLoading] = useState(false);
   const [technicianDropdownOpen, setTechnicianDropdownOpen] = useState(false);
 
   const technicianDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const loadTechnicians = useCallback(() => {
+  const loadTechnicians = useCallback(async () => {
     if (!companyId) {
       setAllTechnicians([]);
       return;
@@ -62,20 +75,55 @@ export default function TechnicianSearch({
       setTechnicianLoading(false);
       return;
     }
+
     setTechnicianLoading(true);
     const term = technicianSearch.trim();
-    getAvailableTechniciansForWindow({
-      startDate: date,
-      endDate: date,
-      startTime,
-      endTime: effectiveEndTime,
-      ...(term && { q: term }),
-    })
-      .then((res) => {
-        setAllTechnicians(res.employees ?? []);
-      })
-      .catch(() => setAllTechnicians([]))
-      .finally(() => setTechnicianLoading(false));
+    const jobWindow = jobWindowCoversFromStrings(date, startTime, effectiveEndTime);
+
+    try {
+      const searchRes = await searchEmployees(companyId, term);
+
+      const schedulable = (searchRes.employees ?? []).filter((e) =>
+        isSchedulableRoleSlug(e.roleSlug)
+      );
+
+      const merged = await Promise.all(
+        schedulable.map(async (emp): Promise<SchedulableEmployee> => {
+          if (!jobWindow) {
+            return { ...emp, coversWindow: false };
+          }
+
+          const { availabilities } = await listAvailabilityByEmployee(emp.id);
+          const slots = availabilities.map((a) => ({
+            dayOfWeek: a.dayOfWeek,
+            startTimeMinutes: a.startTimeMinutes,
+            endTimeMinutes: a.endTimeMinutes,
+            effectiveFrom: a.effectiveFrom,
+            effectiveTo: a.effectiveTo,
+          }));
+          const covers = technicianCoversWindow(
+            slots,
+            jobWindow.jobStartMinutes,
+            jobWindow.jobEndMinutes,
+            jobWindow.dateStrings
+          );
+          return { ...emp, coversWindow: covers };
+        })
+      );
+
+      merged.sort((a, b) => {
+        const aCovers = employeeCoversWindow(a) ? 0 : 1;
+        const bCovers = employeeCoversWindow(b) ? 0 : 1;
+        if (aCovers !== bCovers) return aCovers - bCovers;
+        return displayEmployee(a).localeCompare(displayEmployee(b));
+      });
+
+      setAllTechnicians(merged);
+    } catch {
+      setAllTechnicians([]);
+    } finally {
+      setTechnicianLoading(false);
+    }
   }, [companyId, date, startTime, effectiveEndTime, totalServiceMins, technicianSearch]);
 
   useEffect(() => {
@@ -85,14 +133,14 @@ export default function TechnicianSearch({
     }
     technicianDebounceRef.current = setTimeout(() => {
       technicianDebounceRef.current = null;
-      loadTechnicians();
+      void loadTechnicians();
     }, SEARCH_DEBOUNCE_MS);
     return () => {
       if (technicianDebounceRef.current) {
         clearTimeout(technicianDebounceRef.current);
       }
     };
-  }, [isOpen, date, startTime, totalServiceMins, technicianSearch, loadTechnicians]);
+  }, [isOpen, date, startTime, effectiveEndTime, totalServiceMins, technicianSearch, loadTechnicians]);
 
   const availableTechnicians = React.useMemo(() => {
     if (!date || !startTime || !effectiveEndTime || totalServiceMins <= 0) {
@@ -129,8 +177,8 @@ export default function TechnicianSearch({
       return true;
     }
     if (technicianLoading) return true;
-    const inWeeklyAvailability = allTechnicians.some((e) => e.id === selectedTechnician.id);
-    if (!inWeeklyAvailability) return false;
+    const match = allTechnicians.find((e) => e.id === selectedTechnician.id);
+    if (!match || !employeeCoversWindow(match)) return false;
     const overlapsOtherJob = jobsForOverlap.some(
       (job) =>
         jobBlocksTechnicianOverlap(job) &&
@@ -219,31 +267,45 @@ export default function TechnicianSearch({
                   <p className="px-4 py-3 text-small text-neutral-400">
                     {allTechnicians.length === 0
                       ? date && startTime && totalServiceMins > 0
-                        ? "No technicians have availability for this date/time, try a different search."
+                        ? "No technicians or admins match this search."
                         : "Select date, time, and at least one service to see available technicians."
-                      : "No technicians available for this date/time (already booked)."}
+                      : "No technicians or admins available for this time (already booked)."}
                   </p>
                 ) : (
                   <div className="px-4 py-3 flex flex-col gap-y-1">
-                    {availableTechnicians.map((emp) => (
-                      <button
-                        key={emp.id}
-                        type="button"
-                        className="flex w-full items-center justify-between gap-3 text-left px-4 py-3 text-p rounded-lg text-neutral-600 hover:text-neutral-50 hover:bg-primary focus:bg-neutral-100 focus:outline-none"
-                        onClick={() => {
-                          onChange(emp);
-                          setTechnicianSearch("");
-                          setTechnicianDropdownOpen(false);
-                        }}
-                      >
-                        <span className="min-w-0 truncate">
-                          {displayEmployee(emp)}
-                        </span>
-                        <span className="shrink-0 text-small tabular-nums">
-                          {emp.user.phoneNumber || "—"}
-                        </span>
-                      </button>
-                    ))}
+                    {availableTechnicians.map((emp) => {
+                      const fitsWindow = employeeCoversWindow(emp);
+                      return (
+                        <button
+                          key={emp.id}
+                          type="button"
+                          disabled={!fitsWindow}
+                          className={`flex w-full items-center justify-between gap-3 text-left px-4 py-3 text-p rounded-lg focus:outline-none ${
+                            fitsWindow
+                              ? "text-neutral-600 hover:text-neutral-50 hover:bg-primary focus:bg-neutral-100 cursor-pointer"
+                              : "cursor-not-allowed text-neutral-400 bg-neutral-100"
+                          }`}
+                          onClick={() => {
+                            if (!fitsWindow) return;
+                            onChange(emp);
+                            setTechnicianSearch("");
+                            setTechnicianDropdownOpen(false);
+                          }}
+                        >
+                          <span className="min-w-0 truncate">
+                            {displayEmployee(emp)}
+                            {!fitsWindow && (
+                              <span className="block text-xs font-normal text-neutral-500">
+                                Outside weekly availability for this time
+                              </span>
+                            )}
+                          </span>
+                          <span className="shrink-0 text-small tabular-nums">
+                            {emp.user.phoneNumber || "—"}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>

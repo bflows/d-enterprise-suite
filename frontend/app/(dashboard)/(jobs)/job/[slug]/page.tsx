@@ -8,7 +8,6 @@ import type { AppDispatch, RootState } from "@/app/store";
 import {
   selectCurrentCompanyId,
   selectHasAnyRole,
-  selectHasRole,
   selectUser,
 } from "@/features/auth/authSlice";
 import {
@@ -50,7 +49,7 @@ export default function JobDetailPage() {
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
   const user = useSelector(selectUser);
   const isTechnician = useSelector((state: RootState) =>
-    selectHasRole(state, ROLE_SLUGS.TECHNICIAN)
+    selectHasAnyRole(state, [ROLE_SLUGS.TECHNICIAN, ROLE_SLUGS.ADMIN])
   );
   const canCreateInvoice = useSelector((state: RootState) =>
     selectHasAnyRole(state, [ROLE_SLUGS.ADMIN, ROLE_SLUGS.DISPATCHER, ROLE_SLUGS.TECHNICIAN])

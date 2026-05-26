@@ -111,6 +111,8 @@ export interface AvailableTechnicianListItem {
   companyId: string;
   roleSlug: string;
   user: EmployeeUser;
+  /** True when weekly availability fully covers the requested date/time window. */
+  coversWindow?: boolean;
 }
 
 export interface AvailableForWindowResponse {
@@ -128,9 +130,8 @@ export interface AvailableForWindowParams {
 }
 
 /**
- * Get technicians whose schedule availability matches the given date/time window.
- * Only returns technicians who have availability covering every day in [startDate, endDate]
- * for the given startTime–endTime.
+ * Get schedulable employees (technician + admin) for the date/time window.
+ * Each employee includes coversWindow when their weekly availability fully covers the window.
  */
 export async function getAvailableTechniciansForWindow(
   params: AvailableForWindowParams

@@ -5,7 +5,7 @@ import { LuPlus, LuTrash2 } from "react-icons/lu";
 import { updateEmployee } from "@/lib/api/company";
 import type { UpdateEmployeeBody } from "@/lib/api/company";
 import type { EmployeeListItem } from "@/lib/api/company";
-import { ALL_ROLE_SLUGS } from "@/types/auth";
+import { ALL_ROLE_SLUGS, SCHEDULABLE_ROLE_SLUGS } from "@/types/auth";
 import {
   listAvailabilityByEmployee,
   createAvailability,
@@ -311,7 +311,9 @@ export default function EditEmployeeForm({
           Weekly availability
         </h3>
         <p className="text-neutral-600 text-sm mb-3">
-          Set recurring available days and times. This schedule repeats every week until you change it.
+          {SCHEDULABLE_ROLE_SLUGS.includes(role as (typeof SCHEDULABLE_ROLE_SLUGS)[number])
+            ? "Set recurring available days and times. Admins and technicians with availability can be assigned to jobs on the schedule."
+            : "Set recurring available days and times. This schedule repeats every week until you change it."}
         </p>
         {availabilityError && (
           <p className="text-red-600 text-sm mb-2">{availabilityError}</p>
