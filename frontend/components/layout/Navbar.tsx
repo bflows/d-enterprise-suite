@@ -3,7 +3,10 @@
 import { usePathname, useRouter } from "next/navigation";
 import { getPreferredMobileBackPathname } from "./dashboardNavigationPaths";
 import {
+  isServiceBookDetailPath,
+  isServiceCategoryDetailPath,
   resolveMobileNavbarLeft,
+  resolveMobileNavbarPrimaryAction,
   resolveOverflowMenuItems,
 } from "./navbarConfig";
 import { useMobileNavMenu } from "./MobileNavMenu";
@@ -17,6 +20,8 @@ import {
   HiCreditCard,
   HiPlus,
   HiUserPlus,
+  HiBookOpen,
+  HiFolderPlus,
 } from "react-icons/hi2";
 import ActionMenu, { type ActionMenuItem } from "@/components/ui/ActionMenu";
 import { useJobNavbarActions } from "./JobNavbarActionsContext";
@@ -34,6 +39,9 @@ function navbarTitleForPathname(pathname: string): string {
   if (p.startsWith("/customers/")) return "Customer";
   if (p === "/inbox" || p.startsWith("/inbox/")) return "Inbox";
   if (p === "/job" || p.startsWith("/job/")) return "Job";
+  if (p === "/services") return "Services";
+  if (isServiceBookDetailPath(p)) return "Servicebook";
+  if (isServiceCategoryDetailPath(p)) return "Category";
   return "Duct Daddy";
 }
 
@@ -43,6 +51,7 @@ export default function Navbar() {
   const { openMenu } = useMobileNavMenu();
   const { jobInvoiceDisabled, jobPaymentDisabled } = useJobNavbarActions();
   const left = resolveMobileNavbarLeft(pathname);
+  const primaryAction = resolveMobileNavbarPrimaryAction(pathname);
 
   const overflowItems: ActionMenuItem[] = resolveOverflowMenuItems(pathname).map((d) => {
     const icon =
@@ -50,7 +59,11 @@ export default function Navbar() {
         ? HiPlus
         : d.icon === "createCustomer"
           ? HiUserPlus
-          : d.icon === "sendInvoice"
+          : d.icon === "createServiceBook"
+            ? HiBookOpen
+            : d.icon === "createCategory"
+              ? HiFolderPlus
+            : d.icon === "sendInvoice"
           ? HiArrowUpOnSquare
           : d.icon === "requestPayment"
             ? HiCreditCard
@@ -79,6 +92,10 @@ export default function Navbar() {
           router.replace(`${pathname}?newJob=1`);
         } else if (d.action === "createCustomer") {
           router.replace(`${pathname}?newCustomer=1`);
+        } else if (d.action === "createServiceBook") {
+          router.replace(`${pathname}?newServiceBook=1`);
+        } else if (d.action === "createCategory") {
+          router.replace(`${pathname}?newCategory=1`);
         } else {
           router.replace(`${pathname}?action=${encodeURIComponent(d.action)}`);
         }
@@ -94,6 +111,10 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => {
+                if (isServiceBookDetailPath(pathname)) {
+                  router.push(left.href);
+                  return;
+                }
                 const preferred = getPreferredMobileBackPathname(pathname);
                 if (preferred) {
                   router.push(preferred);
@@ -127,7 +148,24 @@ export default function Navbar() {
           </h1>
         </div>
         <div className="flex items-center justify-end">
-          {overflowItems.length > 0 ? (
+          {primaryAction ? (
+            <button
+              type="button"
+              aria-label={primaryAction.ariaLabel}
+              className="flex items-center justify-center -mr-2 p-1 rounded-md cursor-pointer text-neutral-100 hover:bg-white/10"
+              onClick={() => {
+                if (primaryAction.action === "createServiceBook") {
+                  router.replace(`${pathname}?newServiceBook=1`);
+                } else if (primaryAction.action === "createCategory") {
+                  router.replace(`${pathname}?newCategory=1`);
+                } else if (primaryAction.action === "createService") {
+                  router.replace(`${pathname}?newService=1`);
+                }
+              }}
+            >
+              <HiPlus className="size-8" aria-hidden />
+            </button>
+          ) : overflowItems.length > 0 ? (
             <ActionMenu
               align="right"
               triggerLabel="Open menu"

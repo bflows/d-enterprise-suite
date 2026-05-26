@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -8,7 +8,7 @@ import type { RootState } from "@/app/store";
 import { selectCurrentCompanyId } from "@/features/auth/authSlice";
 import { getServiceBooks, createCategory, updateCategory, deleteCategory, type ServiceBookItem, type ServiceBookCategoryItem } from "@/lib/api/service";
 import { slugify } from "@/lib/utils/slug";
-import { LuFolderPlus, LuEllipsisVertical, LuExternalLink, LuPencil, LuTrash2 } from "react-icons/lu";
+import { LuFolderPlus, LuEllipsisVertical, LuExternalLink, LuPencil, LuTrash2, LuALargeSmall } from "react-icons/lu";
 import Modal from "@/components/ui/Modal";
 import ActionMenu from "@/components/ui/ActionMenu";
 
@@ -24,6 +24,7 @@ function getSlugForCategory(name: string): string {
 export default function ServiceBookPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const slug = typeof params?.slug === "string" ? params.slug : "";
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
   const [serviceBook, setServiceBook] = useState<ServiceBookItem | null>(null);
@@ -88,6 +89,16 @@ export default function ServiceBookPage() {
     };
   }, [companyId, slug]);
 
+  useEffect(() => {
+    if (searchParams.get("newCategory") !== "1") return;
+    queueMicrotask(() => {
+      setCategoryName("");
+      setCreateCategoryError(null);
+      setCreateCategoryOpen(true);
+      router.replace(`/services/${slug}`, { scroll: false });
+    });
+  }, [searchParams, router, slug]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center">
@@ -115,14 +126,14 @@ export default function ServiceBookPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
         <h1 className="text-neutral-900 text-h4 font-bold">
           {name}
         </h1>
 
         <button
           onClick={() => setCreateCategoryOpen(true)}
-          className="bg-primary text-neutral-200 text-p font-bold py-3 px-4 rounded-lg flex items-center gap-x-2 cursor-pointer transition-colors hover:bg-primary/90 hover:text-neutral-50"
+          className="bg-primary text-neutral-200 hidden mt-4 sm:mt-0 text-p font-bold py-3 px-4 rounded-lg sm:flex items-center gap-x-2 cursor-pointer transition-colors hover:bg-primary/90 hover:text-neutral-50"
         >
           <div>
             <LuFolderPlus className="size-6" />
@@ -138,9 +149,9 @@ export default function ServiceBookPage() {
           setCategoryName("");
           setCreateCategoryError(null);
         }}
-        title="Create Category"
+        title="New Category"
         primaryAction={{
-          label: createCategoryLoading ? "Creating..." : "Create",
+          label: createCategoryLoading ? "Creating..." : "Create Category",
           disabled: !categoryName.trim() || createCategoryLoading,
           onClick: async () => {
             const name = categoryName.trim();
@@ -198,12 +209,10 @@ export default function ServiceBookPage() {
             </p>
           )}
           <div>
-            <label
-              htmlFor="category-name"
-              className="block text-sm font-medium text-neutral-800 mb-1"
-            >
-              Name
-            </label>
+            <div className="flex items-center gap-x-2">
+              <LuALargeSmall className="size-6" />
+              <label htmlFor="service-book-title" className="text-neutral-800">Name</label>
+            </div>
             <input
               id="category-name"
               type="text"
@@ -283,9 +292,9 @@ export default function ServiceBookPage() {
             setEditCategoryError(null);
           }
         }}
-        title="Edit Category"
+        title="Update Category"
         primaryAction={{
-          label: editCategoryLoading ? "Saving…" : "Save",
+          label: editCategoryLoading ? "Updating..." : "Save Category",
           disabled: !editCategoryName.trim() || editCategoryLoading,
           onClick: async () => {
             const name = editCategoryName.trim();
@@ -341,12 +350,10 @@ export default function ServiceBookPage() {
             </p>
           )}
           <div>
-            <label
-              htmlFor="edit-category-name"
-              className="block text-sm font-medium text-neutral-800 mb-1"
-            >
-              Name
-            </label>
+            <div className="flex items-center gap-x-2">
+              <LuALargeSmall className="size-6" />
+              <label htmlFor="service-book-title" className="text-neutral-800">Name</label>
+            </div>
             <input
               id="edit-category-name"
               type="text"
@@ -370,9 +377,9 @@ export default function ServiceBookPage() {
             setDeleteCategoryError(null);
           }
         }}
-        title="Delete Category"
+        title="Remove Category"
         primaryAction={{
-          label: deleteCategoryLoading ? "Deleting…" : "Delete",
+          label: deleteCategoryLoading ? "Deleting..." : "Delete Category",
           disabled: deleteCategoryLoading,
           onClick: async () => {
             if (!categoryToDelete) return;
