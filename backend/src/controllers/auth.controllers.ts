@@ -10,6 +10,7 @@ import {
   type RefreshTokenPayload
 } from "../services/token.service";
 import { ROLE_SLUGS } from "../constants/roles";
+import { getRefreshCookieOptions } from "../lib/refreshCookie";
 
 // interface RegisterUserType {
 //   email: string;
@@ -208,13 +209,7 @@ export const loginUser = async (req: Request<{}, {}, LoginUserType>, res: Respon
       data: { refreshTokenHash: tokenHash }
     });
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/api/auth',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
 
     const accessToken = generateAccessToken(user.id, companyId, session.id);
 
@@ -332,13 +327,7 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       data: { revokedAt: new Date() }
     });
 
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/api/auth',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', newRefreshToken, getRefreshCookieOptions());
 
     const accessToken = generateAccessToken(session.userId, companyId, newSession.id);
 
@@ -457,12 +446,7 @@ export const logoutUser = async (req: Request, res: Response) => {
       }
     }
 
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/api/auth',
-    });
+    res.clearCookie('refreshToken', getRefreshCookieOptions());
 
     return res.status(200).json({
       success: true,

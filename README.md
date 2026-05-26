@@ -94,6 +94,14 @@ NEXT_PUBLIC_API_URL="http://localhost:5000"
 
 Use your actual backend URL in production.
 
+**Production auth (stay signed in after refresh):** The refresh token is an httpOnly cookie. If the browser talks to the API on a **different domain** than the Next.js app (e.g. Vercel + Railway), cookies often fail on reload. Prefer the built-in proxy:
+
+1. **Frontend (e.g. Vercel):** Set `API_PROXY_URL` to your backend URL (e.g. `https://your-api.railway.app`). **Do not** set `NEXT_PUBLIC_API_URL` in production (the app will call same-origin `/api/*`, proxied to the backend).
+2. **Backend:** Set `FRONTEND_URL` to your live frontend URL exactly (scheme + host, no trailing slash), e.g. `https://your-app.vercel.app`.
+3. Redeploy the frontend after changing env vars (`NEXT_PUBLIC_*` is baked in at build time).
+
+If you must call the API host directly from the browser, set `COOKIE_CROSS_SITE=false` only when frontend and API share a site; otherwise leave production defaults (`SameSite=None; Secure` on the refresh cookie). Override with `REFRESH_COOKIE_SAME_SITE` if needed.
+
 ### 3. Database
 
 From the repo root:
@@ -172,7 +180,11 @@ d-enterprise-suite/
 | `JWT_REFRESH_SECRET` | Backend | Yes      | Secret for refresh tokens  |
 | `REFRESH_EXPIRY_DAYS`| Backend | No       | Refresh token TTL in days (default `14`) |
 | `FRONTEND_URL`       | Backend | No       | CORS origin (default `http://localhost:3000`) |
-| `NEXT_PUBLIC_API_URL`| Frontend| No       | API base URL (default `http://localhost:5000`) |
+| `API_PROXY_URL`      | Frontend| No       | Backend URL for Next.js `/api/*` rewrites (production) |
+| `API_URL`            | Frontend| No       | Server-side API URL fallback for rewrites / SSR |
+| `NEXT_PUBLIC_API_URL`| Frontend| No       | Direct API URL in the browser (dev default `http://localhost:5000`; omit in prod to use proxy) |
+| `COOKIE_CROSS_SITE`  | Backend | No       | Set `false` to force `SameSite=Lax` in production |
+| `REFRESH_COOKIE_SAME_SITE` | Backend | No | Override refresh cookie SameSite (`lax`, `none`, `strict`) |
 
 Do not commit real secrets. Use a secret manager or team-shared env templates for private deployment.
 
