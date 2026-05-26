@@ -1,10 +1,8 @@
 import axios, { type AxiosInstance } from "axios";
 import { getAccessToken, setAccessToken, clearAccessToken } from "@/lib/auth/tokenStore";
+import { resolveApiBaseUrl } from "@/lib/api/baseUrl";
 
-const baseURL =
-  typeof window !== "undefined"
-    ? (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000")
-    : "";
+const baseURL = resolveApiBaseUrl();
 
 /** Axios instance for auth endpoints only. No Bearer token, no 401 retry. Used for login, register, refresh, logout. */
 export const authClient: AxiosInstance = axios.create({
