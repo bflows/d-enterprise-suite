@@ -17,6 +17,7 @@ import {
   HiCreditCard,
   HiPlus,
   HiUserPlus,
+  HiBookOpen,
 } from "react-icons/hi2";
 import ActionMenu, { type ActionMenuItem } from "@/components/ui/ActionMenu";
 import { useJobNavbarActions } from "./JobNavbarActionsContext";
@@ -34,6 +35,7 @@ function navbarTitleForPathname(pathname: string): string {
   if (p.startsWith("/customers/")) return "Customer";
   if (p === "/inbox" || p.startsWith("/inbox/")) return "Inbox";
   if (p === "/job" || p.startsWith("/job/")) return "Job";
+  if (p === "/services") return "Services";
   return "Duct Daddy";
 }
 
@@ -50,7 +52,9 @@ export default function Navbar() {
         ? HiPlus
         : d.icon === "createCustomer"
           ? HiUserPlus
-          : d.icon === "sendInvoice"
+          : d.icon === "createServiceBook"
+            ? HiBookOpen
+            : d.icon === "sendInvoice"
           ? HiArrowUpOnSquare
           : d.icon === "requestPayment"
             ? HiCreditCard
@@ -79,6 +83,8 @@ export default function Navbar() {
           router.replace(`${pathname}?newJob=1`);
         } else if (d.action === "createCustomer") {
           router.replace(`${pathname}?newCustomer=1`);
+        } else if (d.action === "createServiceBook") {
+          router.replace(`${pathname}?newServiceBook=1`);
         } else {
           router.replace(`${pathname}?action=${encodeURIComponent(d.action)}`);
         }

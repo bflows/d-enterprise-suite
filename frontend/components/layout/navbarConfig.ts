@@ -17,7 +17,8 @@ export type OverflowMenuItemDescriptor = {
     | "updateCustomer"
     | "removeCustomer"
     | "createJob"
-    | "createCustomer";
+    | "createCustomer"
+    | "createServiceBook";
 } & (
   | { href: string; action?: never }
   | {
@@ -29,7 +30,8 @@ export type OverflowMenuItemDescriptor = {
         | "updateCustomer"
         | "removeCustomer"
         | "createJob"
-        | "createCustomer";
+        | "createCustomer"
+        | "createServiceBook";
       href?: never;
     }
 );
@@ -112,6 +114,16 @@ const HUB_NEW_JOB_CUSTOMER_PATHS = new Set([
 
 export function resolveOverflowMenuItems(pathname: string): OverflowMenuItemDescriptor[] {
   const path = normalizePathname(pathname);
+
+  if (path === "/services") {
+    return [
+      {
+        label: "Create Servicebook",
+        icon: "createServiceBook",
+        action: "createServiceBook",
+      },
+    ];
+  }
 
   if (HUB_NEW_JOB_CUSTOMER_PATHS.has(path)) {
     return [

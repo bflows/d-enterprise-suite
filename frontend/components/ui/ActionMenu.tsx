@@ -88,7 +88,7 @@ export default function ActionMenu({
       {open && (
         <div
           role="menu"
-          className={`${alignClass} z-50 mt-2 absolute min-w-48 rounded-lg px-2 py-1.5 shadow-lg border border-neutral-300 bg-neutral-50`}
+          className={`${alignClass} z-50 mt-2 absolute min-w-60 rounded-lg px-2 py-1.5 shadow-lg border border-neutral-300 bg-neutral-50`}
         >
           <div className="flex flex-col gap-y-1">
             {items.map((item, index) =>

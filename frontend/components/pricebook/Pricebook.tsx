@@ -1,8 +1,8 @@
 "use client";
 
-import { LuBookPlus, LuEllipsisVertical, LuPencil, LuTrash2, LuExternalLink } from "react-icons/lu";
+import { LuBookPlus, LuEllipsisVertical, LuPencil, LuTrash2, LuExternalLink, LuALargeSmall } from "react-icons/lu";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Modal from "../ui/Modal";
 import ActionMenu from "../ui/ActionMenu";
 import { useState, useEffect } from "react";
@@ -15,6 +15,7 @@ import { slugify } from "@/lib/utils/slug";
 export default function Pricebook() {
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [serviceBooks, setServiceBooks] = useState<ServiceBookItem[]>([]);
   const [loadingBooks, setLoadingBooks] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -54,6 +55,16 @@ export default function Pricebook() {
       cancelled = true;
     };
   }, [companyId]);
+
+  useEffect(() => {
+    if (searchParams.get("newServiceBook") !== "1") return;
+    queueMicrotask(() => {
+      setTitle("");
+      setError(null);
+      setIsOpen(true);
+      router.replace("/services", { scroll: false });
+    });
+  }, [searchParams, router]);
 
   const handleOpen = () => {
     setTitle("");
@@ -106,18 +117,19 @@ export default function Pricebook() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-neutral-900 text-h4 font-bold">Services</h1>
-
+      <div className="hidden sm:flex items-end justify-between">
+        <h1 className="text-neutral-900 text-h4 font-bold">
+          Services
+        </h1>
         <button
           type="button"
           onClick={handleOpen}
           className="bg-primary text-neutral-200 text-p font-bold py-3 px-4 rounded-lg flex items-center gap-x-2 cursor-pointer transition-colors hover:bg-primary/90 hover:text-neutral-50"
         >
           <div>
-            <LuBookPlus className="size-6" />
+            <LuBookPlus className="size-6.5" />
           </div>
-          New Service Book
+          Create Servicebook
         </button>
       </div>
 
@@ -126,19 +138,22 @@ export default function Pricebook() {
         onClose={handleClose}
         title="New Service Book"
         primaryAction={{
-          label: loading ? "Creating…" : "Confirm",
+          label: loading ? "Creating…" : "Create Servicebook",
           onClick: handleConfirm,
           disabled: loading,
         }}
       >
         <div className="flex flex-col">
-          <label htmlFor="service-book-title">Title</label>
+          <div className="flex items-center gap-x-2">
+            <LuALargeSmall className="size-6" />
+            <label htmlFor="service-book-title" className="text-neutral-800">Title</label>
+          </div>
           <input
             type="text"
             id="service-book-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="E.g. HVAC, Air Duct Cleaning, Plumbing"
+            placeholder="Air Duct Cleaning"
             className="bg-neutral-50 text-neutral-800 text-p px-4 py-2 mt-1 rounded-lg border border-neutral-400 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary"
             disabled={loading}
           />
@@ -283,7 +298,7 @@ export default function Pricebook() {
       >
         <div className="flex flex-col gap-2">
           <p className="text-neutral-800 text-p">
-            Are you sure you want to delete &quot;{bookToDelete?.name ?? "Untitled"}&quot;? This action cannot be undone.
+            Are you sure you want to delete <strong>{bookToDelete?.name ?? "Untitled"}</strong>? This action cannot be undone.
           </p>
           {deleteError && (
             <p className="text-sm text-red-600" role="alert">
@@ -293,7 +308,7 @@ export default function Pricebook() {
         </div>
       </Modal>
 
-      <div className="mt-4">
+      <div className="sm:mt-4">
         {loadingBooks ? (
           <div className="flex flex-col items-center justify-center">
             <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
@@ -302,7 +317,7 @@ export default function Pricebook() {
         ) : serviceBooks.length === 0 ? (
           <p className="text-neutral-600 text-p">No service books yet. Create one to get started.</p>
         ) : (
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {serviceBooks.map((book) => {
               const name = book.name ?? "Untitled";
               const slug = name ? slugify(name) : book.id;
