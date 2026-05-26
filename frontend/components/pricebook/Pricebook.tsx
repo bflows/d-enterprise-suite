@@ -138,7 +138,7 @@ export default function Pricebook() {
         onClose={handleClose}
         title="New Service Book"
         primaryAction={{
-          label: loading ? "Creating…" : "Create Servicebook",
+          label: loading ? "Creating..." : "Create Servicebook",
           onClick: handleConfirm,
           disabled: loading,
         }}
@@ -177,7 +177,7 @@ export default function Pricebook() {
         }}
         title="Edit Service Book"
         primaryAction={{
-          label: editLoading ? "Saving…" : "Save",
+          label: editLoading ? "Updating..." : "Update Servicebook",
           disabled: !editName.trim() || editLoading,
           onClick: async () => {
             const trimmed = editName.trim();
@@ -239,12 +239,10 @@ export default function Pricebook() {
             </p>
           )}
           <div>
-            <label
-              htmlFor="edit-service-book-name"
-              className="block text-sm font-medium text-neutral-800 mb-1"
-            >
-              Name
-            </label>
+            <div className="flex items-center gap-x-2">
+              <LuALargeSmall className="size-6" />
+              <label htmlFor="service-book-title" className="text-neutral-800">Name</label>
+            </div>
             <input
               id="edit-service-book-name"
               type="text"
@@ -270,7 +268,7 @@ export default function Pricebook() {
         }}
         title="Delete Service Book"
         primaryAction={{
-          label: deleteLoading ? "Deleting…" : "Delete",
+          label: deleteLoading ? "Deleting..." : "Delete Servicebook",
           disabled: deleteLoading,
           onClick: async () => {
             if (!bookToDelete?.id || !companyId) return;

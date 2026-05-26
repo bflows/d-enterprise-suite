@@ -18,7 +18,8 @@ export type OverflowMenuItemDescriptor = {
     | "removeCustomer"
     | "createJob"
     | "createCustomer"
-    | "createServiceBook";
+    | "createServiceBook"
+    | "createCategory";
 } & (
   | { href: string; action?: never }
   | {
@@ -31,7 +32,8 @@ export type OverflowMenuItemDescriptor = {
         | "removeCustomer"
         | "createJob"
         | "createCustomer"
-        | "createServiceBook";
+        | "createServiceBook"
+        | "createCategory";
       href?: never;
     }
 );
@@ -82,6 +84,11 @@ function isCustomerDetailPath(path: string): boolean {
   return /^\/customers\/[^/]+$/.test(path);
 }
 
+/** Service book detail: /services/{slug} (not list or category item pages). */
+export function isServiceBookDetailPath(path: string): boolean {
+  return /^\/services\/[^/]+$/.test(path);
+}
+
 export function resolveMobileNavbarLeft(pathname: string): MobileNavbarLeftSlot {
   const path = normalizePathname(pathname);
 
@@ -121,6 +128,16 @@ export function resolveOverflowMenuItems(pathname: string): OverflowMenuItemDesc
         label: "Create Servicebook",
         icon: "createServiceBook",
         action: "createServiceBook",
+      },
+    ];
+  }
+
+  if (isServiceBookDetailPath(path)) {
+    return [
+      {
+        label: "Create Category",
+        icon: "createCategory",
+        action: "createCategory",
       },
     ];
   }

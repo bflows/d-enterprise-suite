@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { getPreferredMobileBackPathname } from "./dashboardNavigationPaths";
 import {
+  isServiceBookDetailPath,
   resolveMobileNavbarLeft,
   resolveOverflowMenuItems,
 } from "./navbarConfig";
@@ -18,6 +19,7 @@ import {
   HiPlus,
   HiUserPlus,
   HiBookOpen,
+  HiFolderPlus,
 } from "react-icons/hi2";
 import ActionMenu, { type ActionMenuItem } from "@/components/ui/ActionMenu";
 import { useJobNavbarActions } from "./JobNavbarActionsContext";
@@ -36,6 +38,7 @@ function navbarTitleForPathname(pathname: string): string {
   if (p === "/inbox" || p.startsWith("/inbox/")) return "Inbox";
   if (p === "/job" || p.startsWith("/job/")) return "Job";
   if (p === "/services") return "Services";
+  if (isServiceBookDetailPath(p)) return "Servicebook";
   return "Duct Daddy";
 }
 
@@ -54,6 +57,8 @@ export default function Navbar() {
           ? HiUserPlus
           : d.icon === "createServiceBook"
             ? HiBookOpen
+            : d.icon === "createCategory"
+              ? HiFolderPlus
             : d.icon === "sendInvoice"
           ? HiArrowUpOnSquare
           : d.icon === "requestPayment"
@@ -85,6 +90,8 @@ export default function Navbar() {
           router.replace(`${pathname}?newCustomer=1`);
         } else if (d.action === "createServiceBook") {
           router.replace(`${pathname}?newServiceBook=1`);
+        } else if (d.action === "createCategory") {
+          router.replace(`${pathname}?newCategory=1`);
         } else {
           router.replace(`${pathname}?action=${encodeURIComponent(d.action)}`);
         }
