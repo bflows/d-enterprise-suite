@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import type { UploadApiResponse } from "cloudinary";
 import type { JobActivityType, JobPhotoSource, JobStatusType } from "../../generated/prisma/client";
+import { isSchedulableRoleSlug } from "../constants/roles";
 import { prisma } from "../lib/prisma";
 import { cloudinary } from "../lib/cloudinary";
 import { getStripe } from "../lib/stripe";
@@ -292,6 +293,24 @@ export const createJob = async (
     }
     const endTime = addMinutesToDateTime(startTime, totalMinutes);
 
+    const assignee = await prisma.employee.findFirst({
+      where: { id: technicianId, companyId },
+      select: { roleSlug: true },
+    });
+    if (!assignee) {
+      return res.status(400).json({
+        success: false,
+        message: "Technician not found or does not belong to this company.",
+      });
+    }
+    if (!isSchedulableRoleSlug(assignee.roleSlug)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Only employees with the technician or admin role can be assigned to jobs.",
+      });
+    }
+
     const mappedStatus = statusFromBody !== undefined ? STATUS_MAP[statusFromBody] : undefined;
     const status: JobStatusType = mappedStatus ?? "SCHEDULED";
 
@@ -432,11 +451,19 @@ export const updateJob = async (
     if (body.technicianId !== undefined) {
       const technician = await prisma.employee.findFirst({
         where: { id: body.technicianId, companyId },
+        select: { roleSlug: true },
       });
       if (!technician) {
         return res.status(400).json({
           success: false,
           message: "Technician not found or does not belong to this company.",
+        });
+      }
+      if (!isSchedulableRoleSlug(technician.roleSlug)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Only employees with the technician or admin role can be assigned to jobs.",
         });
       }
       data.technicianId = body.technicianId;
