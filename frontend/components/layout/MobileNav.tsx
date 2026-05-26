@@ -33,8 +33,8 @@ export default function DashboardMobileNav() {
   const pathname = usePathname() ?? "";
 
   return (
-    <div className="bg-neutral-50 h-20 shrink-0 px-6 bottom-0 sticky border-t border-neutral-400 sm:hidden">
-      <div className="flex items-center justify-evenly h-full">
+    <div className="bg-neutral-50 shrink-0 px-6 border-t border-neutral-400 pb-[env(safe-area-inset-bottom,0px)] sm:hidden">
+      <div className="flex items-center justify-evenly h-20">
         {MOBILE_TAB_ITEMS.map(({ href, label, Outline, Solid }) => {
           const active = isDashboardNavLinkActive(pathname, href);
           const Icon = active ? Solid : Outline;
