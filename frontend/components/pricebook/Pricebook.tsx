@@ -136,7 +136,7 @@ export default function Pricebook() {
       <Modal
         isOpen={isOpen}
         onClose={handleClose}
-        title="New Service Book"
+        title="New Servicebook"
         primaryAction={{
           label: loading ? "Creating..." : "Create Servicebook",
           onClick: handleConfirm,
@@ -175,9 +175,9 @@ export default function Pricebook() {
             setEditError(null);
           }
         }}
-        title="Edit Service Book"
+        title="Update Servicebook"
         primaryAction={{
-          label: editLoading ? "Updating..." : "Update Servicebook",
+          label: editLoading ? "Updating..." : "Save Servicebook",
           disabled: !editName.trim() || editLoading,
           onClick: async () => {
             const trimmed = editName.trim();
@@ -266,7 +266,7 @@ export default function Pricebook() {
             setDeleteError(null);
           }
         }}
-        title="Delete Service Book"
+        title="Remove Servicebook"
         primaryAction={{
           label: deleteLoading ? "Deleting..." : "Delete Servicebook",
           disabled: deleteLoading,

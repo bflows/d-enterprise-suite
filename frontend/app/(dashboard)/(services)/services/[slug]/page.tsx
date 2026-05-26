@@ -149,7 +149,7 @@ export default function ServiceBookPage() {
           setCategoryName("");
           setCreateCategoryError(null);
         }}
-        title="Create Category"
+        title="New Category"
         primaryAction={{
           label: createCategoryLoading ? "Creating..." : "Create Category",
           disabled: !categoryName.trim() || createCategoryLoading,
@@ -292,9 +292,9 @@ export default function ServiceBookPage() {
             setEditCategoryError(null);
           }
         }}
-        title="Edit Category"
+        title="Update Category"
         primaryAction={{
-          label: editCategoryLoading ? "Updating..." : "Update Category",
+          label: editCategoryLoading ? "Updating..." : "Save Category",
           disabled: !editCategoryName.trim() || editCategoryLoading,
           onClick: async () => {
             const name = editCategoryName.trim();
@@ -377,7 +377,7 @@ export default function ServiceBookPage() {
             setDeleteCategoryError(null);
           }
         }}
-        title="Delete Category"
+        title="Remove Category"
         primaryAction={{
           label: deleteCategoryLoading ? "Deleting..." : "Delete Category",
           disabled: deleteCategoryLoading,

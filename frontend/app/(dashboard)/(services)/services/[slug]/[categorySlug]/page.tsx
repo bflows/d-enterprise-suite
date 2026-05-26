@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -41,6 +41,8 @@ function formatDuration(duration: number): string {
 
 export default function ServiceCategoryPage() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const slug = typeof params?.slug === "string" ? params.slug : "";
   const categorySlug = typeof params?.categorySlug === "string" ? params.categorySlug : "";
   const companyId = useSelector((state: RootState) => selectCurrentCompanyId(state));
@@ -133,6 +135,21 @@ export default function ServiceCategoryPage() {
       cancelled = true;
     };
   }, [category?.id]);
+
+  useEffect(() => {
+    if (searchParams.get("newService") !== "1") return;
+    queueMicrotask(() => {
+      setFormType("SERVICE");
+      setFormTitle("");
+      setFormDescription("");
+      setFormPrice("");
+      setFormDuration("");
+      setFormUnit("0");
+      setCreateError(null);
+      setCreateServiceOpen(true);
+      router.replace(`/services/${slug}/${categorySlug}`, { scroll: false });
+    });
+  }, [searchParams, router, slug, categorySlug]);
 
   const refetchServiceItems = () => {
     if (!category?.id) return;
@@ -234,7 +251,7 @@ export default function ServiceCategoryPage() {
 
   return (
     <div>
-      <nav className="mb-4">
+      <nav className="hidden sm:block sm:mb-4">
         <Link
           href={`/services/${slug}`}
           className="text-primary text-p flex items-center gap-x-3 w-fit py-3 px-4 rounded-lg transition-colors hover:text-neutral-50 hover:bg-primary"
@@ -245,14 +262,14 @@ export default function ServiceCategoryPage() {
           {serviceName}
         </Link>
       </nav>
-      <div className="flex items-center justify-between">
+      <div className="flex items-end justify-between">
         <h1 className="text-neutral-900 text-h4 font-bold">
           {category.name}
         </h1>
         <button
           type="button"
           onClick={() => setCreateServiceOpen(true)}
-          className="bg-primary text-neutral-200 text-p font-bold py-3 px-4 rounded-lg flex items-center gap-x-2 cursor-pointer transition-colors hover:bg-primary/90 hover:text-neutral-50"
+          className="bg-primary text-neutral-200 hidden text-p font-bold py-3 px-4 rounded-lg sm:flex items-center gap-x-2 cursor-pointer transition-colors hover:bg-primary/90 hover:text-neutral-50"
         >
           <div>
             <LuPlus className="size-6" />
@@ -330,7 +347,7 @@ export default function ServiceCategoryPage() {
                   className="flex items-start gap-x-2 rounded-lg p-4 border border-neutral-300 bg-neutral-50 transition-colors hover:border-primary"
                 >
                   <div className="min-w-0 flex-1">
-                    <h2 className="text-h6 font-bold text-neutral-900 truncate">
+                    <h2 className="text-h6 font-bold text-neutral-900">
                       {item.title} ({formatDuration(item.duration)})
                     </h2>
                     <p className="text-p text-neutral-800 mt-2">
@@ -368,9 +385,9 @@ export default function ServiceCategoryPage() {
           setFormUnit("1");
           setCreateError(null);
         }}
-        title="Create Service"
+        title="New Service"
         primaryAction={{
-          label: "Create",
+          label: "Create Service",
           disabled: !canSubmit,
           onClick: async () => {
             if (!companyId || !category.id) return;
@@ -588,9 +605,9 @@ export default function ServiceCategoryPage() {
             setEditError(null);
           }
         }}
-        title="Edit Service Item"
+        title="Update Service"
         primaryAction={{
-          label: editLoading ? "Saving…" : "Save",
+          label: editLoading ? "Saving..." : "Save Service",
           disabled: !canSaveEdit,
           onClick: async () => {
             if (!editingItem || !category?.id) return;
@@ -754,9 +771,9 @@ export default function ServiceCategoryPage() {
           }
         }}
         closeOnBackdropClick={true}
-        title="Delete Service Item"
+        title="Remove Service"
         primaryAction={{
-          label: deleteLoading ? "Deleting…" : "Delete",
+          label: deleteLoading ? "Deleting..." : "Delete Service",
           disabled: deleteLoading,
           onClick: async () => {
             if (!itemToDelete) return;
