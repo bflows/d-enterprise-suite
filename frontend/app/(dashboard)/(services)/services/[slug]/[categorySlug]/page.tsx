@@ -522,28 +522,34 @@ export default function ServiceCategoryPage() {
               id="service-description"
               value={formDescription}
               onChange={(e) => setFormDescription(e.target.value)}
+              rows={3}
               placeholder="Description"
               className="w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
             <label htmlFor="service-price" className="block text-sm font-medium text-neutral-800 mb-1">
-              Price (USD, whole dollars)
+              Price
             </label>
-            <input
-              id="service-price"
-              type="number"
-              min={0}
-              step={1}
-              value={formPrice}
-              onChange={(e) => setFormPrice(e.target.value)}
-              placeholder="0"
-              className="w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+            <div className="relative">
+              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+                $
+              </span>
+              <input
+                id="service-price"
+                type="number"
+                min={0}
+                step={1}
+                value={formPrice}
+                onChange={(e) => setFormPrice(e.target.value)}
+                placeholder="0"
+                className="w-full rounded-lg border border-neutral-400 bg-neutral-50 py-2 pl-7 pr-3 text-neutral-800 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="service-duration" className="block text-sm font-medium text-neutral-800 mb-1">
-              Duration
+              Duration (minutes)
             </label>
             <input
               id="service-duration"
@@ -718,24 +724,30 @@ export default function ServiceCategoryPage() {
               id="edit-service-description"
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
+              rows={3}
               placeholder="Description"
               className="w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
-            <label htmlFor="edit-service-price" className="block text-sm font-medium text-neutral-800 mb-1">Price (USD, whole dollars)</label>
-            <input
-              id="edit-service-price"
-              type="number"
-              min={0}
-              step={1}
-              value={editPrice}
-              onChange={(e) => setEditPrice(e.target.value)}
-              className="w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 py-2 text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+            <label htmlFor="edit-service-price" className="block text-sm font-medium text-neutral-800 mb-1">Price</label>
+            <div className="relative">
+              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500">
+                $
+              </span>
+              <input
+                id="edit-service-price"
+                type="number"
+                min={0}
+                step={1}
+                value={editPrice}
+                onChange={(e) => setEditPrice(e.target.value)}
+                className="w-full rounded-lg border border-neutral-400 bg-neutral-50 py-2 pl-7 pr-3 text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
           </div>
           <div>
-            <label htmlFor="edit-service-duration" className="block text-sm font-medium text-neutral-800 mb-1">Duration</label>
+            <label htmlFor="edit-service-duration" className="block text-sm font-medium text-neutral-800 mb-1">Duration (minutes)</label>
             <input
               id="edit-service-duration"
               type="number"
