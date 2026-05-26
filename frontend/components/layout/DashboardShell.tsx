@@ -51,16 +51,43 @@ export default function DashboardShell({
     }
   }, [dispatch, user?.role, currentCompany]);
 
+  // Lock document scroll on mobile so only <main> scrolls (iOS Chrome treats 100vh as taller than the visible viewport).
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const apply = () => {
+      if (mq.matches) {
+        document.documentElement.style.overflow = "hidden";
+        document.documentElement.style.height = "100%";
+        document.body.style.overflow = "hidden";
+        document.body.style.height = "100%";
+      } else {
+        document.documentElement.style.overflow = "";
+        document.documentElement.style.height = "";
+        document.body.style.overflow = "";
+        document.body.style.height = "";
+      }
+    };
+    apply();
+    mq.addEventListener("change", apply);
+    return () => {
+      mq.removeEventListener("change", apply);
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
+      document.body.style.overflow = "";
+      document.body.style.height = "";
+    };
+  }, []);
+
   return (
     <RequireAuth>
       <DashboardNavigationTracker />
       <MobileNavMenuProvider>
         <JobNavbarActionsProvider>
-          <div className="bg-neutral-100 flex flex-col sm:flex-row h-screen overflow-hidden">
+          <div className="bg-neutral-100 fixed inset-0 z-0 flex flex-col overflow-hidden sm:static sm:inset-auto sm:h-dvh sm:flex-row">
             <Navbar />
             <Sidebar />
-            <main className="flex-1 min-h-0 overflow-y-auto">
-              <div className="max-w-7xl min-h-full mx-auto px-6 py-6 scroll-pt-6">
+            <main className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain touch-pan-y">
+              <div className="max-w-7xl mx-auto px-6 py-6 scroll-pt-6">
                 {children}
               </div>
             </main>

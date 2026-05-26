@@ -87,8 +87,8 @@ export default function Navbar() {
   });
 
   return (
-    <nav className="z-40 bg-primary h-16 shrink-0 px-6 top-0 sticky sm:hidden">
-      <div className="flex items-center justify-between h-full">
+    <nav className="z-40 bg-primary shrink-0 px-6 pt-[env(safe-area-inset-top,0px)] sm:hidden">
+      <div className="flex items-center justify-between h-16">
         <div className="flex items-center justify-start">
           {left.kind === "back" ? (
             <button
