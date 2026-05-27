@@ -182,7 +182,7 @@ export async function sendJob24hReminderCustomerSms(job: JobConfirmationEmailPay
 function buildJobEnRouteSmsBody(job: JobConfirmationEmailPayload): string {
   const customerFirst = job.customer.firstName.trim();
   const techName =
-    `${job.technician.user.firstName} ${job.technician.user.lastName}`.trim();
+    `${job.technician.user.firstName}`.trim();
   return `Hi ${customerFirst}, this is ${techName} with ${job.company.name}. I'm on the way now and will see you shortly.`;
 }
 
