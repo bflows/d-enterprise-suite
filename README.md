@@ -1,194 +1,355 @@
-# D Enterprise Suite
 
-Full-stack monorepo for the **Enterprise Suite MVP**: a faster, simpler replacement for Housecall Pro that office staff can use while on calls and technicians can use in the field, with a data model ready for multiple companies and trades later.
 
----
+<p align="center">
+  <a href="https://www.builtbydaddy.com/"><img src="docs/assets/logo.png" alt="D Enterprise Suite logo" width="96" /></a>
+</p>
 
-## Overview
+<h1 align="center">D Enterprise Suite</h1>
 
-**Core goal:** Replace Housecall Pro with a single system where office can dispatch and invoice quickly, and techs can manage jobs, update status, capture signatures, and sync in near real time — while the foundation supports multiple companies under one parent org (e.g. Duct Daddy now, HVAC Daddy / Plumb Daddy later).
+<p align="center">
+  Field-service platform — dispatch, jobs, customers, scheduling, invoicing, and technician workflows.<br />
+  A faster, simpler replacement for Housecall Pro with a <strong>company-scoped</strong> data model for multi-brand growth.
+</p>
 
-**Organization model:**
+<p align="center">
+  <a href="https://www.builtbydaddy.com/"><strong>Live app</strong></a>
+  ·
+  <a href="https://daddy-enterprise-suite-b4806aedb585.herokuapp.com/">API</a>
+  ·
+  <a href="https://github.com/bflows/d-enterprise-suite/issues">Report issue</a>
+</p>
 
-- **Parent (Built By Daddy):** owns multiple companies.
-- **Company:** business unit with its own services/pricebook, technicians & schedule, customers, jobs, invoices, payments, and reporting.
+<p align="center">
+  <a href="https://github.com/bflows/d-enterprise-suite/actions/workflows/ci.yml"><img src="https://github.com/bflows/d-enterprise-suite/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status" /></a>
+  <a href="https://www.builtbydaddy.com/"><img src="https://img.shields.io/website?down_color=red&down_message=offline&label=frontend&up_color=brightgreen&up_message=online&url=https%3A%2F%2Fd-enterprise-suite.vercel.app" alt="Frontend deploy status" /></a>
+  <a href="https://daddy-enterprise-suite-b4806aedb585.herokuapp.com/"><img src="https://img.shields.io/website?down_color=red&down_message=offline&label=api&up_color=brightgreen&up_message=online&url=https%3A%2F%2Fdaddy-enterprise-suite-b4806aedb585.herokuapp.com" alt="API deploy status" /></a>
+</p>
 
-**MVP rule:** The UI can default to one company (e.g. Duct Daddy) with no company switcher in v1, but the database and permissions are **company-scoped** so we don’t rewrite when adding more companies.
+<p align="center">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=fff" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=000" alt="React" />
+  <img src="https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=fff" alt="Express" />
+  <img src="https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=fff" alt="Prisma" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=fff" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=fff" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Redux_Toolkit-764ABC?logo=redux&logoColor=fff" alt="Redux Toolkit" />
+</p>
 
-**MVP scope (1.0):**
+<p align="center">
+  <a href="https://www.builtbydaddy.com/"><img src="https://img.shields.io/badge/deploy-Vercel-000000?logo=vercel&logoColor=fff" alt="Vercel" /></a>
+  <a href="https://daddy-enterprise-suite-b4806aedb585.herokuapp.com/"><img src="https://img.shields.io/badge/deploy-Heroku-430098?logo=heroku&logoColor=fff" alt="Heroku" /></a>
+  <img src="https://img.shields.io/badge/Stripe-integrated-635BFF?logo=stripe&logoColor=fff" alt="Stripe" />
+  <img src="https://img.shields.io/badge/Twilio-SMS-F22F46?logo=twilio&logoColor=fff" alt="Twilio" />
+  <img src="https://img.shields.io/badge/SendGrid-email-1A82E2?logo=sendgrid&logoColor=fff" alt="SendGrid" />
+  <img src="https://img.shields.io/badge/Cloudinary-media-3448C5?logo=cloudinary&logoColor=fff" alt="Cloudinary" />
+  <img src="https://img.shields.io/badge/Google_Maps-enabled-4285F4?logo=googlemaps&logoColor=fff" alt="Google Maps" />
+</p>
 
-- **Companies & users** — Company profile (name, industry); users with roles (Admin, Office/Dispatcher, Technician); secure login; password reset; technician availability windows.
-- **Customers** — Profiles (name, phones, email, notes); multiple service addresses; phone search; quick create; job and invoice history.
-- **Jobs / work orders** — Full lifecycle (Draft → New → Scheduled → En Route → On Site → Completed → Invoiced → Paid / Cancelled); assigned tech; scheduled vs actual times; internal/tech notes; photos; timeline/audit; services completion tracker, quantities, and customer signature.
-- **Services & pricing** — Company pricebook (name, flat price, quantity, active); job line items with unit price captured at job time (historical accuracy); discounts; admin overrides; minimum job pricing.
-- **Scheduling & dispatch** — Week view by technician; drag-and-drop; availability and overlap rules; assign/reassign tech and time window.
-- **Technician experience** — Mobile-first; today’s jobs; job details (customer, address, line items, notes, photos); status updates (Scheduled → En Route → On Site → Completed) synced to office.
-- **Invoicing** — Invoice from completed job; line items from job; draft/sent/paid/void; preview; send by email/text; admin edits before send.
-- **Payments** — Card, cash, check; partial payments; receipts; stored transaction/reference and recorded-by for stability.
-- **Reporting** — Revenue by service/tech; jobs completed by service/tech; paid/unpaid invoices; payroll-ready hours (time clock + job actuals, CSV export).
-- **Stability** — Company-scoped data; audit/activity logging; soft deletes; validation guardrails; timezone handling; backups; error handling and health checks.
+## Table of Contents
 
-**Go-live gate:** Office can create customer + job + schedule in under a minute, see live job status, and invoice/record payment; techs can view jobs, update status, edit quantities, upload photos, capture signature, and complete jobs reliably; owners get revenue and jobs-completed reporting plus payroll hour export; system preserves history, logs key actions, and recovers without data loss.
+- [About](#about)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Repository Structure](#repository-structure)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Production Deployment](#production-deployment)
+- [Documentation](#documentation)
+- [License](#license)
 
----
+## About
+
+**Organization model**
+
+- **Parent org** (Built By Daddy): owns multiple companies.
+- **Company**: business unit with its own users, customers, service pricebook, jobs, invoices, and reporting.
+
+The MVP UI defaults to a single company (Duct Daddy) with no company switcher, but the database, auth context, and APIs are scoped by `companyId` so additional companies can be added without a rewrite.
+
+## Features
+
+Capabilities reflected in the current codebase (not the full future MVP spec):
+
+| Area | Status |
+|------|--------|
+| **Auth** | Email/password login, JWT access tokens, httpOnly refresh cookies, password reset, role-based UI |
+| **Roles** | `admin`, `dispatcher`, `technician`, `employee` (per company) |
+| **Dashboard** | Role-specific home (office vs technician) |
+| **Customers** | Profiles, addresses, notes, job history, phone search |
+| **Service pricebook** | Service book with categories and line items (prices in USD cents) |
+| **Jobs** | Lifecycle (`SCHEDULED` → `EN_ROUTE` → `ON_SITE` → `COMPLETED` / `CANCELLED`), line items, photos (Cloudinary), activity timeline |
+| **Scheduling** | Week view, technician assignment, availability windows, overlap rules |
+| **Invoicing & payments** | Stripe invoices per job, card payments in UI, webhook sync for paid/void/overdue |
+| **Notifications** | SendGrid job confirmation/reschedule emails; Twilio SMS (scheduled, en route, 24h reminder cron) |
+| **Time cards** | Clock in/out for eligible roles |
+| **Maps** | Google Maps helpers for addresses and schedule street view |
+| **Employees** | Admin employee management |
+
+Planned or partial (see [docs/ENTERPRISE_SUITE_FEATURE_MVP.md](docs/ENTERPRISE_SUITE_FEATURE_MVP.md)): dedicated reporting UI, payroll export, multi-company switcher, signatures, and other MVP checklist items.
 
 ## Tech Stack
 
-| Layer    | Technologies |
-| -------- | ------------ |
-| **Frontend** | Next.js 16, React 19, TypeScript, Redux Toolkit, Tailwind CSS |
-| **Backend**  | Express 5, TypeScript, Prisma 7, PostgreSQL |
-| **Auth**     | JWT (access + refresh), httpOnly cookies, bcrypt |
+| Layer | Technologies |
+|-------|----------------|
+| **Frontend** | Next.js 16, React 19, TypeScript, Redux Toolkit, Tailwind CSS 4, Stripe.js |
+| **Backend** | Express 5, TypeScript, Prisma 7, PostgreSQL |
+| **Auth** | JWT (access + refresh), httpOnly cookies, bcrypt |
+| **Integrations** | Stripe, Twilio, SendGrid, Cloudinary, Google Maps |
 
----
+## Repository Structure
+
+```
+d-enterprise-suite/
+├── backend/                    # Express API
+│   ├── prisma/
+│   │   ├── schema.prisma       # Data model & migrations
+│   │   └── migrations/
+│   ├── generated/prisma/       # Prisma client output
+│   └── src/
+│       ├── server.ts           # App entry, route mounting, cron
+│       ├── controllers/
+│       ├── routes/
+│       ├── services/           # Tokens, email, SMS, reminders
+│       ├── middleware/
+│       └── lib/                # Prisma, Stripe, Twilio, SendGrid, etc.
+├── frontend/                   # Next.js App Router
+│   ├── app/                    # Pages (auth + dashboard routes)
+│   ├── components/
+│   ├── features/               # Redux slices (auth, time card, …)
+│   └── lib/api/                # API client & domain helpers
+├── docs/                       # Product spec & architecture notes (may lag code)
+└── README.md
+```
+
+### API routes
+
+| Prefix | Domain |
+|--------|--------|
+| `/api/auth` | Login, refresh, logout, password reset |
+| `/api/company` | Company & employment context |
+| `/api/customer` | Customers |
+| `/api/service` | Service book / pricebook |
+| `/api/availability` | Technician weekly availability |
+| `/api/jobs` | Jobs, photos, status, scheduling |
+| `/api/invoices` | Stripe invoices & payments |
+| `/api/time-cards` | Clock in/out |
+| `/api/job-activity` | Job audit timeline |
+| `/api/maps` | Geocoding / Maps proxy |
+| `/api/stripe/webhook` | Stripe invoice webhooks (raw body) |
+
+### Frontend routes
+
+| Route | Description |
+|-------|-------------|
+| `/login`, `/forgot-password` | Auth |
+| `/dashboard` | Home |
+| `/schedule` | Dispatch calendar |
+| `/customers`, `/customers/[customerId]` | Customer list & detail |
+| `/services`, `/services/[slug]/…` | Pricebook |
+| `/job/[slug]` | Job detail & actions |
+| `/employees` | Employee management (admin) |
+| `/timecards` | Time clock |
+| `/inbox` | Company inbox |
 
 ## Prerequisites
 
-- **Node.js** 18+ (LTS recommended)
-- **PostgreSQL** (local or hosted; connection string required)
-- **npm** (included with Node.js)
+- **Node.js** `^20.19.0`, `^22.12.0`, or `>=24.0.0` (see `backend/package.json` `engines`)
+- **PostgreSQL** (local or hosted)
+- **npm**
 
----
+Optional for full functionality: Stripe, Twilio, SendGrid, Cloudinary, and Google Maps accounts with API keys.
 
 ## Getting Started
 
 ### 1. Clone and install
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/bflows/d-enterprise-suite.git
 cd d-enterprise-suite
+
+cd backend && npm install
+cd ../frontend && npm install
 ```
 
-Install dependencies for both apps:
+### 2. Configure environment
 
-```bash
-cd backend && npm install && cd ..
-cd frontend && npm install && cd ..
-```
-
-### 2. Environment variables
-
-**Backend** (`backend/.env`):
-
-Create `backend/.env` with:
+**Backend** — create `backend/.env`:
 
 ```env
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=..."
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
 PORT=5000
 
 JWT_ACCESS_SECRET="<long-random-string>"
 JWT_REFRESH_SECRET="<different-long-random-string>"
-REFRESH_EXPIRY_DAYS=14
+JWT_ACCESS_EXPIRY="15m"
+JWT_REFRESH_EXPIRY_DAYS=7
 
-# Allowed origin for CORS (frontend URL)
 FRONTEND_URL="http://localhost:3000"
 ```
 
-**Frontend** (`frontend/.env.local`):
-
-Create `frontend/.env.local` with:
+**Frontend** — create `frontend/.env.local`:
 
 ```env
 NEXT_PUBLIC_API_URL="http://localhost:5000"
 ```
 
-Use your actual backend URL in production.
-
-**Production auth (stay signed in after refresh):** The refresh token is an httpOnly cookie. If the browser talks to the API on a **different domain** than the Next.js app (e.g. Vercel + Railway), cookies often fail on reload. Prefer the built-in proxy:
-
-1. **Frontend (e.g. Vercel):** Set `API_PROXY_URL` to your backend URL (e.g. `https://your-api.railway.app`). **Do not** set `NEXT_PUBLIC_API_URL` in production (the app will call same-origin `/api/*`, proxied to the backend).
-2. **Backend:** Set `FRONTEND_URL` to your live frontend URL exactly (scheme + host, no trailing slash), e.g. `https://your-app.vercel.app`.
-3. Redeploy the frontend after changing env vars (`NEXT_PUBLIC_*` is baked in at build time).
-
-If you must call the API host directly from the browser, set `COOKIE_CROSS_SITE=false` only when frontend and API share a site; otherwise leave production defaults (`SameSite=None; Secure` on the refresh cookie). Override with `REFRESH_COOKIE_SAME_SITE` if needed.
+See [Configuration](#configuration) for optional integration variables.
 
 ### 3. Database
-
-From the repo root:
 
 ```bash
 cd backend
 npx prisma generate
-npx prisma db push
-# Or, for migrations: npx prisma migrate dev
-cd ..
+npx prisma migrate dev
+# Or for a quick schema sync in dev only: npx prisma db push
 ```
 
-### 4. Run development servers
+### 4. Run locally
 
-**Terminal 1 – API:**
+**Terminal 1 — API:**
 
 ```bash
 cd backend && npm run dev
 ```
 
-**Terminal 2 – Frontend:**
+**Terminal 2 — Web:**
 
 ```bash
 cd frontend && npm run dev
 ```
 
-- **Frontend:** [http://localhost:3000](http://localhost:3000)  
-- **API:** [http://localhost:5000](http://localhost:5000) (or whatever `PORT` is in `backend/.env`)
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- API: [http://localhost:5000](http://localhost:5000) (or your `PORT`)
 
----
+## Configuration
 
-## Project Structure
+### Core
 
-```
-d-enterprise-suite/
-├── backend/                 # Express API
-│   ├── prisma/
-│   │   └── schema.prisma    # DB models & migrations
-│   └── src/
-│       ├── controllers/
-│       ├── routes/
-│       ├── lib/
-│       └── server.ts
-├── frontend/                # Next.js app
-│   ├── app/                 # App Router pages & layouts
-│   ├── components/
-│   ├── features/            # Redux slices & auth
-│   └── lib/                 # API client, auth helpers
-└── README.md
-```
+| Variable | App | Required | Description |
+|----------|-----|----------|-------------|
+| `DATABASE_URL` | Backend | Yes | PostgreSQL connection string |
+| `PORT` | Backend | No | API port (default `5000`) |
+| `JWT_ACCESS_SECRET` | Backend | Yes | Access token signing secret |
+| `JWT_REFRESH_SECRET` | Backend | Yes | Refresh token signing secret |
+| `JWT_ACCESS_EXPIRY` | Backend | No | Access token TTL (default `15m`) |
+| `JWT_REFRESH_EXPIRY_DAYS` | Backend | No | Refresh session length in days (default `7`) |
+| `FRONTEND_URL` | Backend | No | CORS origin (default `http://localhost:3000`) |
+| `NEXT_PUBLIC_API_URL` | Frontend | Dev | Browser API base URL (default `http://localhost:5000`) |
+| `API_PROXY_URL` | Frontend | Prod | Backend URL for Next.js `/api/*` rewrites |
+| `API_URL` | Frontend | No | Server-side API URL fallback for rewrites / SSR |
+| `COOKIE_CROSS_SITE` | Backend | No | Set `false` to force `SameSite=Lax` in production |
+| `REFRESH_COOKIE_SAME_SITE` | Backend | No | Override refresh cookie (`lax`, `none`, `strict`) |
+| `APP_TIMEZONE` | Backend | No | IANA timezone for emails/SMS (e.g. `America/Chicago`) |
+| `NODE_ENV` | Backend | No | `production` enables secure cookies and trust proxy |
 
----
+Do not commit secrets. Use your host’s secret manager or private env templates.
 
-## Scripts
+### Stripe (invoicing & card payments)
 
-| Location   | Command       | Description              |
-| --------- | ------------- | ------------------------ |
-| `backend` | `npm run dev` | API with hot reload       |
-| `backend` | `npm start`   | Production API            |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `STRIPE_SECRET_KEY` | For billing | Stripe secret key |
+| `STRIPE_PUBLISH_KEY` | For card UI | Publishable key (exposed to frontend via API) |
+| `STRIPE_DEFAULT_CURRENCY` | No | Default `usd` |
+| `STRIPE_INVOICE_DAYS_UNTIL_DUE` | No | Invoice due days |
+
+Webhook endpoint: `POST /api/stripe/webhook` (configure in Stripe Dashboard).
+
+### Twilio (SMS)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `TWILIO_ACCOUNT_SID` | For SMS | Account SID |
+| `TWILIO_AUTH_TOKEN` | For SMS | Auth token |
+| `TWILIO_MESSAGING_SERVICE_SID` | One of | Messaging service |
+| `TWILIO_PHONE_NUMBER` or `TWILIO_FROM_NUMBER` | One of | E.164 sender |
+| `JOB_24H_REMINDER_CRON` | No | Set `0` to disable reminder cron |
+| `JOB_24H_REMINDER_CRON_SCHEDULE` | No | Cron expression override |
+
+Manual reminder run: `cd backend && npm run job-reminders`
+
+### SendGrid (email)
+
+| Variable | Description |
+|----------|-------------|
+| `SENDGRID_API_KEY` | API key |
+| `SENDGRID_FROM_EMAIL` | Verified sender |
+| `SENDGRID_FROM_NAME` | Display name (default `Duct Daddy`) |
+| `SENDGRID_REPLY_TO_EMAIL` | Optional reply-to |
+| `SENDGRID_JOB_CONFIRMATION_TEMPLATE_ID` | Dynamic template for confirmations |
+| `SENDGRID_JOB_RESCHEDULE_TEMPLATE_ID` | Dynamic template for reschedules |
+
+### Cloudinary (job photos)
+
+| Variable | Description |
+|----------|-------------|
+| `CLOUDINARY_CLOUD_NAME` | Cloud name |
+| `CLOUDINARY_API_KEY` | API key |
+| `CLOUDINARY_API_SECRET` | API secret |
+
+### Google Maps
+
+| Variable | Description |
+|----------|-------------|
+| `GOOGLE_MAPS_API_KEY` | Maps / geocoding for schedule and addresses |
+
+## Development
+
+### Scripts
+
+| Location | Command | Description |
+|----------|---------|-------------|
+| `backend` | `npm run dev` | API with hot reload (`nodemon` + `tsx`) |
+| `backend` | `npm start` | Production API |
 | `backend` | `npx prisma generate` | Regenerate Prisma client |
-| `backend` | `npx prisma db push`  | Sync schema to DB (dev)  |
-| `frontend`| `npm run dev` | Next.js dev server       |
-| `frontend`| `npm run build` | Production build       |
-| `frontend`| `npm start`   | Production Next.js       |
-| `frontend`| `npm run lint`| ESLint                   |
+| `backend` | `npx prisma migrate dev` | Create/apply migrations (dev) |
+| `backend` | `npx prisma db push` | Push schema without migration (dev only) |
+| `frontend` | `npm run dev` | Next.js dev server |
+| `frontend` | `npm run build` | Production build |
+| `frontend` | `npm start` | Production Next.js server |
+| `frontend` | `npm run lint` | ESLint |
 
----
+### Auth in production (cross-origin)
 
-## Environment Variables Reference
+The refresh token is an httpOnly cookie. If the browser calls the API on a **different domain** than the Next.js app (e.g. Vercel + Railway), prefer the built-in proxy:
 
-| Variable             | App     | Required | Description |
-| -------------------- | ------- | -------- | ----------- |
-| `DATABASE_URL`       | Backend | Yes      | PostgreSQL connection string |
-| `PORT`               | Backend | No       | API port (default `5000`) |
-| `JWT_ACCESS_SECRET`  | Backend | Yes      | Secret for access tokens   |
-| `JWT_REFRESH_SECRET` | Backend | Yes      | Secret for refresh tokens  |
-| `REFRESH_EXPIRY_DAYS`| Backend | No       | Refresh token TTL in days (default `14`) |
-| `FRONTEND_URL`       | Backend | No       | CORS origin (default `http://localhost:3000`) |
-| `API_PROXY_URL`      | Frontend| No       | Backend URL for Next.js `/api/*` rewrites (production) |
-| `API_URL`            | Frontend| No       | Server-side API URL fallback for rewrites / SSR |
-| `NEXT_PUBLIC_API_URL`| Frontend| No       | Direct API URL in the browser (dev default `http://localhost:5000`; omit in prod to use proxy) |
-| `COOKIE_CROSS_SITE`  | Backend | No       | Set `false` to force `SameSite=Lax` in production |
-| `REFRESH_COOKIE_SAME_SITE` | Backend | No | Override refresh cookie SameSite (`lax`, `none`, `strict`) |
+1. **Frontend:** Set `API_PROXY_URL` to the backend URL. Do **not** set `NEXT_PUBLIC_API_URL` in production (the app uses same-origin `/api/*`, rewritten to the backend).
+2. **Backend:** Set `FRONTEND_URL` to the exact frontend origin (scheme + host, no trailing slash).
+3. Redeploy the frontend after changing `NEXT_PUBLIC_*` variables (baked in at build time).
 
-Do not commit real secrets. Use a secret manager or team-shared env templates for private deployment.
+If the API must be called directly from the browser on another host, use production cookie defaults (`SameSite=None; Secure`) or adjust `COOKIE_CROSS_SITE` / `REFRESH_COOKIE_SAME_SITE`.
 
----
+## Production Deployment
+
+| Surface | Host | URL |
+|---------|------|-----|
+| **Frontend** | Vercel | [d-enterprise-suite.vercel.app](https://www.builtbydaddy.com/) |
+| **API** | Heroku | [daddy-enterprise-suite…herokuapp.com](https://daddy-enterprise-suite-b4806aedb585.herokuapp.com/) |
+
+**Backend (Heroku)**
+
+- `npm run heroku-postbuild` runs `prisma generate` and `prisma migrate deploy`.
+- Set all required env vars on the host.
+- Expose the Stripe webhook URL publicly.
+
+**Frontend (Vercel)**
+
+- Set `API_PROXY_URL` to the deployed Heroku API URL.
+- Set `FRONTEND_URL` on the API to `https://www.builtbydaddy.com/` (exact origin, no trailing slash).
+
+Deploy status badges in the header use live HTTP checks against these URLs.
+
+## Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [docs/ENTERPRISE_SUITE_FEATURE_MVP.md](docs/ENTERPRISE_SUITE_FEATURE_MVP.md) | Full MVP product requirements and go-live criteria |
+| [docs/MVP_PROJECT_STRUCTURE.md](docs/MVP_PROJECT_STRUCTURE.md) | Planned module/route mapping (may be ahead of or behind the code) |
+
+When in doubt, treat **this README and the repo tree** as the source of truth for what is implemented today.
 
 ## License
 
