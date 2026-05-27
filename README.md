@@ -242,7 +242,8 @@ cd frontend && npm run dev
 | `API_URL` | Frontend | No | Server-side API URL fallback for rewrites / SSR |
 | `COOKIE_CROSS_SITE` | Backend | No | Set `false` to force `SameSite=Lax` in production |
 | `REFRESH_COOKIE_SAME_SITE` | Backend | No | Override refresh cookie (`lax`, `none`, `strict`) |
-| `APP_TIMEZONE` | Backend | No | IANA timezone for emails/SMS (e.g. `America/Chicago`) |
+| `APP_TIMEZONE` | Backend | Recommended | IANA timezone for job times, emails, and SMS (e.g. `America/Chicago`) |
+| `NEXT_PUBLIC_APP_TIMEZONE` | Frontend | Recommended | Same IANA value as `APP_TIMEZONE` so the schedule shows correct local times |
 | `NODE_ENV` | Backend | No | `production` enables secure cookies and trust proxy |
 
 Do not commit secrets. Use your host’s secret manager or private env templates.

@@ -17,6 +17,11 @@ import {
   sendJobEnRouteCustomerSms,
   sendJobRescheduleCustomerSms,
 } from "../services/jobScheduledSms";
+import {
+  calendarDateToDate,
+  dateToDateKey,
+  wallClockToDate,
+} from "../lib/appTimezone";
 
 /** Request body for updating a job. Only provided fields are updated. */
 interface UpdateJobBody {
@@ -66,23 +71,6 @@ interface CreateJobBody {
   status?: "scheduled" | "en_route" | "in_progress" | "completed" | "cancelled";
   /** IDs of service items (from Service Book) to attach to this job. First item's title is used as job title. */
   serviceItemIds?: string[];
-}
-
-/**
- * Parse "YYYY-MM-DD" and "HH:mm" into a Date (same day, time from HH:mm).
- * Returns null if timeStr is empty or not valid HH:mm.
- */
-function toDateTime(dateStr: string, timeStr: string): Date | null {
-  if (!timeStr || typeof timeStr !== "string") return null;
-  const parts = timeStr.trim().split(":");
-  const hours = parseInt(parts[0] ?? "", 10);
-  const minutes = parseInt(parts[1] ?? "", 10);
-  if (Number.isNaN(hours) || Number.isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-    return null;
-  }
-  const d = new Date(dateStr + "T00:00:00");
-  d.setHours(hours, minutes, 0, 0);
-  return d;
 }
 
 function addMinutesToDateTime(start: Date, minutes: number): Date {
@@ -273,8 +261,8 @@ export const createJob = async (
       }
     }
 
-    const day = new Date(dateStr + "T00:00:00");
-    const startTime = toDateTime(dateStr, startTimeStr);
+    const day = calendarDateToDate(dateStr);
+    const startTime = wallClockToDate(dateStr, startTimeStr);
     if (!startTime) {
       return res.status(400).json({
         success: false,
@@ -413,7 +401,6 @@ export const updateJob = async (
         message: "Job not found.",
       });
     }
-    const dateStr = (d: Date) => d.toISOString().slice(0, 10);
     const data: {
       title?: string | null;
       notes?: string | null;
@@ -436,10 +423,10 @@ export const updateJob = async (
       }
       data.status = prismaStatus;
     }
-    if (body.date !== undefined) data.date = new Date(body.date + "T00:00:00");
+    if (body.date !== undefined) data.date = calendarDateToDate(body.date);
     if (body.startTime !== undefined) {
-      const dateKey = body.date ?? dateStr(existing.date);
-      const parsed = toDateTime(dateKey, body.startTime);
+      const dateKey = body.date ?? dateToDateKey(existing.date);
+      const parsed = wallClockToDate(dateKey, body.startTime);
       if (!parsed) {
         return res.status(400).json({
           success: false,

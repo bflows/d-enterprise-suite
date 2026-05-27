@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import { dateToDateKey, dateToTimeKey } from "@/lib/appTimezone";
 import type { InvoiceStatus, Job, JobInvoiceSummary, JobStatus } from "@/lib/calendar/types";
 
 /** Request body for creating a job. */
@@ -132,19 +133,6 @@ export interface UploadJobPhotoResponse {
   photo: JobPhoto;
 }
 
-/** Format ISO date/time from API to YYYY-MM-DD. */
-function toDateKey(iso: string): string {
-  return iso.slice(0, 10);
-}
-
-/** Format ISO date/time from API to HH:mm. */
-function toTimeKey(iso: string): string {
-  const d = new Date(iso);
-  const h = d.getHours();
-  const m = d.getMinutes();
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
-
 const STATUS_MAP: Record<string, JobStatus> = {
   SCHEDULED: "scheduled",
   EN_ROUTE: "en_route",
@@ -196,9 +184,9 @@ export function mapApiJobToJob(apiJob: ApiJobResponse): Job {
     stripeInvoiceId,
     invoice,
     title: apiJob.title ?? undefined,
-    date: toDateKey(apiJob.date),
-    startTime: toTimeKey(apiJob.startTime),
-    endTime: toTimeKey(apiJob.endTime),
+    date: dateToDateKey(apiJob.date),
+    startTime: dateToTimeKey(apiJob.startTime),
+    endTime: dateToTimeKey(apiJob.endTime),
     status,
     customerName: customerName ?? undefined,
     customerFirstName: apiJob.customer.firstName ?? undefined,
