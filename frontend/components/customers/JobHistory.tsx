@@ -131,12 +131,13 @@ export default function JobHistory({ companyId, customerId }: JobHistoryProps) {
         <ul className="mt-4 flex flex-col gap-2">
           {jobs.map((job) => {
             const slug = jobSlug(job.title ?? job.customerName, job.id);
+            const returnTo = `/customers/${customerId}`;
             const dateLabel = dateFmt.format(new Date(job.date + "T12:00:00"));
             const techLabel = job.technicianName?.trim() || "Technician";
             return (
               <li key={job.id}>
                 <Link
-                  href={`/job/${slug}`}
+                  href={`/job/${slug}?from=${encodeURIComponent(returnTo)}`}
                   className="block rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 transition-colors hover:border-primary hover:bg-neutral-100"
                 >
                   <div className="flex items-center justify-between">

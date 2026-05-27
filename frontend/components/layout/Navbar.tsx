@@ -1,7 +1,11 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { getPreferredMobileBackPathname } from "./dashboardNavigationPaths";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  getPreferredMobileBackPathname,
+  getSafeInternalReturnPath,
+  scheduleDashboardReturn,
+} from "./dashboardNavigationPaths";
 import {
   isServiceBookDetailPath,
   isServiceCategoryDetailPath,
@@ -45,9 +49,23 @@ function navbarTitleForPathname(pathname: string): string {
   return "Duct Daddy";
 }
 
+function replaceWithQueryParam(
+  router: ReturnType<typeof useRouter>,
+  pathname: string,
+  searchParams: URLSearchParams,
+  key: string,
+  value: string
+) {
+  const next = new URLSearchParams(searchParams.toString());
+  next.set(key, value);
+  const q = next.toString();
+  router.replace(q ? `${pathname}?${q}` : pathname);
+}
+
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { openMenu } = useMobileNavMenu();
   const { jobInvoiceDisabled, jobPaymentDisabled } = useJobNavbarActions();
   const left = resolveMobileNavbarLeft(pathname);
@@ -89,15 +107,15 @@ export default function Navbar() {
       disabled,
       onClick: () => {
         if (d.action === "createJob") {
-          router.replace(`${pathname}?newJob=1`);
+          replaceWithQueryParam(router, pathname, searchParams, "newJob", "1");
         } else if (d.action === "createCustomer") {
-          router.replace(`${pathname}?newCustomer=1`);
+          replaceWithQueryParam(router, pathname, searchParams, "newCustomer", "1");
         } else if (d.action === "createServiceBook") {
-          router.replace(`${pathname}?newServiceBook=1`);
+          replaceWithQueryParam(router, pathname, searchParams, "newServiceBook", "1");
         } else if (d.action === "createCategory") {
-          router.replace(`${pathname}?newCategory=1`);
+          replaceWithQueryParam(router, pathname, searchParams, "newCategory", "1");
         } else {
-          router.replace(`${pathname}?action=${encodeURIComponent(d.action)}`);
+          replaceWithQueryParam(router, pathname, searchParams, "action", d.action);
         }
       },
     };
@@ -113,6 +131,12 @@ export default function Navbar() {
               onClick={() => {
                 if (isServiceBookDetailPath(pathname)) {
                   router.push(left.href);
+                  return;
+                }
+                const fromParam = getSafeInternalReturnPath(searchParams.get("from"));
+                if (fromParam) {
+                  scheduleDashboardReturn(fromParam);
+                  router.push(fromParam);
                   return;
                 }
                 const preferred = getPreferredMobileBackPathname(pathname);
@@ -155,11 +179,11 @@ export default function Navbar() {
               className="flex items-center justify-center -mr-2 p-1 rounded-md cursor-pointer text-neutral-100 hover:bg-white/10"
               onClick={() => {
                 if (primaryAction.action === "createServiceBook") {
-                  router.replace(`${pathname}?newServiceBook=1`);
+                  replaceWithQueryParam(router, pathname, searchParams, "newServiceBook", "1");
                 } else if (primaryAction.action === "createCategory") {
-                  router.replace(`${pathname}?newCategory=1`);
+                  replaceWithQueryParam(router, pathname, searchParams, "newCategory", "1");
                 } else if (primaryAction.action === "createService") {
-                  router.replace(`${pathname}?newService=1`);
+                  replaceWithQueryParam(router, pathname, searchParams, "newService", "1");
                 }
               }}
             >
