@@ -38,7 +38,11 @@ import JobAttachments from "@/components/jobs/JobAttachments";
 import JobNotes from "@/components/jobs/JobNotes";
 import JobActivity from "@/components/jobs/JobActivity";
 import { useJobNavbarActions } from "@/components/layout/JobNavbarActionsContext";
-import { getDashboardPreviousPathname } from "@/components/layout/dashboardNavigationPaths";
+import {
+  getDashboardPreviousPathname,
+  getSafeInternalReturnPath,
+  scheduleDashboardReturn,
+} from "@/components/layout/dashboardNavigationPaths";
 
 export default function JobDetailPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -148,6 +152,11 @@ export default function JobDetailPage() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const from = getSafeInternalReturnPath(searchParams.get("from"));
+    if (from) scheduleDashboardReturn(from);
+  }, [searchParams]);
 
   const triggerActivityRefresh = useCallback(() => {
     setActivityRefreshSignal((value) => value + 1);
@@ -310,11 +319,14 @@ export default function JobDetailPage() {
     if (!success) return;
     setDeleteConfirmOpen(false);
     setDeleteError(null);
+    const fromParam = getSafeInternalReturnPath(searchParams.get("from"));
     const prev = getDashboardPreviousPathname();
     const target =
-      prev && prev.length > 0 && prev !== pathname ? prev : "/schedule";
+      fromParam ??
+      (prev && prev.length > 0 && prev !== pathname ? prev : "/schedule");
+    if (fromParam) scheduleDashboardReturn(fromParam);
     router.replace(target);
-  }, [job, router, pathname]);
+  }, [job, router, pathname, searchParams]);
 
   const handleCloseDeleteConfirm = useCallback(() => {
     if (!deleteLoading) {
