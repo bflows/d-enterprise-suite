@@ -8,7 +8,7 @@ const REMINDER_LEAD_MS = 24 * 60 * 60 * 1000;
 const REMINDER_WINDOW_MS = 60 * 60 * 1000;
 
 const jobReminderInclude = {
-  company: { select: { name: true } },
+  company: { select: { id: true, name: true } },
   customer: true,
   technician: { include: { user: true } },
   services: true,

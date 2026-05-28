@@ -324,7 +324,7 @@ export const createJob = async (
           },
         },
         include: {
-          company: { select: { name: true } },
+          company: { select: { id: true, name: true } },
           customer: true,
           technician: { include: { user: true } },
           services: true,
@@ -534,7 +534,7 @@ export const updateJob = async (
       where: { id },
       data,
       include: {
-        company: { select: { name: true } },
+        company: { select: { id: true, name: true } },
         customer: true,
         technician: { include: { user: true } },
         services: true,
@@ -838,7 +838,7 @@ export const updateJobStatus = async (
         where: { id: resolvedJobId },
         data: { status },
         include: {
-          company: { select: { name: true } },
+          company: { select: { id: true, name: true } },
           customer: true,
           technician: { include: { user: true } },
           services: true,

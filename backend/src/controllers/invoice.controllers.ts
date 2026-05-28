@@ -157,7 +157,7 @@ export const createJobInvoice = async (
       include: {
         customer: true,
         services: true,
-        company: { select: { name: true } },
+        company: { select: { id: true, name: true } },
         invoice: true,
       },
     });
@@ -311,7 +311,7 @@ export const createJobInvoice = async (
           firstName: job.customer.firstName,
           phone: job.customer.phone,
         },
-        company: { name: job.company.name },
+        company: { id: job.company.id, name: job.company.name },
         hostedInvoiceUrl,
         invoiceNumber: sent.number,
         amountDueCents: sent.amount_due,
