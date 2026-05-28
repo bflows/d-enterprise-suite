@@ -1,10 +1,26 @@
 import twilio from "twilio";
 import type { Request } from "express";
 
-/** Full URL Twilio posted to — required for signature validation behind proxies/ngrok. */
+function webhookPath(req: Request): string {
+  return req.originalUrl.split("?")[0] ?? "";
+}
+
+/** URL built from the incoming HTTP request (Host + path). */
+export function getTwilioWebhookRequestUrl(req: Request): string {
+  const path = webhookPath(req);
+  const host = req.get("host") ?? "";
+  const protocol = req.protocol || "https";
+  return `${protocol}://${host}${path}`;
+}
+
+/**
+ * URL from `TWILIO_WEBHOOK_PUBLIC_URL` / `API_PUBLIC_URL` when set.
+ * Must match the URL configured in Twilio Console (scheme + host + path).
+ */
 export function getTwilioWebhookValidationUrl(req: Request): string {
-  const configured = process.env.TWILIO_WEBHOOK_PUBLIC_URL?.trim();
-  const path = req.originalUrl.split("?")[0];
+  const configured =
+    process.env.TWILIO_WEBHOOK_PUBLIC_URL?.trim() || process.env.API_PUBLIC_URL?.trim();
+  const path = webhookPath(req);
 
   if (configured) {
     const base = configured.replace(/\/$/, "");
@@ -17,9 +33,11 @@ export function getTwilioWebhookValidationUrl(req: Request): string {
     return path ? `${base}${path}` : base;
   }
 
-  const host = req.get("host") ?? "";
-  const protocol = req.protocol || "https";
-  return `${protocol}://${host}${path}`;
+  return getTwilioWebhookRequestUrl(req);
+}
+
+function uniqueUrls(urls: string[]): string[] {
+  return [...new Set(urls.filter(Boolean))];
 }
 
 /**
@@ -44,16 +62,25 @@ export function validateTwilioWebhookRequest(req: Request): boolean {
     return false;
   }
 
-  const url = getTwilioWebhookValidationUrl(req);
-  const valid = twilio.validateRequest(authToken, signature, url, req.body as Record<string, string>);
+  const body = req.body as Record<string, string>;
+  const candidates = uniqueUrls([
+    getTwilioWebhookValidationUrl(req),
+    getTwilioWebhookRequestUrl(req),
+  ]);
 
-  if (!valid) {
-    console.error("Twilio webhook: signature validation failed.", {
-      validationUrl: url,
-      path: req.originalUrl,
-      hint: "Set TWILIO_WEBHOOK_PUBLIC_URL to the exact URL configured in Twilio Console (including /api/twilio/webhook/sms).",
-    });
+  for (const url of candidates) {
+    if (twilio.validateRequest(authToken, signature, url, body)) {
+      return true;
+    }
   }
 
-  return valid;
+  console.error("Twilio webhook: signature validation failed.", {
+    triedUrls: candidates,
+    path: req.originalUrl,
+    host: req.get("host"),
+    hint:
+      "Twilio signs the exact public URL it POSTs to. Set TWILIO_WEBHOOK_PUBLIC_URL to that base (e.g. https://your-app.herokuapp.com) and configure the same host in Twilio Console → Phone Number or Messaging Service → Incoming Message webhook: .../api/twilio/webhook/sms",
+  });
+
+  return false;
 }

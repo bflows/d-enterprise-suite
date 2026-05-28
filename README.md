@@ -285,6 +285,15 @@ Set `TWILIO_WEBHOOK_PUBLIC_URL=https://<public-host>` (no trailing slash). The s
 
 Inbound replies only appear if the texting phone matches a **customer** record (same number you message from the inbox), or a thread already exists for that number.
 
+**Inbound SMS not showing in inbox (production checklist)**
+
+1. **Webhook host must be the API (Heroku), not the Next.js site** unless Twilio is configured to hit the same public URL your app proxies to the API. Recommended: `https://<your-heroku-app>.herokuapp.com/api/twilio/webhook/sms`
+2. **Set `TWILIO_WEBHOOK_PUBLIC_URL`** on Heroku to that same origin only (no path), e.g. `https://<your-heroku-app>.herokuapp.com`. It must match what Twilio POSTs to, or signature validation returns **403** and nothing is saved.
+3. If you send via a **Messaging Service**, set **Incoming Message** webhook on the **Messaging Service** (Console → Messaging → Services → your service → Integration), not only on the phone number.
+4. In Twilio Console → **Monitor → Logs → Errors** or **Messaging** debugger, confirm webhooks return **200** (not 403/404).
+5. In Heroku logs, look for `Twilio inbound SMS received` (success) or `signature validation failed` / `no customer/thread match` (configuration or phone mismatch).
+6. Set **`TWILIO_PHONE_NUMBER`** (E.164) when using a Messaging Service so threads route reliably; optional **`TWILIO_DEFAULT_COMPANY_ID`** if multiple customers share one phone.
+
 Run migration after pull: `cd backend && npx prisma migrate deploy`
 
 ### SendGrid (email)
