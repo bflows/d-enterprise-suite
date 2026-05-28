@@ -203,6 +203,7 @@ export default function InboxView() {
   }, [messages, selectedThreadId]);
 
   const searchLower = search.trim().toLowerCase();
+  const threadByCustomerId = new Map(threads.map((t) => [t.customerId, t]));
   const filteredCustomers =
     searchLower.length === 0
       ? customers
@@ -210,8 +211,16 @@ export default function InboxView() {
           const name = displayName(c.firstName, c.lastName).toLowerCase();
           return name.includes(searchLower) || c.phone.includes(search);
         });
-
-  const threadByCustomerId = new Map(threads.map((t) => [t.customerId, t]));
+  const sortedCustomers = [...filteredCustomers].sort((a, b) => {
+    const lastA = threadByCustomerId.get(a.id)?.lastMessageAt;
+    const lastB = threadByCustomerId.get(b.id)?.lastMessageAt;
+    const timeA = lastA ? new Date(lastA).getTime() : 0;
+    const timeB = lastB ? new Date(lastB).getTime() : 0;
+    if (timeA !== timeB) return timeB - timeA;
+    return displayName(a.firstName, a.lastName)
+      .toLowerCase()
+      .localeCompare(displayName(b.firstName, b.lastName).toLowerCase());
+  });
   const selectedThread = threads.find((t) => t.id === selectedThreadId) ?? null;
   const mobileChatOpen = Boolean(selectedThreadId);
 
@@ -252,10 +261,10 @@ export default function InboxView() {
             {loadingThreads && (
               <li className="p-4 text-p text-neutral-500">Loading…</li>
             )}
-            {!loadingThreads && filteredCustomers.length === 0 && (
+            {!loadingThreads && sortedCustomers.length === 0 && (
               <li className="p-4 text-p text-neutral-500">No customers found.</li>
             )}
-            {filteredCustomers.map((c) => {
+            {sortedCustomers.map((c) => {
               const thread = threadByCustomerId.get(c.id);
               const isActive = thread?.id === selectedThreadId;
               const name = displayName(c.firstName, c.lastName);
