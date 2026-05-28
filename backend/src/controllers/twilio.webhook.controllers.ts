@@ -9,6 +9,9 @@ function twimlEmptyResponse(res: Response): void {
 
 export const handleTwilioInboundSms = async (req: Request, res: Response): Promise<void> => {
   if (!validateTwilioWebhookRequest(req)) {
+    console.error(
+      "Twilio inbound SMS rejected (403): webhook signature invalid. Check TWILIO_WEBHOOK_PUBLIC_URL and Twilio Console incoming URL.",
+    );
     res.status(403).send("Forbidden");
     return;
   }
