@@ -19,6 +19,7 @@ import {
   HiChevronLeft,
   HiEllipsisVertical,
   HiArrowUpOnSquare,
+  HiXCircle,
   HiPencilSquare,
   HiTrash,
   HiCreditCard,
@@ -85,6 +86,8 @@ export default function Navbar() {
           ? HiArrowUpOnSquare
           : d.icon === "requestPayment"
             ? HiCreditCard
+            : d.icon === "cancelJob"
+              ? HiXCircle
             : d.icon === "updateJob" || d.icon === "updateCustomer"
               ? HiPencilSquare
               : HiTrash;

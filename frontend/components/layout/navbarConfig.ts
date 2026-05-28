@@ -12,6 +12,7 @@ export type OverflowMenuItemDescriptor = {
   icon:
     | "sendInvoice"
     | "requestPayment"
+    | "cancelJob"
     | "updateJob"
     | "removeJob"
     | "updateCustomer"
@@ -27,6 +28,7 @@ export type OverflowMenuItemDescriptor = {
       action:
         | "sendInvoice"
         | "requestPayment"
+        | "cancelJob"
         | "updateJob"
         | "removeJob"
         | "updateCustomer"
@@ -207,6 +209,7 @@ export function resolveOverflowMenuItems(pathname: string): OverflowMenuItemDesc
   return [
     { label: "Invoice", icon: "sendInvoice", action: "sendInvoice" },
     { label: "Payment", icon: "requestPayment", action: "requestPayment" },
+    { label: "Cancel Job", icon: "cancelJob", action: "cancelJob" },
     { label: "Update", icon: "updateJob", action: "updateJob" },
     { label: "Remove", icon: "removeJob", action: "removeJob" },
   ];

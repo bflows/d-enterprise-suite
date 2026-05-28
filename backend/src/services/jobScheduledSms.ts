@@ -195,9 +195,20 @@ function buildJobCompletedSmsBody(job: JobConfirmationEmailPayload): string {
   ].join(" ");
 }
 
+function buildJobCancelledSmsBody(job: JobConfirmationEmailPayload): string {
+  const customerFirst = job.customer.firstName.trim() || "there";
+  return `Hi ${customerFirst}, your appointment with ${job.company.name} has been cancelled. If you need to reschedule, please contact us.`;
+}
+
 /** SMS when a technician marks the job as completed. */
 export async function sendJobCompletedCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
   const body = buildJobCompletedSmsBody(job);
+  await sendCustomerSms(job.customer.id, job.customer.phone, body);
+}
+
+/** SMS when a dispatcher/admin cancels a job. */
+export async function sendJobCancelledCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
+  const body = buildJobCancelledSmsBody(job);
   await sendCustomerSms(job.customer.id, job.customer.phone, body);
 }
 

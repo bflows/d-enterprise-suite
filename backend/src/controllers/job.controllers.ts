@@ -13,6 +13,7 @@ import {
 import type { JobConfirmationEmailPayload } from "../services/jobConfirmationEmail";
 import {
   sendJobCreatedCustomerSms,
+  sendJobCancelledCustomerSms,
   sendJobCompletedCustomerSms,
   sendJobEnRouteCustomerSms,
   sendJobRescheduleCustomerSms,
@@ -881,6 +882,18 @@ export const updateJobStatus = async (
         });
       }
 
+      if (status === "CANCELLED") {
+        await tx.jobActivity.create({
+          data: {
+            companyId,
+            jobId: resolvedJobId,
+            userId: userIdFromBody ?? sessionUserId ?? null,
+            type: "JOB_STATUS_UPDATED",
+            logName: "Job: Cancelled",
+          },
+        });
+      }
+
       return updatedJob;
     });
 
@@ -915,6 +928,12 @@ export const updateJobStatus = async (
     if (status === "COMPLETED" && existing.status !== "COMPLETED") {
       void sendJobCompletedCustomerSms(smsPayload).catch((err) => {
         console.error("Job completed SMS error:", err);
+      });
+    }
+
+    if (status === "CANCELLED" && existing.status !== "CANCELLED") {
+      void sendJobCancelledCustomerSms(smsPayload).catch((err) => {
+        console.error("Job cancelled SMS error:", err);
       });
     }
 

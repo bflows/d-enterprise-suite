@@ -73,6 +73,8 @@ export default function JobDetailPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -257,6 +259,43 @@ export default function JobDetailPage() {
   }, [searchParams, job, canCreateInvoice, router, pathname]);
 
   useEffect(() => {
+    if (searchParams.get("action") !== "cancelJob" || !job || !companyId || !user?.id) return;
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("action");
+    const q = next.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+
+    if (job.status === "cancelled") {
+      setCancelError("This job is already cancelled.");
+      return;
+    }
+
+    setCancelLoading(true);
+    setCancelError(null);
+    void (async () => {
+      try {
+        const res = await updateJobStatus(job.id, "CANCELLED", companyId, user.id);
+        if (!isMountedRef.current) return;
+        setJob(mapApiJobToJob(res.job));
+        triggerActivityRefresh();
+      } catch (err: unknown) {
+        const message =
+          err && typeof err === "object" && "response" in err
+            ? String((err as { response?: { data?: { message?: string } } }).response?.data?.message)
+            : "Could not cancel job.";
+        if (isMountedRef.current) {
+          setCancelError(message ?? "Could not cancel job.");
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setCancelLoading(false);
+        }
+      }
+    })();
+  }, [searchParams, job, companyId, user?.id, router, pathname, triggerActivityRefresh]);
+
+  useEffect(() => {
     if (!job) {
       setJobInvoiceDisabled(true);
       setJobPaymentDisabled(true);
@@ -403,6 +442,19 @@ export default function JobDetailPage() {
           role="alert"
         >
           {invoiceError}
+        </p>
+      )}
+      {cancelError && (
+        <p
+          className="mt-2 text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg"
+          role="alert"
+        >
+          {cancelError}
+        </p>
+      )}
+      {cancelLoading && (
+        <p className="mt-2 text-sm text-neutral-600" aria-live="polite">
+          Cancelling job...
         </p>
       )}
 
