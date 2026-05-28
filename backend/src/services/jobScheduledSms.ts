@@ -1,36 +1,21 @@
 import { getTwilioClient, getTwilioMessageFromFields, isTwilioMessagingConfigured } from "../lib/twilio";
+import { normalizePhoneToE164, SMS_COMPLIANCE_NOTICE_BODY } from "../lib/smsPhone";
 import { prisma } from "../lib/prisma";
 import { formatJobDateTime, type JobConfirmationEmailPayload } from "./jobConfirmationEmail";
+import {
+  buildStatusCallbackUrl,
+  getTwilioSenderAddress,
+  logAutomatedOutboundSms,
+  mapOutboundStatusAfterAccept,
+} from "./inboxSms.service";
 
-/** TCPA / carrier compliance notice sent once per customer phone (E.164). */
-export const SMS_COMPLIANCE_NOTICE_BODY =
-  "Duct Daddy will send job updates. HELP=Help, STOP=Stop. Msg freq varies. Msg&Data rates may apply.";
+export { normalizePhoneToE164, SMS_COMPLIANCE_NOTICE_BODY } from "../lib/smsPhone";
 
-/**
- * Normalize a stored phone string toward E.164 for Twilio.
- * US-centric: bare 10 digits get +1; 11 digits starting with 1 get + prefix.
- */
-export function normalizePhoneToE164(raw: string): string | null {
-  const s = raw.trim();
-  if (!s) return null;
-  if (s.startsWith("+")) {
-    const digits = s.slice(1).replace(/\D/g, "");
-    if (digits.length >= 8 && digits.length <= 15) {
-      return `+${digits}`;
-    }
-    return null;
-  }
-  const digits = s.replace(/\D/g, "");
-  if (digits.length === 10) {
-    return `+1${digits}`;
-  }
-  if (digits.length === 11 && digits.startsWith("1")) {
-    return `+${digits}`;
-  }
-  return null;
-}
-
-async function createTwilioMessage(to: string, body: string): Promise<void> {
+async function createTwilioMessage(
+  to: string,
+  body: string,
+  logContext?: { companyId: string; customerId: string },
+): Promise<void> {
   const client = getTwilioClient();
   const fromFields = getTwilioMessageFromFields();
   if (!client || !fromFields) {
@@ -38,11 +23,27 @@ async function createTwilioMessage(to: string, body: string): Promise<void> {
     return;
   }
 
-  const message = await client.messages.create({
+  const statusCallback = buildStatusCallbackUrl();
+  const createOptions = {
     to,
     body,
     ...fromFields,
-  });
+    ...(statusCallback ? { statusCallback } : {}),
+  } as Parameters<typeof client.messages.create>[0];
+  const message = await client.messages.create(createOptions);
+
+  if (logContext) {
+    await logAutomatedOutboundSms({
+      companyId: logContext.companyId,
+      customerId: logContext.customerId,
+      body,
+      twilioSid: message.sid,
+      status: mapOutboundStatusAfterAccept(message.status),
+      fromAddress: message.from ?? getTwilioSenderAddress() ?? "",
+      toAddress: to,
+    });
+  }
+
   if (message.errorCode != null || message.status === "failed" || message.status === "undelivered") {
     console.error("Twilio SMS failed:", {
       sid: message.sid,
@@ -84,12 +85,24 @@ async function sendCustomerSms(customerId: string, rawPhone: string, body: strin
 
   const customer = await prisma.customer.findUnique({
     where: { id: customerId },
-    select: { smsComplianceNoticeSentAt: true, smsComplianceNoticePhone: true },
+    select: {
+      smsComplianceNoticeSentAt: true,
+      smsComplianceNoticePhone: true,
+      companyId: true,
+      smsOptedOutAt: true,
+    },
   });
   if (!customer) {
     console.warn("Twilio: customer not found; skipping customer SMS.", { customerId });
     return;
   }
+
+  if (customer.smsOptedOutAt) {
+    console.warn("Twilio: customer opted out of SMS; skipping.", { customerId });
+    return;
+  }
+
+  const logContext = { companyId: customer.companyId, customerId };
 
   const alreadySentForPhone =
     customer.smsComplianceNoticeSentAt != null && customer.smsComplianceNoticePhone === to;
@@ -109,7 +122,7 @@ async function sendCustomerSms(customerId: string, rawPhone: string, body: strin
 
     if (claim.count > 0) {
       try {
-        await createTwilioMessage(to, SMS_COMPLIANCE_NOTICE_BODY);
+        await createTwilioMessage(to, SMS_COMPLIANCE_NOTICE_BODY, logContext);
       } catch (err: unknown) {
         await prisma.customer.update({
           where: { id: customerId },
@@ -122,7 +135,7 @@ async function sendCustomerSms(customerId: string, rawPhone: string, body: strin
   }
 
   try {
-    await createTwilioMessage(to, body);
+    await createTwilioMessage(to, body, logContext);
   } catch (err: unknown) {
     logTwilioApiError(err, "Twilio SMS API error");
     throw err;
@@ -195,9 +208,20 @@ function buildJobCompletedSmsBody(job: JobConfirmationEmailPayload): string {
   ].join(" ");
 }
 
+function buildJobCancelledSmsBody(job: JobConfirmationEmailPayload): string {
+  const customerFirst = job.customer.firstName.trim() || "there";
+  return `Hi ${customerFirst}, your appointment with ${job.company.name} has been cancelled. If you need to reschedule, please contact us.`;
+}
+
 /** SMS when a technician marks the job as completed. */
 export async function sendJobCompletedCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
   const body = buildJobCompletedSmsBody(job);
+  await sendCustomerSms(job.customer.id, job.customer.phone, body);
+}
+
+/** SMS when a dispatcher/admin cancels a job. */
+export async function sendJobCancelledCustomerSms(job: JobConfirmationEmailPayload): Promise<void> {
+  const body = buildJobCancelledSmsBody(job);
   await sendCustomerSms(job.customer.id, job.customer.phone, body);
 }
 
@@ -209,7 +233,7 @@ export async function sendJobEnRouteCustomerSms(job: JobConfirmationEmailPayload
 
 export type JobInvoiceSmsPayload = {
   customer: { id: string; firstName: string; phone: string };
-  company: { name: string };
+  company: { id: string; name: string };
   hostedInvoiceUrl: string;
   invoiceNumber?: string | null;
   amountDueCents?: number | null;

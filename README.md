@@ -267,10 +267,25 @@ Webhook endpoint: `POST /api/stripe/webhook` (configure in Stripe Dashboard).
 | `TWILIO_AUTH_TOKEN` | For SMS | Auth token |
 | `TWILIO_MESSAGING_SERVICE_SID` | One of | Messaging service |
 | `TWILIO_PHONE_NUMBER` or `TWILIO_FROM_NUMBER` | One of | E.164 sender |
+| `TWILIO_WEBHOOK_PUBLIC_URL` or `API_PUBLIC_URL` | For inbox | Public API base URL (e.g. `https://abc.ngrok.app`) — used for webhook signatures and status callbacks |
+| `TWILIO_WEBHOOK_SKIP_SIGNATURE_VALIDATION` | Local dev only | Set `true` if ngrok signature checks fail while testing |
+| `TWILIO_DEFAULT_COMPANY_ID` | No | Company id for inbound SMS when multiple customers share a phone |
+| `TWILIO_PHONE_NUMBER` | Recommended with inbox | E.164 number — helps match inbound replies to threads when using a Messaging Service |
 | `JOB_24H_REMINDER_CRON` | No | Set `0` to disable reminder cron |
 | `JOB_24H_REMINDER_CRON_SCHEDULE` | No | Cron expression override |
 
 Manual reminder run: `cd backend && npm run job-reminders`
+
+Twilio Console webhooks (point at your **backend** public URL, not the Next.js app unless `/api` is proxied):
+
+- **Incoming message**: `https://<public-host>/api/twilio/webhook/sms`
+- **Status callback** (optional): `https://<public-host>/api/twilio/webhook/status`
+
+Set `TWILIO_WEBHOOK_PUBLIC_URL=https://<public-host>` (no trailing slash). The server appends `/api/twilio/webhook/...` for signature validation.
+
+Inbound replies only appear if the texting phone matches a **customer** record (same number you message from the inbox), or a thread already exists for that number.
+
+Run migration after pull: `cd backend && npx prisma migrate deploy`
 
 ### SendGrid (email)
 

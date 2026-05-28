@@ -2,7 +2,7 @@ import { ensureSendGridConfigured, getSendGridFrom, sgMail } from "../lib/sendgr
 
 export type JobConfirmationEmailPayload = {
   id: string;
-  company: { name: string };
+  company: { id: string; name: string };
   customer: {
     id: string;
     firstName: string;

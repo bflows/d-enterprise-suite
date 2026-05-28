@@ -25,6 +25,7 @@ model User {
   timeCards       TimeCard[]
   jobPhotos       JobPhoto[]
   jobActivities   JobActivity[]
+  smsMessagesSent SmsMessage[]
 }
 
 model RefreshSession {
@@ -60,9 +61,11 @@ model Company {
   serviceBook   ServiceBook[]
   jobs          Job[]
   timeCards     TimeCard[]
-  jobPhotos     JobPhoto[]
-  jobActivities JobActivity[]
-  invoices      Invoice[]
+  jobPhotos       JobPhoto[]
+  jobActivities   JobActivity[]
+  invoices        Invoice[]
+  messageThreads  MessageThread[]
+  smsMessages     SmsMessage[]
 
   @@index([id])
 }
@@ -131,6 +134,8 @@ model Customer {
   /// First-time SMS compliance notice (HELP/STOP); set with `smsComplianceNoticePhone`.
   smsComplianceNoticeSentAt   DateTime?
   smsComplianceNoticePhone    String?
+  /// Set when customer texts STOP; cleared on START.
+  smsOptedOutAt DateTime?
   /// Stripe Customer id (cus_…); set when first invoice is created for this customer.
   stripeCustomerId String? @unique
   leadSource  String?
@@ -141,10 +146,81 @@ model Customer {
   companyName String?
   notes       String?
 
-  company Company @relation(fields: [companyId], references: [id])
-  jobs    Job[]
+  company        Company         @relation(fields: [companyId], references: [id])
+  jobs           Job[]
+  messageThreads MessageThread[]
+  smsMessages    SmsMessage[]
 
   @@index([companyId])
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageDeliveryStatus {
+  QUEUED
+  SENDING
+  SENT
+  DELIVERED
+  UNDELIVERED
+  FAILED
+  RECEIVED
+}
+
+/// One SMS conversation thread per customer within a company.
+model MessageThread {
+  id              String   @id @default(cuid())
+  companyId       String
+  customerId      String
+  /// Customer phone in E.164 for Twilio routing.
+  customerAddress String
+  /// Company Twilio number or messaging service identity (E.164 when applicable).
+  twilioAddress   String
+  lastMessageAt   DateTime @default(now())
+  lastMessagePreview String @default("")
+  unreadCount     Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  messages SmsMessage[]
+
+  @@unique([companyId, customerId])
+  @@index([companyId, lastMessageAt])
+  @@index([customerAddress])
+}
+
+model SmsMessage {
+  id           String                @id @default(cuid())
+  threadId     String
+  companyId    String
+  customerId   String
+  direction    MessageDirection
+  body         String
+  status       MessageDeliveryStatus @default(QUEUED)
+  twilioSid    String?               @unique
+  fromAddress  String
+  toAddress    String
+  /// Staff user who sent outbound message; null for automated/system SMS.
+  sentByUserId String?
+  errorCode    Int?
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  thread   MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  company  Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  sentBy   User?         @relation(fields: [sentByUserId], references: [id], onDelete: SetNull)
+
+  @@index([threadId, createdAt])
+  @@index([companyId])
+  @@index([customerId])
 }
 
 model ServiceBook {

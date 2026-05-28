@@ -13,7 +13,12 @@ import mapsRoutes from './routes/maps.routes';
 import timeCardRoutes from './routes/timeCard.routes';
 import jobActivityRoutes from './routes/jobActivity.routes';
 import invoiceRoutes from './routes/invoice.routes';
+import inboxRoutes from './routes/inbox.routes';
 import { handleStripeWebhook } from './controllers/stripe.webhook.controllers';
+import {
+  handleTwilioInboundSms,
+  handleTwilioStatusCallback,
+} from './controllers/twilio.webhook.controllers';
 import { startJob24hReminderCron, stopJob24hReminderCron } from './services/job24hReminderCron';
 
 dotenv.config();
@@ -21,9 +26,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', 1);
-}
+// Trust proxy for Twilio webhook signature URLs behind ngrok / load balancers.
+app.set('trust proxy', 1);
 
 const frontendOrigin = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
 
@@ -44,6 +48,22 @@ app.post(
   }
 );
 
+// Twilio webhooks use application/x-www-form-urlencoded (must run before express.json()).
+app.post(
+  '/api/twilio/webhook/sms',
+  express.urlencoded({ extended: false }),
+  (req: Request, res: Response, next) => {
+    void Promise.resolve(handleTwilioInboundSms(req, res)).catch(next);
+  }
+);
+app.post(
+  '/api/twilio/webhook/status',
+  express.urlencoded({ extended: false }),
+  (req: Request, res: Response, next) => {
+    void Promise.resolve(handleTwilioStatusCallback(req, res)).catch(next);
+  }
+);
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -58,6 +78,7 @@ app.use('/api/maps', mapsRoutes);
 app.use('/api/time-cards', timeCardRoutes);
 app.use('/api/job-activity', jobActivityRoutes);
 app.use('/api/invoices', invoiceRoutes);
+app.use('/api/inbox', inboxRoutes);
 
 app.get('/', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
