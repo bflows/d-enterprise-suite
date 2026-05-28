@@ -89,6 +89,21 @@ export default function InboxView() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
+  /** Guards against out-of-order responses when switching threads quickly. */
+  const activeMessagesThreadIdRef = useRef<string | null>(null);
+
+  const scrollToLatestMessage = useCallback((behavior: ScrollBehavior = "auto") => {
+    const run = () => {
+      const container = messagesScrollRef.current;
+      if (container) {
+        container.scrollTo({ top: container.scrollHeight, behavior });
+        return;
+      }
+      messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
+    };
+    requestAnimationFrame(() => requestAnimationFrame(run));
+  }, []);
 
   const refreshThreads = useCallback(async () => {
     if (!companyId) return;
@@ -108,22 +123,32 @@ export default function InboxView() {
     }
   }, [companyId]);
 
-  const loadMessages = useCallback(async (threadId: string) => {
-    setLoadingMessages(true);
-    setError(null);
-    try {
-      const { messages: list } = await getInboxThreadMessages(threadId);
-      setMessages(list);
-      await markInboxThreadRead(threadId);
-      setThreads((prev) =>
-        prev.map((t) => (t.id === threadId ? { ...t, unreadCount: 0 } : t)),
-      );
-    } catch (err: unknown) {
-      setError(apiErrorMessage(err, "Could not load messages."));
-    } finally {
-      setLoadingMessages(false);
-    }
-  }, []);
+  const loadMessages = useCallback(
+    async (threadId: string, options?: { clear?: boolean }) => {
+      const clear = options?.clear ?? false;
+      activeMessagesThreadIdRef.current = threadId;
+      setLoadingMessages(true);
+      if (clear) setMessages([]);
+      setError(null);
+      try {
+        const { messages: list } = await getInboxThreadMessages(threadId);
+        if (activeMessagesThreadIdRef.current !== threadId) return;
+        setMessages(list);
+        await markInboxThreadRead(threadId);
+        setThreads((prev) =>
+          prev.map((t) => (t.id === threadId ? { ...t, unreadCount: 0 } : t)),
+        );
+      } catch (err: unknown) {
+        if (activeMessagesThreadIdRef.current !== threadId) return;
+        setError(apiErrorMessage(err, "Could not load messages."));
+      } finally {
+        if (activeMessagesThreadIdRef.current === threadId) {
+          setLoadingMessages(false);
+        }
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     void refreshThreads();
@@ -161,13 +186,16 @@ export default function InboxView() {
   const selectThread = useCallback(
     async (threadId: string) => {
       setSelectedThreadId(threadId);
-      await loadMessages(threadId);
+      await loadMessages(threadId, { clear: true });
     },
     [loadMessages],
   );
 
   const openCustomerChat = useCallback(
     async (customerId: string) => {
+      activeMessagesThreadIdRef.current = null;
+      setMessages([]);
+      setLoadingMessages(true);
       setError(null);
       try {
         const thread = await openInboxThreadForCustomer(customerId);
@@ -199,8 +227,9 @@ export default function InboxView() {
   }, [selectedThreadId, composer, loadMessages, refreshThreads]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, selectedThreadId]);
+    if (loadingMessages || !selectedThreadId) return;
+    scrollToLatestMessage("smooth");
+  }, [loadingMessages, messages, selectedThreadId, scrollToLatestMessage]);
 
   const searchLower = search.trim().toLowerCase();
   const threadByCustomerId = new Map(threads.map((t) => [t.customerId, t]));
@@ -326,7 +355,12 @@ export default function InboxView() {
                 <button
                   type="button"
                   className="md:hidden text-p text-primary p-1 hover:bg-neutral-200 rounded-full font-semibold shrink-0"
-                  onClick={() => setSelectedThreadId(null)}
+                  onClick={() => {
+                    activeMessagesThreadIdRef.current = null;
+                    setSelectedThreadId(null);
+                    setMessages([]);
+                    setLoadingMessages(false);
+                  }}
                 >
                   <HiChevronLeft className="size-6" />
                 </button>
@@ -357,7 +391,10 @@ export default function InboxView() {
                 </p>
               )}
 
-              <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain touch-pan-y p-4 space-y-3">
+              <div
+                ref={messagesScrollRef}
+                className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain touch-pan-y p-4 space-y-3"
+              >
                 {loadingMessages && (
                   <p className="text-p text-neutral-500 text-center">Loading messages…</p>
                 )}
@@ -366,7 +403,8 @@ export default function InboxView() {
                     No messages yet. Send the first text below.
                   </p>
                 )}
-                {messages.map((m) => {
+                {!loadingMessages &&
+                  messages.map((m) => {
                   const outbound = m.direction === "OUTBOUND";
                   const deliveryLabel = outbound ? outboundStatusLabel(m.status) : null;
                   const senderLabel =
@@ -413,7 +451,7 @@ export default function InboxView() {
                       </div>
                     </div>
                   );
-                })}
+                  })}
                 <div ref={messagesEndRef} />
               </div>
 
