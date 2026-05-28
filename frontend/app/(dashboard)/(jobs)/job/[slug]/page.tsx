@@ -71,6 +71,7 @@ export default function JobDetailPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
   const [cancelLoading, setCancelLoading] = useState(false);
@@ -259,41 +260,17 @@ export default function JobDetailPage() {
   }, [searchParams, job, canCreateInvoice, router, pathname]);
 
   useEffect(() => {
-    if (searchParams.get("action") !== "cancelJob" || !job || !companyId || !user?.id) return;
+    if (searchParams.get("action") !== "cancelJob" || !job) return;
 
+    setCancelConfirmOpen(true);
+    setCancelError(
+      job.status === "cancelled" ? "This job is already cancelled." : null
+    );
     const next = new URLSearchParams(searchParams.toString());
     next.delete("action");
     const q = next.toString();
     router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
-
-    if (job.status === "cancelled") {
-      setCancelError("This job is already cancelled.");
-      return;
-    }
-
-    setCancelLoading(true);
-    setCancelError(null);
-    void (async () => {
-      try {
-        const res = await updateJobStatus(job.id, "CANCELLED", companyId, user.id);
-        if (!isMountedRef.current) return;
-        setJob(mapApiJobToJob(res.job));
-        triggerActivityRefresh();
-      } catch (err: unknown) {
-        const message =
-          err && typeof err === "object" && "response" in err
-            ? String((err as { response?: { data?: { message?: string } } }).response?.data?.message)
-            : "Could not cancel job.";
-        if (isMountedRef.current) {
-          setCancelError(message ?? "Could not cancel job.");
-        }
-      } finally {
-        if (isMountedRef.current) {
-          setCancelLoading(false);
-        }
-      }
-    })();
-  }, [searchParams, job, companyId, user?.id, router, pathname, triggerActivityRefresh]);
+  }, [searchParams, job, router, pathname]);
 
   useEffect(() => {
     if (!job) {
@@ -374,6 +351,39 @@ export default function JobDetailPage() {
     }
   }, [deleteLoading]);
 
+  const handleConfirmCancel = useCallback(async () => {
+    if (!job || !companyId || !user?.id) return;
+    if (job.status === "cancelled") {
+      setCancelError("This job is already cancelled.");
+      return;
+    }
+
+    setCancelLoading(true);
+    setCancelError(null);
+    try {
+      const res = await updateJobStatus(job.id, "CANCELLED", companyId, user.id);
+      setJob(mapApiJobToJob(res.job));
+      triggerActivityRefresh();
+      setCancelConfirmOpen(false);
+      setCancelError(null);
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? String((err as { response?: { data?: { message?: string } } }).response?.data?.message)
+          : "Could not cancel job.";
+      setCancelError(message ?? "Could not cancel job.");
+    } finally {
+      setCancelLoading(false);
+    }
+  }, [companyId, job, triggerActivityRefresh, user?.id]);
+
+  const handleCloseCancelConfirm = useCallback(() => {
+    if (!cancelLoading) {
+      setCancelConfirmOpen(false);
+      setCancelError(null);
+    }
+  }, [cancelLoading]);
+
   const handleProgressStatus = useCallback(
     async (apiStatus: ApiJobStatus) => {
       if (!job || !companyId || !user?.id) return;
@@ -444,20 +454,6 @@ export default function JobDetailPage() {
           {invoiceError}
         </p>
       )}
-      {cancelError && (
-        <p
-          className="mt-2 text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg"
-          role="alert"
-        >
-          {cancelError}
-        </p>
-      )}
-      {cancelLoading && (
-        <p className="mt-2 text-sm text-neutral-600" aria-live="polite">
-          Cancelling job...
-        </p>
-      )}
-
       {/* Progress section */}
       <JobProgress
         status={job.status}
@@ -533,6 +529,31 @@ export default function JobDetailPage() {
           {deleteError && (
             <p className="text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg" role="alert">
               {deleteError}
+            </p>
+          )}
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={cancelConfirmOpen}
+        onClose={handleCloseCancelConfirm}
+        title="Cancel job"
+        cancelLabel="Keep job"
+        primaryAction={{
+          label: cancelLoading ? "Cancelling…" : "Cancel job",
+          onClick: handleConfirmCancel,
+          disabled: cancelLoading || job.status === "cancelled",
+        }}
+      >
+        <div className="space-y-3">
+          <p className="text-p text-neutral-700">
+            Are you sure you want to cancel{" "}
+            <strong>{job.title?.trim() || job.customerName || "this job"}</strong>? The customer
+            will be notified by text if they have a phone number on file.
+          </p>
+          {cancelError && (
+            <p className="text-sm text-red-600 bg-red-50 py-2 px-3 rounded-lg" role="alert">
+              {cancelError}
             </p>
           )}
         </div>
