@@ -4,11 +4,13 @@ import {
   HiClipboardDocumentCheck,
   HiHome,
   HiIdentification,
+  HiInbox,
   HiUsers,
   HiOutlineCalendarDays,
   HiOutlineClipboardDocumentCheck,
   HiOutlineHome,
   HiOutlineIdentification,
+  HiOutlineInbox,
   HiOutlineUsers,
 } from "react-icons/hi2";
 import { ROLE_SLUGS, type RoleSlug } from "@/types/auth";
@@ -55,48 +57,59 @@ export function filterDashboardNavSections(
 }
 
 export const DASHBOARD_NAV_SECTIONS: readonly DashboardNavSection[] = [
-    {
-      section: "Home",
-      items: [
-        {
-          href: "/dashboard",
-          label: "Dashboard",
-          iconSolid: HiHome,
-          iconOutline: HiOutlineHome,
-        },
-        {
-          href: "/schedule",
-          label: "Schedule",
-          iconSolid: HiCalendarDays,
-          iconOutline: HiOutlineCalendarDays,
-        },
-      ],
-    },
-    {
-      section: "Company",
-      items: [
-        {
-          href: "/customers",
-          label: "Customers",
-          iconSolid: HiIdentification,
-          iconOutline: HiOutlineIdentification,
-        },
-        {
-          href: "/services",
-          label: "Services",
-          iconSolid: HiClipboardDocumentCheck,
-          iconOutline: HiOutlineClipboardDocumentCheck,
-        },
-        {
-          href: "/employees",
-          label: "Employees",
-          iconSolid: HiUsers,
-          iconOutline: HiOutlineUsers,
-          requiredRoles: [ROLE_SLUGS.ADMIN]
-        },
-      ],
-    },
-  ];
+  {
+    section: "Home",
+    items: [
+      {
+        href: "/dashboard",
+        label: "Dashboard",
+        iconSolid: HiHome,
+        iconOutline: HiOutlineHome,
+      },
+      {
+        href: "/schedule",
+        label: "Schedule",
+        iconSolid: HiCalendarDays,
+        iconOutline: HiOutlineCalendarDays,
+      },
+    ],
+  },
+  {
+    section: "Company",
+    items: [
+      {
+        href: "/inbox",
+        label: "Inbox",
+        iconSolid: HiInbox,
+        iconOutline: HiOutlineInbox,
+        requiredRoles: [
+          ROLE_SLUGS.ADMIN,
+          ROLE_SLUGS.DISPATCHER,
+          ROLE_SLUGS.TECHNICIAN,
+        ],
+      },
+      {
+        href: "/customers",
+        label: "Customers",
+        iconSolid: HiIdentification,
+        iconOutline: HiOutlineIdentification,
+      },
+      {
+        href: "/services",
+        label: "Services",
+        iconSolid: HiClipboardDocumentCheck,
+        iconOutline: HiOutlineClipboardDocumentCheck,
+      },
+      {
+        href: "/employees",
+        label: "Employees",
+        iconSolid: HiUsers,
+        iconOutline: HiOutlineUsers,
+        requiredRoles: [ROLE_SLUGS.ADMIN]
+      },
+    ],
+  },
+];
 
 export function isDashboardNavLinkActive(pathname: string, href: string): boolean {
   if (pathname === href) return true;
