@@ -237,9 +237,9 @@ export default function InboxView() {
     searchLower.length === 0
       ? customers
       : customers.filter((c) => {
-          const name = displayName(c.firstName, c.lastName).toLowerCase();
-          return name.includes(searchLower) || c.phone.includes(search);
-        });
+        const name = displayName(c.firstName, c.lastName).toLowerCase();
+        return name.includes(searchLower) || c.phone.includes(search);
+      });
   const sortedCustomers = [...filteredCustomers].sort((a, b) => {
     const lastA = threadByCustomerId.get(a.id)?.lastMessageAt;
     const lastB = threadByCustomerId.get(b.id)?.lastMessageAt;
@@ -264,17 +264,15 @@ export default function InboxView() {
       )}
 
       <div
-        className={`flex flex-col md:flex-row gap-4 ${
-          mobileChatOpen
+        className={`flex flex-col md:flex-row gap-4 ${mobileChatOpen
             ? "max-md:flex-1 max-md:min-h-0 max-md:gap-0"
             : "min-h-[60vh] md:min-h-[calc(100dvh-12rem)]"
-        }`}
+          }`}
       >
         {/* Customer / thread list */}
         <div
-          className={`md:w-80 shrink-0 flex flex-col rounded-lg border border-neutral-300 bg-neutral-50 overflow-hidden ${
-            selectedThreadId ? "hidden md:flex" : "flex"
-          }`}
+          className={`md:w-80 shrink-0 flex flex-col rounded-lg border border-neutral-300 bg-neutral-50 overflow-hidden ${selectedThreadId ? "hidden md:flex" : "flex"
+            }`}
         >
           <div className="p-3 border-b border-neutral-300">
             <input
@@ -288,7 +286,10 @@ export default function InboxView() {
           </div>
           <ul className="flex-1 overflow-y-auto divide-y divide-neutral-200">
             {loadingThreads && (
-              <li className="p-4 text-p text-neutral-500">Loading…</li>
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className="inline-block size-8 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+                <p className="text-p font-bold mt-2 text-neutral-600">Loading inbox...</p>
+              </div>
             )}
             {!loadingThreads && sortedCustomers.length === 0 && (
               <li className="p-4 text-p text-neutral-500">No customers found.</li>
@@ -308,9 +309,8 @@ export default function InboxView() {
                         void openCustomerChat(c.id);
                       }
                     }}
-                    className={`w-full text-left p-3 transition-colors hover:bg-primary/5 ${
-                      isActive ? "bg-primary/10" : ""
-                    }`}
+                    className={`w-full text-left p-3 transition-colors hover:bg-primary/5 ${isActive ? "bg-primary/10" : ""
+                      }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <span className="font-semibold text-p text-neutral-900 truncate">
@@ -339,11 +339,10 @@ export default function InboxView() {
 
         {/* Chat panel — on mobile, fixed between navbar and bottom tab bar */}
         <div
-          className={`flex-1 flex flex-col bg-neutral-50 overflow-hidden min-h-0 md:rounded-lg md:border md:border-neutral-300 ${
-            mobileChatOpen
+          className={`flex-1 flex flex-col bg-neutral-50 overflow-hidden min-h-0 md:rounded-lg md:border md:border-neutral-300 ${mobileChatOpen
               ? "max-md:fixed max-md:inset-x-0 max-md:z-20 max-md:flex max-md:flex-col max-md:top-[calc(env(safe-area-inset-top,0px)+4rem)] max-md:bottom-[calc(5rem+env(safe-area-inset-bottom,0px))]"
               : "min-h-[50vh] md:min-h-0"
-          } ${selectedThreadId ? "flex" : "hidden md:flex"}`}
+            } ${selectedThreadId ? "flex" : "hidden md:flex"}`}
         >
           {!selectedThread ? (
             <div className="flex-1 flex items-center justify-center p-6 text-neutral-500 text-p">
@@ -405,52 +404,49 @@ export default function InboxView() {
                 )}
                 {!loadingMessages &&
                   messages.map((m) => {
-                  const outbound = m.direction === "OUTBOUND";
-                  const deliveryLabel = outbound ? outboundStatusLabel(m.status) : null;
-                  const senderLabel =
-                    outbound && m.sentBy
-                      ? `${m.sentBy.firstName} ${m.sentBy.lastName}`.trim()
-                      : outbound
-                        ? "Automated"
-                        : null;
-                  return (
-                    <div
-                      key={m.id}
-                      className={`flex ${outbound ? "justify-end" : "justify-start"}`}
-                    >
+                    const outbound = m.direction === "OUTBOUND";
+                    const deliveryLabel = outbound ? outboundStatusLabel(m.status) : null;
+                    const senderLabel =
+                      outbound && m.sentBy
+                        ? `${m.sentBy.firstName} ${m.sentBy.lastName}`.trim()
+                        : outbound
+                          ? "Automated"
+                          : null;
+                    return (
                       <div
-                        className={`max-w-[85%] rounded-lg px-3 py-2 ${
-                          outbound
-                            ? "bg-primary text-neutral-100"
-                            : "bg-neutral-200 text-neutral-900"
-                        }`}
+                        key={m.id}
+                        className={`flex ${outbound ? "justify-end" : "justify-start"}`}
                       >
-                        {senderLabel && (
-                          <p
-                            className={`text-xs mb-1 ${
-                              outbound ? "text-neutral-200" : "text-neutral-500"
+                        <div
+                          className={`max-w-[85%] rounded-lg px-3 py-2 ${outbound
+                              ? "bg-primary text-neutral-100"
+                              : "bg-neutral-200 text-neutral-900"
                             }`}
-                          >
-                            {senderLabel}
-                          </p>
-                        )}
-                        <p className="text-p whitespace-pre-wrap wrap-break-word">{m.body}</p>
-                        <p
-                          className={`text-xs mt-1 ${
-                            outbound ? "text-neutral-200/80" : "text-neutral-500"
-                          }`}
                         >
-                          {formatMessageTime(m.createdAt)}
-                          {deliveryLabel && (
-                            <>
-                              {" "}
-                              · {deliveryLabel}
-                            </>
+                          {senderLabel && (
+                            <p
+                              className={`text-xs mb-1 ${outbound ? "text-neutral-200" : "text-neutral-500"
+                                }`}
+                            >
+                              {senderLabel}
+                            </p>
                           )}
-                        </p>
+                          <p className="text-p whitespace-pre-wrap wrap-break-word">{m.body}</p>
+                          <p
+                            className={`text-xs mt-1 ${outbound ? "text-neutral-200/80" : "text-neutral-500"
+                              }`}
+                          >
+                            {formatMessageTime(m.createdAt)}
+                            {deliveryLabel && (
+                              <>
+                                {" "}
+                                · {deliveryLabel}
+                              </>
+                            )}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  );
+                    );
                   })}
                 <div ref={messagesEndRef} />
               </div>
